@@ -3,6 +3,7 @@ import Topbar from './components/Topbar';
 import WorldTime from './components/WorldTime';
 import Currency from './components/Currency';
 import UnitConverter from './components/UnitConverter';
+import DateCounter from './components/DateCounter';
 
 export default function Home() {
   return (
@@ -44,6 +45,7 @@ export default function Home() {
             <WorldTime />
             <Currency />
             <UnitConverter />
+            <DateCounter />
           </div>
 
         </main>
