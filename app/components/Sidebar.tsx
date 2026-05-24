@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import AdBanner from './AdBanner';
 
 export default function Sidebar() {
   const { t, rtl } = useLang();
@@ -105,6 +106,11 @@ export default function Sidebar() {
         }}>
           {t.buttons.upgradeNow}
         </button>
+      </div>
+
+      {/* ── SIDEBAR BANNER 300×250 ── */}
+      <div style={{ margin: '0 .75rem .75rem', overflow: 'hidden', borderRadius: '12px' }}>
+        <AdBanner variant="sidebar" slot="5555555555" />
       </div>
     </aside>
   );
