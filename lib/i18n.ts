@@ -23,6 +23,7 @@ export type Translations = {
     passwordGenerator: string;
     sunriseSunset: string;
     bmi: string;
+    suggest: string;
   };
   topbar: {
     home: string;
@@ -69,6 +70,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Password Generator',
       sunriseSunset: 'Sunrise & Sunset',
       bmi: 'BMI',
+      suggest: 'Suggest & Vote',
     },
     topbar: {
       home: 'Home',
@@ -111,6 +113,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Passwortgenerator',
       sunriseSunset: 'Sonnenauf- & -untergang',
       bmi: 'BMI',
+      suggest: 'Vorschlagen & Abstimmen',
     },
     topbar: {
       home: 'Startseite',
@@ -153,6 +156,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Generatore password',
       sunriseSunset: 'Alba e tramonto',
       bmi: 'BMI',
+      suggest: 'Suggerisci & Vota',
     },
     topbar: {
       home: 'Home',
@@ -195,6 +199,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Générateur de mot de passe',
       sunriseSunset: 'Lever et coucher',
       bmi: 'IMC',
+      suggest: 'Suggérer & Voter',
     },
     topbar: {
       home: 'Accueil',
@@ -237,6 +242,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Generátor hesel',
       sunriseSunset: 'Východ a západ slunce',
       bmi: 'BMI',
+      suggest: 'Navrhnout & Hlasovat',
     },
     topbar: {
       home: 'Domů',
@@ -279,6 +285,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Generador de contraseñas',
       sunriseSunset: 'Amanecer y atardecer',
       bmi: 'IMC',
+      suggest: 'Sugerir & Votar',
     },
     topbar: {
       home: 'Inicio',
@@ -321,6 +328,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Generator haseł',
       sunriseSunset: 'Wschód i zachód słońca',
       bmi: 'BMI',
+      suggest: 'Zaproponuj & Głosuj',
     },
     topbar: {
       home: 'Strona główna',
@@ -363,6 +371,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Gerador de senhas',
       sunriseSunset: 'Nascer e pôr do sol',
       bmi: 'IMC',
+      suggest: 'Sugerir & Votar',
     },
     topbar: {
       home: 'Início',
@@ -405,6 +414,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'Генератор паролей',
       sunriseSunset: 'Рассвет и закат',
       bmi: 'ИМТ',
+      suggest: 'Предложить & Голосовать',
     },
     topbar: {
       home: 'Главная',
@@ -447,6 +457,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: '密码生成器',
       sunriseSunset: '日出日落',
       bmi: 'BMI',
+      suggest: '建议 & 投票',
     },
     topbar: {
       home: '首页',
@@ -489,6 +500,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'パスワード生成',
       sunriseSunset: '日の出・日没',
       bmi: 'BMI',
+      suggest: '提案 & 投票',
     },
     topbar: {
       home: 'ホーム',
@@ -531,6 +543,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: '비밀번호 생성기',
       sunriseSunset: '일출 & 일몰',
       bmi: 'BMI',
+      suggest: '제안 & 투표',
     },
     topbar: {
       home: '홈',
@@ -573,6 +586,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'مولد كلمات المرور',
       sunriseSunset: 'شروق وغروب الشمس',
       bmi: 'مؤشر كتلة الجسم',
+      suggest: 'اقترح & صوّت',
     },
     topbar: {
       home: 'الرئيسية',
@@ -615,6 +629,7 @@ const t: Record<Lang, Translations> = {
       passwordGenerator: 'पासवर्ड जनरेटर',
       sunriseSunset: 'सूर्योदय और सूर्यास्त',
       bmi: 'बीएमआई',
+      suggest: 'सुझाव & वोट',
     },
     topbar: {
       home: 'होम',

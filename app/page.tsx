@@ -2,23 +2,7 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import BottomNav from './components/BottomNav';
 import AdBanner from './components/AdBanner';
-import WorldTime from './components/WorldTime';
-import Currency from './components/Currency';
-import UnitConverter from './components/UnitConverter';
-import DateCounter from './components/DateCounter';
-import AgeCalculator from './components/AgeCalculator';
-import Weather from './components/Weather';
-import Sports from './components/Sports';
-import Rankings from './components/Rankings';
-import Crypto from './components/Crypto';
-import DailyBoost from './components/DailyBoost';
-import DailyGames from './components/DailyGames';
-import IPAddress from './components/IPAddress';
-import SpeedTest from './components/SpeedTest';
-import PasswordGenerator from './components/PasswordGenerator';
-import SunriseSunset from './components/SunriseSunset';
-import BMI from './components/BMI';
-import Markets from './components/Markets';
+import MainContent from './components/MainContent';
 
 export default function Home() {
   return (
@@ -65,47 +49,8 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Widget grid — responsive via .widget-grid CSS class */}
-          <div className="widget-grid">
-            {/* Row 1 */}
-            <WorldTime />
-            <Currency />
-            <UnitConverter />
-
-            {/* ── INLINE BANNER after row 1 ── */}
-            <div className="ad-span" style={{ gridColumn: '1 / -1' }}>
-              <AdBanner variant="inline" slot="2222222222" />
-            </div>
-
-            {/* Row 2 */}
-            <DateCounter />
-            <AgeCalculator />
-            <Weather />
-
-            {/* Row 3 */}
-            <Sports />
-            <Rankings />
-            <Crypto />
-
-            {/* ── INLINE BANNER after row 3 ── */}
-            <div className="ad-span" style={{ gridColumn: '1 / -1' }}>
-              <AdBanner variant="inline" slot="3333333333" />
-            </div>
-
-            {/* Row 4 */}
-            <DailyBoost />
-            <DailyGames />
-            <Markets />
-
-            {/* Row 5 */}
-            <IPAddress />
-            <SpeedTest />
-            <PasswordGenerator />
-
-            {/* Row 6 */}
-            <SunriseSunset />
-            <BMI />
-          </div>
+          {/* Responsive: tile grid on mobile/tablet, widget grid on desktop */}
+          <MainContent />
 
           {/* ── MOBILE BANNER 320×100 — visible only on mobile ── */}
           <div className="ad-mobile-wrapper">

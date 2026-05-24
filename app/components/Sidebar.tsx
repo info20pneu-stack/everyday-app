@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useLang } from '../../lib/LanguageContext';
 import AdBanner from './AdBanner';
 
@@ -61,6 +62,7 @@ export default function Sidebar() {
     { icon: '🔑', label: t.nav.passwordGenerator,  id: 'password' },
     { icon: '🌅', label: t.nav.sunriseSunset,      id: 'sunrise'  },
     { icon: '⚖️', label: t.nav.bmi,               id: 'bmi'      },
+    { icon: '💡', label: t.nav.suggest ?? 'Suggest & Vote', id: 'suggest', href: '/suggest' },
   ];
 
   const w = effectiveCollapsed ? COLLAPSED_W : EXPANDED_W;
@@ -145,42 +147,33 @@ export default function Sidebar() {
       >
         {navItems.map(item => {
           const isActive = active === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActive(item.id)}
-              title={effectiveCollapsed ? item.label : undefined}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                flexDirection: rtl ? 'row-reverse' : 'row',
-                justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
-                gap: effectiveCollapsed ? 0 : '10px',
-                padding: effectiveCollapsed ? '10px 0' : '10px 14px',
-                borderRadius: '14px',
-                fontSize: '13px',
-                color: isActive ? '#fff' : 'var(--text3)',
-                background: isActive
-                  ? 'linear-gradient(90deg, var(--purple), #7A3FFF)'
-                  : 'none',
-                border: 'none',
-                cursor: 'pointer',
-                width: '100%',
-                textAlign: rtl ? 'right' : 'left',
-                transition: 'background 0.15s, padding 0.3s ease, gap 0.3s ease',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-              }}
-            >
-              <span style={{
-                fontSize: '18px',
-                flexShrink: 0,
-                lineHeight: 1,
-              }}>
+          const itemStyle: React.CSSProperties = {
+            display: 'flex',
+            alignItems: 'center',
+            flexDirection: rtl ? 'row-reverse' : 'row',
+            justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
+            gap: effectiveCollapsed ? 0 : '10px',
+            padding: effectiveCollapsed ? '10px 0' : '10px 14px',
+            borderRadius: '14px',
+            fontSize: '13px',
+            color: isActive ? '#fff' : 'var(--text3)',
+            background: isActive
+              ? 'linear-gradient(90deg, var(--purple), #7A3FFF)'
+              : 'none',
+            border: 'none',
+            cursor: 'pointer',
+            width: '100%',
+            textAlign: rtl ? 'right' : 'left',
+            transition: 'background 0.15s, padding 0.3s ease, gap 0.3s ease',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textDecoration: 'none',
+          };
+          const inner = (
+            <>
+              <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1 }}>
                 {item.icon}
               </span>
-
-              {/* Label — fades out when collapsed */}
               <span style={{
                 opacity: effectiveCollapsed ? 0 : 1,
                 maxWidth: effectiveCollapsed ? 0 : '200px',
@@ -190,6 +183,29 @@ export default function Sidebar() {
               }}>
                 {item.label}
               </span>
+            </>
+          );
+          if ('href' in item && item.href) {
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                title={effectiveCollapsed ? item.label : undefined}
+                style={itemStyle}
+                onClick={() => setActive(item.id)}
+              >
+                {inner}
+              </Link>
+            );
+          }
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActive(item.id)}
+              title={effectiveCollapsed ? item.label : undefined}
+              style={itemStyle}
+            >
+              {inner}
             </button>
           );
         })}
