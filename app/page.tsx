@@ -9,6 +9,7 @@ import Weather from './components/Weather';
 import Sports from './components/Sports';
 import Rankings from './components/Rankings';
 import Crypto from './components/Crypto';
+import DailyBoost from './components/DailyBoost';
 
 export default function Home() {
   return (
@@ -56,6 +57,7 @@ export default function Home() {
             <Sports />
             <Rankings />
             <Crypto />
+            <DailyBoost />
           </div>
 
         </main>
