@@ -16,6 +16,7 @@ import SpeedTest from './components/SpeedTest';
 import PasswordGenerator from './components/PasswordGenerator';
 import SunriseSunset from './components/SunriseSunset';
 import BMI from './components/BMI';
+import Markets from './components/Markets';
 
 export default function Home() {
   return (
@@ -65,6 +66,7 @@ export default function Home() {
             <Crypto />
             <DailyBoost />
             <DailyGames />
+            <Markets />
             <IPAddress />
             <SpeedTest />
             <PasswordGenerator />

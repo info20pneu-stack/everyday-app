@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import PageShell from '../components/PageShell';
-import Rankings from '../components/Rankings';
+import Markets from '../components/Markets';
 
 export const metadata: Metadata = {
   title: 'Markets & Trending | EVERY DAY',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 export default function MarketsPage() {
   return (
     <PageShell>
-      <Rankings />
+      <Markets />
     </PageShell>
   );
 }
