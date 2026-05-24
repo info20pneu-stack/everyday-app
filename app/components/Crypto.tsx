@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
@@ -84,10 +85,11 @@ function Sparkline({ prices, positive, id }: { prices: number[]; positive: boole
 
 /* ═══════════════════════ COIN ROW ═══════════════════════ */
 
-function CoinRow({ coin, expanded, onToggle }: {
+function CoinRow({ coin, expanded, onToggle, showCharts }: {
   coin: Coin;
   expanded: boolean;
   onToggle: () => void;
+  showCharts: boolean;
 }) {
   const positive = coin.price_change_percentage_24h >= 0;
   const cc = positive ? 'var(--green2)' : '#EF4444';
@@ -100,7 +102,9 @@ function CoinRow({ coin, expanded, onToggle }: {
         onClick={onToggle}
         style={{
           display: 'grid',
-          gridTemplateColumns: '24px 1fr 80px 60px 70px 76px',
+          gridTemplateColumns: showCharts
+            ? '24px 1fr 80px 60px 70px 76px'
+            : '24px 1fr 80px 60px',
           gap: '6px',
           alignItems: 'center',
           background: expanded ? 'rgba(93,76,255,0.07)' : 'rgba(255,255,255,0.02)',
@@ -145,15 +149,19 @@ function CoinRow({ coin, expanded, onToggle }: {
           {fmtPct(coin.price_change_percentage_24h)}
         </div>
 
-        {/* Market cap */}
-        <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text2)' }}>
-          {fmtBig(coin.market_cap)}
-        </div>
+        {/* Market cap — hidden on mobile */}
+        {showCharts && (
+          <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text2)' }}>
+            {fmtBig(coin.market_cap)}
+          </div>
+        )}
 
-        {/* Sparkline */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-          <Sparkline prices={sp} positive={positive} id={coin.id} />
-        </div>
+        {/* Sparkline — hidden on mobile */}
+        {showCharts && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <Sparkline prices={sp} positive={positive} id={coin.id} />
+          </div>
+        )}
       </div>
 
       {/* Expanded detail */}
@@ -252,6 +260,7 @@ const API_URL =
   '?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true&price_change_percentage=24h';
 
 export default function Crypto() {
+  const { listLimit, showCharts, isMobile } = useDeviceDetect();
   const [coins, setCoins]       = useState<Coin[]>([]);
   const [state, setState]       = useState<FetchState>('loading');
   const [search, setSearch]     = useState('');
@@ -383,14 +392,20 @@ export default function Crypto() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {filtered.map(coin => (
+              {(isMobile && !search ? filtered.slice(0, listLimit) : filtered).map(coin => (
                 <CoinRow
                   key={coin.id}
                   coin={coin}
                   expanded={expandedId === coin.id}
                   onToggle={() => setExpanded(prev => prev === coin.id ? null : coin.id)}
+                  showCharts={showCharts}
                 />
               ))}
+              {isMobile && !search && filtered.length > listLimit && (
+                <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text3)', paddingTop: '4px' }}>
+                  + {filtered.length - listLimit} dalších · hledáním zobrazíš více
+                </div>
+              )}
             </div>
           )}
 

@@ -7,10 +7,26 @@ import AdBanner from './AdBanner';
 const COLLAPSED_W = 60;
 const EXPANDED_W  = 270;
 
+function useWindowWidth() {
+  const [width, setWidth] = useState<number | null>(null);
+  useEffect(() => {
+    setWidth(window.innerWidth);
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return width;
+}
+
 export default function Sidebar() {
   const { t, rtl } = useLang();
   const [active,    setActive]    = useState('home');
   const [collapsed, setCollapsed] = useState(false);
+  const windowWidth = useWindowWidth();
+
+  // tablet (481–768 px): always force collapsed, but don't overwrite user preference
+  const isTabletForced = windowWidth !== null && windowWidth <= 768 && windowWidth > 480;
+  const effectiveCollapsed = isTabletForced || collapsed;
 
   // Restore preference from localStorage after mount
   useEffect(() => {
@@ -47,12 +63,12 @@ export default function Sidebar() {
     { icon: '⚖️', label: t.nav.bmi,               id: 'bmi'      },
   ];
 
-  const w = collapsed ? COLLAPSED_W : EXPANDED_W;
+  const w = effectiveCollapsed ? COLLAPSED_W : EXPANDED_W;
 
   // Arrow direction respects RTL + collapse state
   const arrowIcon = (() => {
-    if (!rtl) return collapsed ? '›' : '‹';
-    return collapsed ? '‹' : '›';
+    if (!rtl) return effectiveCollapsed ? '›' : '‹';
+    return effectiveCollapsed ? '‹' : '›';
   })();
 
   return (
@@ -74,10 +90,10 @@ export default function Sidebar() {
         overflow: 'hidden',
       }}
     >
-      {/* ── Toggle button ── */}
+      {/* ── Toggle button — hidden when tablet forces collapse ── */}
       <button
         onClick={toggle}
-        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        title={effectiveCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         style={{
           position: 'absolute',
           top: '50%',
@@ -96,7 +112,7 @@ export default function Sidebar() {
           fontSize: '14px',
           fontWeight: '700',
           cursor: 'pointer',
-          display: 'flex',
+          display: isTabletForced ? 'none' : 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           transition: 'background 0.2s, color 0.2s',
@@ -120,7 +136,7 @@ export default function Sidebar() {
           display: 'flex',
           flexDirection: 'column',
           gap: '3px',
-          padding: collapsed ? '0 6px' : '0 .75rem',
+          padding: effectiveCollapsed ? '0 6px' : '0 .75rem',
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
@@ -133,14 +149,14 @@ export default function Sidebar() {
             <button
               key={item.id}
               onClick={() => setActive(item.id)}
-              title={collapsed ? item.label : undefined}
+              title={effectiveCollapsed ? item.label : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 flexDirection: rtl ? 'row-reverse' : 'row',
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                gap: collapsed ? 0 : '10px',
-                padding: collapsed ? '10px 0' : '10px 14px',
+                justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
+                gap: effectiveCollapsed ? 0 : '10px',
+                padding: effectiveCollapsed ? '10px 0' : '10px 14px',
                 borderRadius: '14px',
                 fontSize: '13px',
                 color: isActive ? '#fff' : 'var(--text3)',
@@ -166,8 +182,8 @@ export default function Sidebar() {
 
               {/* Label — fades out when collapsed */}
               <span style={{
-                opacity: collapsed ? 0 : 1,
-                maxWidth: collapsed ? 0 : '200px',
+                opacity: effectiveCollapsed ? 0 : 1,
+                maxWidth: effectiveCollapsed ? 0 : '200px',
                 transition: 'opacity 0.2s ease, max-width 0.3s ease',
                 overflow: 'hidden',
                 display: 'inline-block',
@@ -180,7 +196,7 @@ export default function Sidebar() {
       </nav>
 
       {/* ── Premium box ── */}
-      {!collapsed && (
+      {!effectiveCollapsed && (
         <div style={{
           margin: '.75rem',
           background: 'linear-gradient(135deg, #1a1060, #0a0b20)',
@@ -240,7 +256,7 @@ export default function Sidebar() {
       )}
 
       {/* ── Sidebar banner — hidden when collapsed ── */}
-      {!collapsed && (
+      {!effectiveCollapsed && (
         <div style={{
           margin: '0 .75rem .75rem',
           overflow: 'hidden',

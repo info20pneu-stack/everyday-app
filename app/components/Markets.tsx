@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 
 type Tab = 'indices' | 'forex' | 'commodities';
 
@@ -73,6 +74,7 @@ function fmtPrice(t: Ticker): string {
 }
 
 export default function Markets() {
+  const { listLimit } = useDeviceDetect();
   const [tab, setTab] = useState<Tab>('indices');
   const [data, setData] = useState<Record<Tab, Ticker[]>>(SEED_DATA);
   const [updated, setUpdated] = useState<Date | null>(null);
@@ -98,7 +100,7 @@ export default function Markets() {
     return () => clearInterval(id);
   }, []);
 
-  const tickers = data[tab];
+  const tickers = isFinite(listLimit) ? data[tab].slice(0, listLimit) : data[tab];
 
   return (
     <div style={{

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 
 const CITIES = [
   { name: 'New York', country: 'USA', tz: 'America/New_York', flag: '🇺🇸', continent: 'Americas' },
@@ -78,10 +79,12 @@ const SORTS = [
 ];
 
 export default function WorldTime() {
+  const { listLimit, isMobile } = useDeviceDetect();
   const [times, setTimes] = useState<Record<string, string>>({});
   const [search, setSearch] = useState('');
   const [continent, setContinent] = useState('All');
   const [sort, setSort] = useState('offset');
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const tick = () => {
@@ -164,8 +167,18 @@ export default function WorldTime() {
         ))}
       </div>
 
-      <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-        {filtered.map(city => (
+      {/* Collapsed city list on mobile — show all toggle */}
+      {isMobile && !showAll && !search && continent === 'All' && filtered.length > listLimit && (
+        <div style={{ marginBottom: '.5rem', fontSize: '11px', color: 'var(--text3)', textAlign: 'center' }}>
+          Zobrazeno {listLimit} z {filtered.length} měst
+        </div>
+      )}
+
+      <div>
+        {(isMobile && !showAll && !search && continent === 'All'
+          ? filtered.slice(0, listLimit)
+          : filtered
+        ).map(city => (
           <div key={city.name} style={{
             display: 'flex',
             alignItems: 'center',
@@ -200,6 +213,29 @@ export default function WorldTime() {
           </div>
         ))}
       </div>
+
+      {/* Show all / Show less toggle — mobile only */}
+      {isMobile && !search && continent === 'All' && filtered.length > listLimit && (
+        <button
+          onClick={() => setShowAll(v => !v)}
+          style={{
+            marginTop: '.75rem',
+            width: '100%',
+            background: 'rgba(93,76,255,0.12)',
+            border: '1px solid rgba(93,76,255,0.3)',
+            borderRadius: '10px',
+            color: 'var(--purple3)',
+            fontSize: '12px',
+            fontWeight: '600',
+            padding: '8px',
+            cursor: 'pointer',
+          }}
+        >
+          {showAll
+            ? `Zobrazit méně ↑`
+            : `Zobrazit všechna města (${filtered.length}) ↓`}
+        </button>
+      )}
     </div>
   );
 }
