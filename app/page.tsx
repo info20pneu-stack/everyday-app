@@ -14,6 +14,8 @@ import DailyGames from './components/DailyGames';
 import IPAddress from './components/IPAddress';
 import SpeedTest from './components/SpeedTest';
 import PasswordGenerator from './components/PasswordGenerator';
+import SunriseSunset from './components/SunriseSunset';
+import BMI from './components/BMI';
 
 export default function Home() {
   return (
@@ -66,6 +68,8 @@ export default function Home() {
             <IPAddress />
             <SpeedTest />
             <PasswordGenerator />
+            <SunriseSunset />
+            <BMI />
           </div>
 
         </main>
