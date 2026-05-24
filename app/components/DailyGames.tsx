@@ -386,7 +386,7 @@ function WordChain() {
               return (
                 <button key={w + i} onClick={() => handleWordClick(w)} disabled={isClicked || phase === 'success'} style={{
                   padding: '9px 18px', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
-                  cursor: isClicked ? 'default' : 'pointer', border: 'none',
+                  cursor: isClicked ? 'default' : 'pointer',
                   background: isGlowing ? 'rgba(34,197,94,0.25)' : isClicked ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.07)',
                   color: isClicked ? 'var(--green2)' : '#fff',
                   boxShadow: isGlowing ? '0 0 18px rgba(34,197,94,0.5)' : 'none',

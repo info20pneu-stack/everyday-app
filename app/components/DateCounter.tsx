@@ -176,7 +176,7 @@ export default function DateCounter() {
           gap: '.5rem',
         }}>
           {STAT_LABELS.map(({ key, label }) => {
-            const val = key === 'weeks' ? diff.weeks : key === 'days' && key !== 'weeks' ? diff.days : diff[key];
+            const val = key === 'weeks' ? diff.weeks : key === 'days' ? diff.days : diff[key];
             const isSeconds = key === 'seconds';
             return (
               <div key={key} style={{
