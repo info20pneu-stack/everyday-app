@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "./components/Providers";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://everyday-app.vercel.app'),
@@ -7,14 +8,12 @@ export const metadata: Metadata = {
   description: "Everything you need every day: world clocks, weather, sports, converters, countdowns and more.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

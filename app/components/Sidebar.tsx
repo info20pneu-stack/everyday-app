@@ -1,36 +1,53 @@
 'use client';
 
 import { useState } from 'react';
-
-const navItems = [
-  { icon: '🏠', label: 'Home', id: 'home' },
-  { icon: '🕐', label: 'World Time', id: 'worldtime' },
-  { icon: '💵', label: 'Currency', id: 'currency' },
-  { icon: '📏', label: 'Unit Converter', id: 'units' },
-  { icon: '📅', label: 'Date Counter', id: 'date' },
-  { icon: '🌤️', label: 'Weather', id: 'weather' },
-  { icon: '👤', label: 'Age Calculator', id: 'age' },
-  { icon: '🏆', label: 'Sports Center', id: 'sports' },
-  { icon: '📈', label: 'Trending', id: 'trending' },
-  { icon: '₿', label: 'Crypto', id: 'crypto' },
-  { icon: '⚡', label: 'Daily Boost', id: 'boost' },
-];
+import { useLang } from '../../lib/LanguageContext';
 
 export default function Sidebar() {
+  const { t, rtl } = useLang();
   const [active, setActive] = useState('home');
+
+  const navItems = [
+    { icon: '🏠', label: t.nav.home,              id: 'home' },
+    { icon: '🕐', label: t.nav.worldTime,          id: 'worldtime' },
+    { icon: '💵', label: t.nav.currency,           id: 'currency' },
+    { icon: '📏', label: t.nav.unitConverter,      id: 'units' },
+    { icon: '📅', label: t.nav.dateCounter,        id: 'date' },
+    { icon: '🌤️', label: t.nav.weather,            id: 'weather' },
+    { icon: '👤', label: t.nav.ageCalculator,      id: 'age' },
+    { icon: '🏆', label: t.nav.sports,             id: 'sports' },
+    { icon: '📈', label: t.nav.trending,           id: 'trending' },
+    { icon: '₿',  label: t.nav.crypto,             id: 'crypto' },
+    { icon: '⚡', label: t.nav.dailyBoost,         id: 'boost' },
+    { icon: '🎮', label: t.nav.dailyGames,         id: 'games' },
+    { icon: '📊', label: t.nav.markets,            id: 'markets' },
+    { icon: '🌐', label: t.nav.ipAddress,          id: 'ip' },
+    { icon: '⚡', label: t.nav.speedTest,          id: 'speed' },
+    { icon: '🔑', label: t.nav.passwordGenerator,  id: 'password' },
+    { icon: '🌅', label: t.nav.sunriseSunset,      id: 'sunrise' },
+    { icon: '⚖️', label: t.nav.bmi,               id: 'bmi' },
+  ];
 
   return (
     <aside style={{
       width: '270px',
       background: 'var(--sidebar)',
-      borderRight: '1px solid rgba(255,255,255,0.04)',
+      borderRight: rtl ? 'none' : '1px solid rgba(255,255,255,0.04)',
+      borderLeft: rtl ? '1px solid rgba(255,255,255,0.04)' : 'none',
       display: 'flex',
       flexDirection: 'column',
       padding: '1.25rem 0',
       minHeight: '100vh',
       flexShrink: 0,
     }}>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '0 .75rem', flex: 1 }}>
+      <nav style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '3px',
+        padding: '0 .75rem',
+        flex: 1,
+        overflowY: 'auto',
+      }}>
         {navItems.map((item) => (
           <button
             key={item.id}
@@ -38,6 +55,7 @@ export default function Sidebar() {
             style={{
               display: 'flex',
               alignItems: 'center',
+              flexDirection: rtl ? 'row-reverse' : 'row',
               gap: '10px',
               padding: '10px 14px',
               borderRadius: '14px',
@@ -49,7 +67,7 @@ export default function Sidebar() {
               border: 'none',
               cursor: 'pointer',
               width: '100%',
-              textAlign: 'left',
+              textAlign: rtl ? 'right' : 'left',
               transition: 'all .15s',
             }}
           >
@@ -59,19 +77,20 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      {/* Premium box */}
       <div style={{
         margin: '.75rem',
         background: 'linear-gradient(135deg, #1a1060, #0a0b20)',
         border: '1px solid rgba(93,76,255,0.3)',
         borderRadius: '16px',
         padding: '1rem',
-        textAlign: 'center',
+        textAlign: rtl ? 'right' : 'center',
       }}>
         <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', fontFamily: 'Poppins', marginBottom: '4px' }}>
-          GO PREMIUM
+          {t.premium.title}
         </div>
         <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '.75rem', lineHeight: '1.5' }}>
-          Ad-free experience and more powerful features
+          {t.premium.description}
         </div>
         <button style={{
           background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
@@ -84,7 +103,7 @@ export default function Sidebar() {
           cursor: 'pointer',
           width: '100%',
         }}>
-          Upgrade Now
+          {t.buttons.upgradeNow}
         </button>
       </div>
     </aside>
