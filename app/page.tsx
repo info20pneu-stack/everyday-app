@@ -4,6 +4,7 @@ import WorldTime from './components/WorldTime';
 import Currency from './components/Currency';
 import UnitConverter from './components/UnitConverter';
 import DateCounter from './components/DateCounter';
+import AgeCalculator from './components/AgeCalculator';
 
 export default function Home() {
   return (
@@ -46,6 +47,7 @@ export default function Home() {
             <Currency />
             <UnitConverter />
             <DateCounter />
+            <AgeCalculator />
           </div>
 
         </main>
