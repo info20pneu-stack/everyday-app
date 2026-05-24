@@ -5,6 +5,7 @@ import Currency from './components/Currency';
 import UnitConverter from './components/UnitConverter';
 import DateCounter from './components/DateCounter';
 import AgeCalculator from './components/AgeCalculator';
+import Weather from './components/Weather';
 
 export default function Home() {
   return (
@@ -48,6 +49,7 @@ export default function Home() {
             <UnitConverter />
             <DateCounter />
             <AgeCalculator />
+            <Weather />
           </div>
 
         </main>
