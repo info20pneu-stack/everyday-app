@@ -7,6 +7,7 @@ import DateCounter from './components/DateCounter';
 import AgeCalculator from './components/AgeCalculator';
 import Weather from './components/Weather';
 import Sports from './components/Sports';
+import Rankings from './components/Rankings';
 
 export default function Home() {
   return (
@@ -52,6 +53,7 @@ export default function Home() {
             <AgeCalculator />
             <Weather />
             <Sports />
+            <Rankings />
           </div>
 
         </main>
