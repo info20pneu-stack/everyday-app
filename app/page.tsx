@@ -1,5 +1,6 @@
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
+import WorldTime from './components/WorldTime';
 
 export default function Home() {
   return (
@@ -17,7 +18,7 @@ export default function Home() {
             borderRadius: '24px',
             border: '1px solid rgba(255,255,255,0.05)',
             padding: '2rem',
-            textAlign: 'center',
+            marginBottom: '1.25rem',
           }}>
             <h1 style={{
               fontFamily: 'Poppins, sans-serif',
@@ -32,6 +33,9 @@ export default function Home() {
               Everything you need. Every day.
             </p>
           </div>
+
+          <WorldTime />
+
         </main>
       </div>
     </div>
