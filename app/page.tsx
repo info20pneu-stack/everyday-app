@@ -10,6 +10,10 @@ import Sports from './components/Sports';
 import Rankings from './components/Rankings';
 import Crypto from './components/Crypto';
 import DailyBoost from './components/DailyBoost';
+import DailyGames from './components/DailyGames';
+import IPAddress from './components/IPAddress';
+import SpeedTest from './components/SpeedTest';
+import PasswordGenerator from './components/PasswordGenerator';
 
 export default function Home() {
   return (
@@ -58,6 +62,10 @@ export default function Home() {
             <Rankings />
             <Crypto />
             <DailyBoost />
+            <DailyGames />
+            <IPAddress />
+            <SpeedTest />
+            <PasswordGenerator />
           </div>
 
         </main>
