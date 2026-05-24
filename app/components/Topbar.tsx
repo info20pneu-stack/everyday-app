@@ -43,7 +43,7 @@ export default function Topbar() {
       flexDirection: rtl ? 'row-reverse' : 'row',
     }}>
       {/* Logo */}
-      <div style={{
+      <div className="topbar-logo-section" style={{
         width: '270px',
         padding: '0 1.5rem',
         fontFamily: 'Poppins, sans-serif',
@@ -62,7 +62,7 @@ export default function Topbar() {
       </div>
 
       {/* Nav */}
-      <nav style={{ display: 'flex', height: '100%', padding: '0 .75rem' }}>
+      <nav className="topbar-nav" style={{ display: 'flex', height: '100%', padding: '0 .75rem' }}>
         {navItems.map((item) => (
           <button key={item} style={{
             background: 'none',
@@ -81,7 +81,7 @@ export default function Topbar() {
       </nav>
 
       {/* Search */}
-      <div style={{
+      <div className="topbar-search" style={{
         marginLeft: rtl ? undefined : 'auto',
         marginRight: rtl ? 'auto' : '1rem',
         background: 'rgba(255,255,255,0.04)',

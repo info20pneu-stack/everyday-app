@@ -1,117 +1,255 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import AdBanner from './AdBanner';
 
+const COLLAPSED_W = 60;
+const EXPANDED_W  = 270;
+
 export default function Sidebar() {
   const { t, rtl } = useLang();
-  const [active, setActive] = useState('home');
+  const [active,    setActive]    = useState('home');
+  const [collapsed, setCollapsed] = useState(false);
+
+  // Restore preference from localStorage after mount
+  useEffect(() => {
+    const stored = localStorage.getItem('sidebar-collapsed');
+    if (stored !== null) setCollapsed(stored === 'true');
+  }, []);
+
+  function toggle() {
+    setCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar-collapsed', String(next));
+      return next;
+    });
+  }
 
   const navItems = [
-    { icon: '🏠', label: t.nav.home,              id: 'home' },
-    { icon: '🕐', label: t.nav.worldTime,          id: 'worldtime' },
+    { icon: '🏠', label: t.nav.home,              id: 'home'     },
+    { icon: '🕐', label: t.nav.worldTime,          id: 'worldtime'},
     { icon: '💵', label: t.nav.currency,           id: 'currency' },
-    { icon: '📏', label: t.nav.unitConverter,      id: 'units' },
-    { icon: '📅', label: t.nav.dateCounter,        id: 'date' },
-    { icon: '🌤️', label: t.nav.weather,            id: 'weather' },
-    { icon: '👤', label: t.nav.ageCalculator,      id: 'age' },
-    { icon: '🏆', label: t.nav.sports,             id: 'sports' },
+    { icon: '📏', label: t.nav.unitConverter,      id: 'units'    },
+    { icon: '📅', label: t.nav.dateCounter,        id: 'date'     },
+    { icon: '🌤️', label: t.nav.weather,            id: 'weather'  },
+    { icon: '👤', label: t.nav.ageCalculator,      id: 'age'      },
+    { icon: '🏆', label: t.nav.sports,             id: 'sports'   },
     { icon: '📈', label: t.nav.trending,           id: 'trending' },
-    { icon: '₿',  label: t.nav.crypto,             id: 'crypto' },
-    { icon: '⚡', label: t.nav.dailyBoost,         id: 'boost' },
-    { icon: '🎮', label: t.nav.dailyGames,         id: 'games' },
-    { icon: '📊', label: t.nav.markets,            id: 'markets' },
-    { icon: '🌐', label: t.nav.ipAddress,          id: 'ip' },
-    { icon: '⚡', label: t.nav.speedTest,          id: 'speed' },
+    { icon: '₿',  label: t.nav.crypto,             id: 'crypto'   },
+    { icon: '⚡', label: t.nav.dailyBoost,         id: 'boost'    },
+    { icon: '🎮', label: t.nav.dailyGames,         id: 'games'    },
+    { icon: '📊', label: t.nav.markets,            id: 'markets'  },
+    { icon: '🌐', label: t.nav.ipAddress,          id: 'ip'       },
+    { icon: '🚀', label: t.nav.speedTest,          id: 'speed'    },
     { icon: '🔑', label: t.nav.passwordGenerator,  id: 'password' },
-    { icon: '🌅', label: t.nav.sunriseSunset,      id: 'sunrise' },
-    { icon: '⚖️', label: t.nav.bmi,               id: 'bmi' },
+    { icon: '🌅', label: t.nav.sunriseSunset,      id: 'sunrise'  },
+    { icon: '⚖️', label: t.nav.bmi,               id: 'bmi'      },
   ];
 
+  const w = collapsed ? COLLAPSED_W : EXPANDED_W;
+
+  // Arrow direction respects RTL + collapse state
+  const arrowIcon = (() => {
+    if (!rtl) return collapsed ? '›' : '‹';
+    return collapsed ? '‹' : '›';
+  })();
+
   return (
-    <aside style={{
-      width: '270px',
-      background: 'var(--sidebar)',
-      borderRight: rtl ? 'none' : '1px solid rgba(255,255,255,0.04)',
-      borderLeft: rtl ? '1px solid rgba(255,255,255,0.04)' : 'none',
-      display: 'flex',
-      flexDirection: 'column',
-      padding: '1.25rem 0',
-      minHeight: '100vh',
-      flexShrink: 0,
-    }}>
-      <nav style={{
+    <aside
+      className="app-sidebar"
+      style={{
+        width: w,
+        minWidth: w,
+        background: 'var(--sidebar)',
+        borderRight: rtl ? 'none' : '1px solid rgba(255,255,255,0.04)',
+        borderLeft:  rtl ? '1px solid rgba(255,255,255,0.04)' : 'none',
         display: 'flex',
         flexDirection: 'column',
-        gap: '3px',
-        padding: '0 .75rem',
-        flex: 1,
-        overflowY: 'auto',
-      }}>
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActive(item.id)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              flexDirection: rtl ? 'row-reverse' : 'row',
-              gap: '10px',
-              padding: '10px 14px',
-              borderRadius: '14px',
-              fontSize: '13px',
-              color: active === item.id ? '#fff' : 'var(--text3)',
-              background: active === item.id
-                ? 'linear-gradient(90deg, var(--purple), #7A3FFF)'
-                : 'none',
-              border: 'none',
-              cursor: 'pointer',
-              width: '100%',
-              textAlign: rtl ? 'right' : 'left',
-              transition: 'all .15s',
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>{item.icon}</span>
-            {item.label}
-          </button>
-        ))}
+        padding: '1.25rem 0',
+        minHeight: '100vh',
+        flexShrink: 0,
+        position: 'relative',
+        transition: 'width 0.3s ease, min-width 0.3s ease',
+        overflow: 'hidden',
+      }}
+    >
+      {/* ── Toggle button ── */}
+      <button
+        onClick={toggle}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: rtl ? undefined : '-12px',
+          left:  rtl ? '-12px'  : undefined,
+          transform: 'translateY(-50%)',
+          zIndex: 10,
+          width: '24px',
+          height: '48px',
+          borderRadius: rtl ? '6px 0 0 6px' : '0 6px 6px 0',
+          background: 'var(--sidebar)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderLeft:  rtl ? '1px solid rgba(255,255,255,0.08)' : 'none',
+          borderRight: rtl ? 'none' : '1px solid rgba(255,255,255,0.08)',
+          color: 'var(--text3)',
+          fontSize: '14px',
+          fontWeight: '700',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'background 0.2s, color 0.2s',
+          lineHeight: 1,
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(93,76,255,0.25)';
+          (e.currentTarget as HTMLButtonElement).style.color = '#fff';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLButtonElement).style.background = 'var(--sidebar)';
+          (e.currentTarget as HTMLButtonElement).style.color = 'var(--text3)';
+        }}
+      >
+        {arrowIcon}
+      </button>
+
+      {/* ── Nav items ── */}
+      <nav
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '3px',
+          padding: collapsed ? '0 6px' : '0 .75rem',
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          transition: 'padding 0.3s ease',
+        }}
+      >
+        {navItems.map(item => {
+          const isActive = active === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActive(item.id)}
+              title={collapsed ? item.label : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: rtl ? 'row-reverse' : 'row',
+                justifyContent: collapsed ? 'center' : 'flex-start',
+                gap: collapsed ? 0 : '10px',
+                padding: collapsed ? '10px 0' : '10px 14px',
+                borderRadius: '14px',
+                fontSize: '13px',
+                color: isActive ? '#fff' : 'var(--text3)',
+                background: isActive
+                  ? 'linear-gradient(90deg, var(--purple), #7A3FFF)'
+                  : 'none',
+                border: 'none',
+                cursor: 'pointer',
+                width: '100%',
+                textAlign: rtl ? 'right' : 'left',
+                transition: 'background 0.15s, padding 0.3s ease, gap 0.3s ease',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+              }}
+            >
+              <span style={{
+                fontSize: '18px',
+                flexShrink: 0,
+                lineHeight: 1,
+              }}>
+                {item.icon}
+              </span>
+
+              {/* Label — fades out when collapsed */}
+              <span style={{
+                opacity: collapsed ? 0 : 1,
+                maxWidth: collapsed ? 0 : '200px',
+                transition: 'opacity 0.2s ease, max-width 0.3s ease',
+                overflow: 'hidden',
+                display: 'inline-block',
+              }}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </nav>
 
-      {/* Premium box */}
-      <div style={{
-        margin: '.75rem',
-        background: 'linear-gradient(135deg, #1a1060, #0a0b20)',
-        border: '1px solid rgba(93,76,255,0.3)',
-        borderRadius: '16px',
-        padding: '1rem',
-        textAlign: rtl ? 'right' : 'center',
-      }}>
-        <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', fontFamily: 'Poppins', marginBottom: '4px' }}>
-          {t.premium.title}
-        </div>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '.75rem', lineHeight: '1.5' }}>
-          {t.premium.description}
-        </div>
-        <button style={{
-          background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-          border: 'none',
-          color: '#fff',
-          fontSize: '12px',
-          fontWeight: '500',
-          padding: '9px 0',
-          borderRadius: '10px',
-          cursor: 'pointer',
-          width: '100%',
+      {/* ── Premium box ── */}
+      {!collapsed && (
+        <div style={{
+          margin: '.75rem',
+          background: 'linear-gradient(135deg, #1a1060, #0a0b20)',
+          border: '1px solid rgba(93,76,255,0.3)',
+          borderRadius: '16px',
+          padding: '1rem',
+          textAlign: rtl ? 'right' : 'center',
+          animation: 'fadeIn 0.2s ease',
         }}>
-          {t.buttons.upgradeNow}
-        </button>
-      </div>
+          <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', fontFamily: 'Poppins', marginBottom: '4px' }}>
+            {t.premium.title}
+          </div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '.75rem', lineHeight: '1.5' }}>
+            {t.premium.description}
+          </div>
+          <button style={{
+            background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
+            border: 'none',
+            color: '#fff',
+            fontSize: '12px',
+            fontWeight: '500',
+            padding: '9px 0',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            width: '100%',
+          }}>
+            {t.buttons.upgradeNow}
+          </button>
+        </div>
+      )}
 
-      {/* ── SIDEBAR BANNER 300×250 ── */}
-      <div style={{ margin: '0 .75rem .75rem', overflow: 'hidden', borderRadius: '12px' }}>
-        <AdBanner variant="sidebar" slot="5555555555" />
-      </div>
+      {/* Collapsed — premium icon only */}
+      {collapsed && (
+        <div style={{
+          padding: '8px 6px',
+          display: 'flex',
+          justifyContent: 'center',
+        }}>
+          <button
+            title={t.buttons.upgradeNow}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
+              border: 'none',
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            ⭐
+          </button>
+        </div>
+      )}
+
+      {/* ── Sidebar banner — hidden when collapsed ── */}
+      {!collapsed && (
+        <div style={{
+          margin: '0 .75rem .75rem',
+          overflow: 'hidden',
+          borderRadius: '12px',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          <AdBanner variant="sidebar" slot="5555555555" />
+        </div>
+      )}
     </aside>
   );
 }

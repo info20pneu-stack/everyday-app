@@ -36,3 +36,152 @@ body {
 h1, h2, h3 {
   font-family: 'Poppins', sans-serif;
 }
+
+/* ─────────────────────────────────────────
+   Widget grid
+───────────────────────────────────────── */
+.widget-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 1024px) {
+  .widget-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* inline ad banners span only 2 cols on tablet */
+  .widget-grid .ad-span {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .widget-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Sidebar
+───────────────────────────────────────── */
+.app-sidebar {
+  /* desktop styles come from inline — just add responsive behaviour */
+}
+
+@media (max-width: 768px) {
+  .app-sidebar {
+    display: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Topbar responsive elements
+───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .topbar-nav {
+    display: none !important;
+  }
+  .topbar-search {
+    display: none !important;
+  }
+  .topbar-logo-section {
+    border-right: none !important;
+    border-left: none !important;
+    width: auto !important;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Main content — mobile bottom padding
+───────────────────────────────────────── */
+.main-content {
+  padding-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 0.875rem !important;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .hero-section {
+    padding: 1.25rem !important;
+    margin-bottom: 0.875rem !important;
+  }
+  .hero-title {
+    font-size: 2rem !important;
+    letter-spacing: 2px !important;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Ad banners — hide top leaderboard on mobile,
+   show mobile banner only on mobile
+───────────────────────────────────────── */
+.ad-top-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.ad-mobile-wrapper {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ad-top-wrapper {
+    display: none !important;
+  }
+  .ad-mobile-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.875rem;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Bottom navigation bar
+───────────────────────────────────────── */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  height: 64px;
+  background: rgba(11, 16, 32, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  align-items: stretch;
+  justify-content: space-around;
+  padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Animations
+───────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─────────────────────────────────────────
+   Utility
+───────────────────────────────────────── */
+.hide-on-mobile {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
