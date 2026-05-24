@@ -2,6 +2,7 @@ import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import WorldTime from './components/WorldTime';
 import Currency from './components/Currency';
+import UnitConverter from './components/UnitConverter';
 
 export default function Home() {
   return (
@@ -37,11 +38,12 @@ export default function Home() {
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
+            gridTemplateColumns: '1fr 1fr 1fr',
             gap: '1.25rem',
           }}>
             <WorldTime />
             <Currency />
+            <UnitConverter />
           </div>
 
         </main>
