@@ -1,38 +1,50 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLang } from '../../lib/LanguageContext';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
-type Country = { code: string; name: string };
+type Country = { code: string };
 
-const COUNTRIES: Country[] = [
-  { code: 'US', name: 'USA' },           { code: 'GB', name: 'Velká Británie' },
-  { code: 'DE', name: 'Německo' },       { code: 'FR', name: 'Francie' },
-  { code: 'IT', name: 'Itálie' },        { code: 'ES', name: 'Španělsko' },
-  { code: 'CZ', name: 'Česko' },         { code: 'SK', name: 'Slovensko' },
-  { code: 'PL', name: 'Polsko' },        { code: 'AT', name: 'Rakousko' },
-  { code: 'CH', name: 'Švýcarsko' },     { code: 'NL', name: 'Nizozemsko' },
-  { code: 'BE', name: 'Belgie' },        { code: 'SE', name: 'Švédsko' },
-  { code: 'NO', name: 'Norsko' },        { code: 'DK', name: 'Dánsko' },
-  { code: 'FI', name: 'Finsko' },        { code: 'PT', name: 'Portugalsko' },
-  { code: 'GR', name: 'Řecko' },         { code: 'TR', name: 'Turecko' },
-  { code: 'JP', name: 'Japonsko' },      { code: 'CN', name: 'Čína' },
-  { code: 'KR', name: 'J. Korea' },      { code: 'IN', name: 'Indie' },
-  { code: 'BR', name: 'Brazílie' },      { code: 'AR', name: 'Argentina' },
-  { code: 'MX', name: 'Mexiko' },        { code: 'CA', name: 'Kanada' },
-  { code: 'AU', name: 'Austrálie' },     { code: 'NZ', name: 'Nový Zéland' },
-  { code: 'ZA', name: 'J. Afrika' },     { code: 'EG', name: 'Egypt' },
-  { code: 'SA', name: 'S. Arábie' },     { code: 'AE', name: 'Emiráty' },
-  { code: 'TH', name: 'Thajsko' },       { code: 'ID', name: 'Indonésie' },
-  { code: 'MY', name: 'Malajsie' },      { code: 'SG', name: 'Singapur' },
-  { code: 'UA', name: 'Ukrajina' },      { code: 'RO', name: 'Rumunsko' },
-  { code: 'HU', name: 'Maďarsko' },      { code: 'HR', name: 'Chorvatsko' },
-  { code: 'RU', name: 'Rusko' },         { code: 'IL', name: 'Izrael' },
-  { code: 'NG', name: 'Nigérie' },       { code: 'KE', name: 'Keňa' },
-  { code: 'PH', name: 'Filipíny' },      { code: 'VN', name: 'Vietnam' },
-  { code: 'IE', name: 'Irsko' },         { code: 'HR', name: 'Chorvatsko' },
+// Tiered by recognizability:
+//   indices  0–19  → easy pool   (top 20)
+//   indices 20–49  → normal pool (top 50)
+//   indices 50–79  → hard pool   (all 80)
+const ALL_COUNTRIES: Country[] = [
+  // ── easy (0–19) ──────────────────────────────────────────
+  { code: 'US' }, { code: 'GB' }, { code: 'DE' }, { code: 'FR' },
+  { code: 'IT' }, { code: 'ES' }, { code: 'JP' }, { code: 'CN' },
+  { code: 'CA' }, { code: 'AU' }, { code: 'BR' }, { code: 'RU' },
+  { code: 'IN' }, { code: 'MX' }, { code: 'KR' }, { code: 'TR' },
+  { code: 'NL' }, { code: 'SE' }, { code: 'NO' }, { code: 'CH' },
+  // ── normal (20–49) ───────────────────────────────────────
+  { code: 'CZ' }, { code: 'SK' }, { code: 'PL' }, { code: 'AT' },
+  { code: 'BE' }, { code: 'DK' }, { code: 'FI' }, { code: 'PT' },
+  { code: 'GR' }, { code: 'ZA' }, { code: 'EG' }, { code: 'SA' },
+  { code: 'AE' }, { code: 'TH' }, { code: 'ID' }, { code: 'MY' },
+  { code: 'SG' }, { code: 'UA' }, { code: 'RO' }, { code: 'HU' },
+  { code: 'HR' }, { code: 'CO' }, { code: 'IL' }, { code: 'NG' },
+  { code: 'KE' }, { code: 'PH' }, { code: 'VN' }, { code: 'IE' },
+  { code: 'NZ' }, { code: 'AR' },
+  // ── hard (50–79) ─────────────────────────────────────────
+  { code: 'CL' }, { code: 'PE' }, { code: 'EC' }, { code: 'PK' },
+  { code: 'BD' }, { code: 'LK' }, { code: 'QA' }, { code: 'KW' },
+  { code: 'OM' }, { code: 'BG' }, { code: 'RS' }, { code: 'LT' },
+  { code: 'LV' }, { code: 'EE' }, { code: 'IS' }, { code: 'LU' },
+  { code: 'DZ' }, { code: 'MA' }, { code: 'ET' }, { code: 'GH' },
+  { code: 'TZ' }, { code: 'SN' }, { code: 'GE' }, { code: 'AL' },
+  { code: 'AM' }, { code: 'AZ' }, { code: 'MD' }, { code: 'BY' },
+  { code: 'MM' }, { code: 'KH' },
 ];
+
+// Pool slices used by difficulty
+const POOL_EASY   = ALL_COUNTRIES.slice(0, 20);
+const POOL_NORMAL = ALL_COUNTRIES.slice(0, 50);
+const POOL_HARD   = ALL_COUNTRIES;            // all 80
+
+// MemoryGame still needs a flat unique array (up to 50 pairs for 10×10)
+const UNIQUE_COUNTRIES = ALL_COUNTRIES;
 
 const WORD_BANK = [
   'Slunce','Měsíc','Hvězda','Mrak','Déšť','Strom','Květ','List','Hora','Řeka',
@@ -44,6 +56,15 @@ function flagEmoji(code: string) {
   return [...code.toUpperCase()].map(c =>
     String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
   ).join('');
+}
+
+function getCountryName(code: string, lang: string): string {
+  try {
+    const dn = new Intl.DisplayNames([lang, 'en'], { type: 'region' });
+    return dn.of(code) ?? code;
+  } catch {
+    return code;
+  }
 }
 
 function seededShuffle<T>(arr: T[], seed: number): T[] {
@@ -63,6 +84,11 @@ function dateSeed() {
 }
 
 function fmtTime(s: number) {
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function fmtTimeSecs(s: number): string {
+  if (s < 60) return `${s} s`;
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
@@ -112,9 +138,10 @@ const DIFFS = {
 } as const;
 type DiffKey = keyof typeof DIFFS;
 
-type MemCard = { id: number; pairId: number; country: Country };
+type MemCard = { id: number; pairId: number; code: string };
 
 function MemoryGame() {
+  const { lang } = useLang();
   const [diff, setDiff]       = useState<DiffKey>('4×4');
   const [cards, setCards]     = useState<MemCard[]>([]);
   const [flipped, setFlipped] = useState<number[]>([]);
@@ -129,11 +156,11 @@ function MemoryGame() {
   const initGame = useCallback((d: DiffKey) => {
     const { pairs } = DIFFS[d];
     const seed = dateSeed();
-    const countries = seededShuffle(COUNTRIES, seed).slice(0, pairs);
+    const countries = seededShuffle(UNIQUE_COUNTRIES, seed).slice(0, pairs);
     const deck: MemCard[] = [];
     countries.forEach((c, i) => {
-      deck.push({ id: i * 2, pairId: i, country: c });
-      deck.push({ id: i * 2 + 1, pairId: i, country: c });
+      deck.push({ id: i * 2, pairId: i, code: c.code });
+      deck.push({ id: i * 2 + 1, pairId: i, code: c.code });
     });
     setCards(seededShuffle(deck, seed + 7));
     setFlipped([]); setMatched(new Set()); setMoves(0); setSecs(0);
@@ -179,7 +206,6 @@ function MemoryGame() {
 
   return (
     <div>
-      {/* Difficulty */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
         {(Object.keys(DIFFS) as DiffKey[]).map(d => (
           <button key={d} onClick={() => setDiff(d)} style={{
@@ -190,7 +216,6 @@ function MemoryGame() {
         ))}
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
         <StatChip label="Tahy" value={moves} />
         <StatChip label="Čas" value={fmtTime(secs)} />
@@ -200,7 +225,6 @@ function MemoryGame() {
 
       {best[diff] && <div style={{ marginBottom: '10px' }}><BestBadge label={diff} value={`${best[diff]} tahů`} /></div>}
 
-      {/* Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '4px' }}>
         {cards.map(card => {
           const isFlipped  = flipped.includes(card.id) || matched.has(card.id);
@@ -217,14 +241,12 @@ function MemoryGame() {
                 transformStyle: 'preserve-3d', transition: 'transform 0.35s cubic-bezier(.4,0,.2,1)',
                 transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
               }}>
-                {/* Back */}
                 <div style={{
                   position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
                   background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.3)',
                   borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: Math.max(emojiSz - 6, 10), color: 'rgba(93,76,255,0.5)',
                 }}>✦</div>
-                {/* Front */}
                 <div style={{
                   position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
                   transform: 'rotateY(180deg)',
@@ -234,10 +256,10 @@ function MemoryGame() {
                   alignItems: 'center', justifyContent: 'center', gap: '1px',
                   boxShadow: isActive ? '0 0 14px rgba(93,76,255,0.55)' : 'none',
                 }}>
-                  <span style={{ fontSize: emojiSz, lineHeight: 1 }}>{flagEmoji(card.country.code)}</span>
+                  <span style={{ fontSize: emojiSz, lineHeight: 1 }}>{flagEmoji(card.code)}</span>
                   {cols <= 6 && (
                     <span style={{ fontSize: '7px', color: 'var(--text3)', textAlign: 'center', lineHeight: 1.1, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>
-                      {card.country.name}
+                      {getCountryName(card.code, lang)}
                     </span>
                   )}
                 </div>
@@ -247,7 +269,6 @@ function MemoryGame() {
         })}
       </div>
 
-      {/* Game over */}
       {over && (
         <div style={{ marginTop: '14px', background: 'linear-gradient(135deg, rgba(93,76,255,0.15), rgba(59,130,246,0.1))', border: '1px solid rgba(93,76,255,0.35)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
@@ -269,7 +290,7 @@ type WCPhase = 'showing' | 'recall' | 'success' | 'fail';
 function WordChain() {
   const [round, setRound]         = useState(1);
   const [sequence, setSequence]   = useState<string[]>([]);
-  const [display, setDisplay]     = useState<string[]>([]); // shuffled for recall
+  const [display, setDisplay]     = useState<string[]>([]);
   const [phase, setPhase]         = useState<WCPhase>('showing');
   const [showIdx, setShowIdx]     = useState(-1);
   const [clicked, setClicked]     = useState<string[]>([]);
@@ -290,10 +311,8 @@ function WordChain() {
     setGlowWord(null);
   }
 
-  // Start first round on mount
   useEffect(() => { startRound(1); setRound(1); setScore(0); }, []);
 
-  // Animate showing phase
   useEffect(() => {
     if (phase !== 'showing') return;
     if (showIdx >= sequence.length - 1) {
@@ -313,7 +332,6 @@ function WordChain() {
       const next = [...clicked, word];
       setClicked(next);
       if (next.length === sequence.length) {
-        // Round complete
         setPhase('success');
         const newScore = score + sequence.length;
         setScore(newScore);
@@ -334,13 +352,10 @@ function WordChain() {
     }
   }
 
-  function restart() {
-    setRound(1); setScore(0); startRound(1);
-  }
+  function restart() { setRound(1); setScore(0); startRound(1); }
 
   return (
     <div>
-      {/* Header stats */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
         <StatChip label="Kolo" value={round} />
         <StatChip label="Slova" value={sequence.length} />
@@ -348,7 +363,6 @@ function WordChain() {
         {bestRef.current > 0 && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}><BestBadge label="Nejlepší" value={`kolo ${bestRef.current}`} /></div>}
       </div>
 
-      {/* Showing phase */}
       {phase === 'showing' && (
         <div style={{ textAlign: 'center', marginBottom: '14px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', letterSpacing: '1px', textTransform: 'uppercase' }}>
@@ -372,7 +386,6 @@ function WordChain() {
         </div>
       )}
 
-      {/* Recall phase */}
       {(phase === 'recall' || phase === 'success') && (
         <div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', textAlign: 'center', letterSpacing: '1px', textTransform: 'uppercase' }}>
@@ -399,7 +412,6 @@ function WordChain() {
               );
             })}
           </div>
-          {/* Progress dots */}
           <div style={{ display: 'flex', gap: '5px', justifyContent: 'center', marginTop: '14px' }}>
             {sequence.map((_, i) => (
               <div key={i} style={{ width: '8px', height: '8px', borderRadius: '50%', background: i < clicked.length ? 'var(--green2)' : 'rgba(255,255,255,0.15)', transition: 'background 0.3s' }} />
@@ -408,7 +420,6 @@ function WordChain() {
         </div>
       )}
 
-      {/* Fail screen */}
       {phase === 'fail' && (
         <div style={{ textAlign: 'center', padding: '1rem 0' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>😅</div>
@@ -426,55 +437,159 @@ function WordChain() {
 
 /* ═══════════════════════ FLAG QUIZ ═══════════════════════ */
 
-type FQState = 'playing' | 'answered' | 'done';
-type Question = { correct: Country; options: Country[] };
+type FQState   = 'playing' | 'answered' | 'done';
+type FQDiff    = 'easy' | 'normal' | 'hard';
+type FQVariant = 'A' | 'B';
+type Question  = { correct: Country; options: Country[] };
+type FQRecord  = { score: number; time: number; date: number; diff: FQDiff; variant: FQVariant };
 
 const TOTAL_Q = 10;
+const SHARE_URL = 'everyday-app.vercel.app';
 
-function buildQuestions(seed: number): Question[] {
-  const shuffled = seededShuffle(COUNTRIES, seed);
+const FQ_DIFFS: { key: FQDiff; label: string; pool: Country[] }[] = [
+  { key: 'easy',   label: '🟢 Lehká',   pool: POOL_EASY   },
+  { key: 'normal', label: '🟡 Střední', pool: POOL_NORMAL },
+  { key: 'hard',   label: '🔴 Těžká',   pool: POOL_HARD   },
+];
+
+const CONFETTI_COLORS = ['#5D4CFF','#FFB300','#4ade80','#f87171','#60a5fa','#e879f9','#fb923c'];
+
+function ConfettiBurst() {
+  const pieces = Array.from({ length: 16 }, (_, i) => {
+    const angle = (i / 16) * 2 * Math.PI;
+    const r     = 56 + (i % 4) * 18;
+    return {
+      tx: Math.round(Math.cos(angle) * r),
+      ty: Math.round(Math.sin(angle) * r),
+      color:  CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      size:   i % 2 === 0 ? 7 : 5,
+      round:  i % 3 !== 0,
+      delay:  (i % 5) * 55,
+    };
+  });
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'visible' }}>
+      {pieces.map((p, i) => (
+        <div key={i} style={{
+          position: 'absolute',
+          top: '50%', left: '50%',
+          width: p.size, height: p.size,
+          marginLeft: -p.size / 2, marginTop: -p.size / 2,
+          borderRadius: p.round ? '50%' : '2px',
+          background: p.color,
+          animation: `cflyOut 0.65s ease-out ${p.delay}ms both`,
+          ['--tx' as string]: `${p.tx}px`,
+          ['--ty' as string]: `${p.ty}px`,
+        } as React.CSSProperties} />
+      ))}
+    </div>
+  );
+}
+
+// Always 4 options
+function buildQuestions(seed: number, pool: Country[]): Question[] {
+  const shuffled = seededShuffle(pool, seed);
   return shuffled.slice(0, TOTAL_Q).map((correct, i) => {
-    const wrong = seededShuffle(shuffled.filter(c => c.code !== correct.code), seed + i + 1).slice(0, 3);
+    const wrong = seededShuffle(
+      shuffled.filter(c => c.code !== correct.code), seed + i + 1
+    ).slice(0, 3);
     return { correct, options: seededShuffle([correct, ...wrong], seed + i + 99) };
   });
 }
 
-function FlagQuiz() {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [current, setCurrent]     = useState(0);
-  const [score, setScore]         = useState(0);
-  const [selected, setSelected]   = useState<string | null>(null);
-  const [state, setState]         = useState<FQState>('playing');
-  const [streak, setStreak]       = useState(0);
-  const [maxStreak, setMaxStreak] = useState(0);
-  const bestRef = useRef(lsGet<number>('fq_best', 0));
+function optionColors(
+  code: string, correct: string, selected: string | null, state: FQState
+): { bg: string; border: string; color: string; shadow: string; anim: string } {
+  const isCorrect  = code === correct;
+  const isSelected = code === selected;
+  const show       = state === 'answered';
+  if (show && isCorrect)                return { bg: 'rgba(34,197,94,0.15)',  border: '1px solid rgba(34,197,94,0.5)',  color: 'var(--green2)', shadow: '0 0 16px rgba(34,197,94,0.3)', anim: 'none' };
+  if (show && isSelected && !isCorrect) return { bg: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)',  color: '#EF4444',       shadow: 'none',                         anim: 'shake 0.4s ease' };
+  return { bg: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', shadow: 'none', anim: 'none' };
+}
 
-  function init() {
-    setQuestions(buildQuestions(dateSeed() + Math.floor(Math.random() * 1000)));
-    setCurrent(0); setScore(0); setSelected(null); setState('playing');
-    setStreak(0); setMaxStreak(0);
+function FlagQuiz() {
+  const { lang } = useLang();
+  const [diff,        setDiff]        = useState<FQDiff>('normal');
+  const [variant,     setVariant]     = useState<FQVariant>('A');
+  const [questions,   setQuestions]   = useState<Question[]>([]);
+  const [current,     setCurrent]     = useState(0);
+  const [score,       setScore]       = useState(0);
+  const [selected,    setSelected]    = useState<string | null>(null);
+  const [state,       setState]       = useState<FQState>('playing');
+  const [streak,      setStreak]      = useState(0);
+  const [maxStreak,   setMaxStreak]   = useState(0);
+  const [liveSecs,    setLiveSecs]    = useState(0);
+  const [finalSecs,   setFinalSecs]   = useState(0);
+  const [isNewRecord, setIsNewRecord] = useState(false);
+  const [copied,      setCopied]      = useState(false);
+  const [showBoard,   setShowBoard]   = useState(false);
+
+  const startTimeRef  = useRef<number | null>(null);
+  const timerRef      = useRef<ReturnType<typeof setInterval> | null>(null);
+  const recordsRef    = useRef<FQRecord[]>(lsGet<FQRecord[]>('fq_records', []));
+
+  // Clean up timer on unmount
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
+
+  function stopTimer(): number {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    return startTimeRef.current ? Math.floor((Date.now() - startTimeRef.current) / 1000) : 0;
   }
 
-  useEffect(() => { init(); }, []);
+  function init(d: FQDiff = diff, v: FQVariant = variant) {
+    stopTimer();
+    startTimeRef.current = null;
+    const cfg = FQ_DIFFS.find(x => x.key === d)!;
+    setQuestions(buildQuestions(dateSeed() + Math.floor(Math.random() * 1000), cfg.pool));
+    setCurrent(0); setScore(0); setSelected(null); setState('playing');
+    setStreak(0); setMaxStreak(0);
+    setLiveSecs(0); setFinalSecs(0); setIsNewRecord(false); setCopied(false); setShowBoard(false);
+  }
+
+  useEffect(() => { init(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleDiff(d: FQDiff)       { setDiff(d);    init(d, variant); }
+  function handleVariant(v: FQVariant) { setVariant(v); init(diff, v); }
 
   function handleAnswer(code: string) {
     if (state !== 'playing' || selected) return;
+
+    // Start timer on first answer
+    if (!startTimeRef.current) {
+      startTimeRef.current = Date.now();
+      timerRef.current = setInterval(() => {
+        setLiveSecs(Math.floor((Date.now() - startTimeRef.current!) / 1000));
+      }, 500);
+    }
+
     setSelected(code);
     setState('answered');
-    const correct = questions[current]?.correct.code === code;
-    const newScore = correct ? score + 1 : score;
-    const newStreak = correct ? streak + 1 : 0;
-    if (correct) setScore(newScore);
+    const isCorrect  = questions[current]?.correct.code === code;
+    const newScore   = isCorrect ? score + 1 : score;
+    const newStreak  = isCorrect ? streak + 1 : 0;
+    if (isCorrect) setScore(newScore);
     setStreak(newStreak);
     setMaxStreak(ms => Math.max(ms, newStreak));
 
     setTimeout(() => {
       if (current + 1 >= TOTAL_Q) {
+        const elapsed = stopTimer();
+        setFinalSecs(elapsed);
         setState('done');
-        if (newScore > bestRef.current) {
-          bestRef.current = newScore;
-          lsSet('fq_best', newScore);
-        }
+
+        // Detect new record for this (diff, variant) combo
+        const prevRecs = recordsRef.current.filter(r => r.diff === diff && r.variant === variant);
+        const prevBestScore = prevRecs.length ? Math.max(...prevRecs.map(r => r.score)) : -1;
+        const prevBestTime  = prevRecs.filter(r => r.score === prevBestScore).reduce((m, r) => Math.min(m, r.time), Infinity);
+        const isRecord = newScore > prevBestScore || (newScore === prevBestScore && elapsed < prevBestTime);
+        setIsNewRecord(isRecord);
+
+        // Save record
+        const entry: FQRecord = { score: newScore, time: elapsed, date: Date.now(), diff, variant };
+        const updated = [...recordsRef.current, entry].sort((a, b) => b.score - a.score || a.time - b.time);
+        recordsRef.current = updated;
+        lsSet('fq_records', updated);
       } else {
         setCurrent(c => c + 1);
         setSelected(null);
@@ -483,20 +598,65 @@ function FlagQuiz() {
     }, 1100);
   }
 
+  async function handleShare() {
+    const diffLabel = FQ_DIFFS.find(d => d.key === diff)?.label ?? diff;
+    const text = `🌍 Flag Quiz (${diffLabel}): ${score}/${TOTAL_Q} za ${fmtTimeSecs(finalSecs)}!${isNewRecord ? ' 🏆 Nový rekord!' : ''} Dokážeš mě porazit? ${SHARE_URL}`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ text }); return; } catch { /* cancelled */ }
+    }
+    try { await navigator.clipboard.writeText(text); } catch { /* noop */ }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
+  }
+
   if (!questions.length) return null;
-  const q = questions[current];
+  const q      = questions[current];
+  const top5   = recordsRef.current.slice(0, 5);
+  const diffLabel = (d: FQDiff) => d === 'easy' ? '🟢' : d === 'normal' ? '🟡' : '🔴';
 
   return (
     <div>
+      {/* ── Variant toggle ── */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+        {([
+          { v: 'A' as FQVariant, label: '🚩 Vlajka → Název' },
+          { v: 'B' as FQVariant, label: '🔤 Název → Vlajka' },
+        ]).map(({ v, label }) => (
+          <button key={v} onClick={() => handleVariant(v)} style={{
+            flex: 1, padding: '7px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+            fontSize: '12px', fontWeight: '600',
+            background: v === variant ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.04)',
+            color: v === variant ? 'var(--purple3)' : 'var(--text3)',
+            outline: v === variant ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.06)',
+          }}>{label}</button>
+        ))}
+      </div>
+
+      {/* ── Difficulty selector ── */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
+        {FQ_DIFFS.map(d => (
+          <button key={d.key} onClick={() => handleDiff(d.key)} style={{
+            flex: 1, padding: '6px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+            fontSize: '11px', fontWeight: '600',
+            background: d.key === diff ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
+            color: d.key === diff ? '#fff' : 'var(--text3)',
+          }}>{d.label}</button>
+        ))}
+      </div>
+
+      {/* ── In-game ── */}
       {state !== 'done' && (
         <>
-          {/* Progress */}
-          <div style={{ marginBottom: '12px' }}>
+          {/* Progress + live timer */}
+          <div style={{ marginBottom: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text3)', marginBottom: '5px' }}>
               <span>Otázka {current + 1} / {TOTAL_Q}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>✅ {score}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {streak >= 2 && <span style={{ animation: 'firePulse 1s infinite', display: 'inline-block' }}>🔥 {streak}</span>}
+                <span>✅ {score}</span>
+                <span style={{ fontVariantNumeric: 'tabular-nums', color: liveSecs > 0 ? 'var(--text2)' : 'var(--text3)' }}>
+                  ⏱ {fmtTimeSecs(liveSecs)}
+                </span>
               </div>
             </div>
             <div style={{ height: '5px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
@@ -504,75 +664,216 @@ function FlagQuiz() {
             </div>
           </div>
 
-          {/* Big flag */}
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <div style={{
-              display: 'inline-block',
-              fontSize: '96px', lineHeight: 1,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '18px', padding: '14px 24px',
-              boxShadow: '0 0 40px rgba(93,76,255,0.12)',
-            }}>
-              {flagEmoji(q.correct.code)}
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>Která země má tuto vlajku?</div>
-          </div>
-
-          {/* Options */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {q.options.map(opt => {
-              const isSelected = selected === opt.code;
-              const isCorrect  = opt.code === q.correct.code;
-              const showResult = state === 'answered';
-              let bg = 'rgba(255,255,255,0.05)';
-              let border = '1px solid rgba(255,255,255,0.1)';
-              let color = '#fff';
-              let shadow = 'none';
-              let anim = 'none';
-              if (showResult && isCorrect) {
-                bg = 'rgba(34,197,94,0.15)'; border = '1px solid rgba(34,197,94,0.5)';
-                color = 'var(--green2)'; shadow = '0 0 16px rgba(34,197,94,0.3)';
-              } else if (showResult && isSelected && !isCorrect) {
-                bg = 'rgba(239,68,68,0.15)'; border = '1px solid rgba(239,68,68,0.5)';
-                color = '#EF4444'; anim = 'shake 0.4s ease';
-              }
-              return (
-                <button key={opt.code} onClick={() => handleAnswer(opt.code)} disabled={!!selected} style={{
-                  padding: '12px 10px', borderRadius: '10px', border, background: bg, color,
-                  fontSize: '13px', fontWeight: '600', cursor: selected ? 'default' : 'pointer',
-                  textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px',
-                  boxShadow: shadow, animation: anim, transition: 'all 0.2s',
+          {/* Variant A: flag → text options */}
+          {variant === 'A' && (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <div style={{
+                  display: 'inline-block', fontSize: '96px', lineHeight: 1,
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '18px', padding: '14px 24px',
+                  boxShadow: '0 0 40px rgba(93,76,255,0.12)',
                 }}>
-                  <span style={{ fontSize: '22px' }}>{flagEmoji(opt.code)}</span>
-                  <span>{opt.name}</span>
-                  {showResult && isCorrect && <span style={{ marginLeft: 'auto' }}>✓</span>}
-                  {showResult && isSelected && !isCorrect && <span style={{ marginLeft: 'auto' }}>✗</span>}
-                </button>
-              );
-            })}
-          </div>
+                  {flagEmoji(q.correct.code)}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+                  Které zemi patří tato vlajka?
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                {q.options.map(opt => {
+                  const { bg, border, color, shadow, anim } = optionColors(opt.code, q.correct.code, selected, state);
+                  const isC = opt.code === q.correct.code;
+                  const isS = opt.code === selected;
+                  return (
+                    <button key={opt.code} onClick={() => handleAnswer(opt.code)} disabled={!!selected} style={{
+                      padding: '14px 12px', borderRadius: '10px', border, background: bg, color,
+                      fontSize: '13px', fontWeight: '600', cursor: selected ? 'default' : 'pointer',
+                      textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                      boxShadow: shadow, animation: anim, transition: 'all 0.2s',
+                    }}>
+                      <span style={{ lineHeight: 1.3 }}>{getCountryName(opt.code, lang)}</span>
+                      {state === 'answered' && isC && <span style={{ flexShrink: 0 }}>✓</span>}
+                      {state === 'answered' && isS && !isC && <span style={{ flexShrink: 0 }}>✗</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Variant B: name → flag options */}
+          {variant === 'B' && (
+            <>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <div style={{
+                  display: 'inline-block',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '18px', padding: '18px 32px',
+                  boxShadow: '0 0 40px rgba(93,76,255,0.12)',
+                }}>
+                  <div style={{ fontSize: '22px', fontWeight: '700', color: '#fff', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>
+                    {getCountryName(q.correct.code, lang)}
+                  </div>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+                  Která vlajka patří tomuto státu?
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {q.options.map(opt => {
+                  const { bg, border, shadow, anim } = optionColors(opt.code, q.correct.code, selected, state);
+                  const isC = opt.code === q.correct.code;
+                  const isS = opt.code === selected;
+                  return (
+                    <button key={opt.code} onClick={() => handleAnswer(opt.code)} disabled={!!selected} style={{
+                      padding: '18px 8px', borderRadius: '12px', border, background: bg,
+                      cursor: selected ? 'default' : 'pointer', position: 'relative',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                      boxShadow: shadow, animation: anim, transition: 'all 0.2s',
+                    }}>
+                      <span style={{ fontSize: '52px', lineHeight: 1 }}>{flagEmoji(opt.code)}</span>
+                      {state === 'answered' && isC  && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: '14px', color: 'var(--green2)' }}>✓</span>}
+                      {state === 'answered' && isS && !isC && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: '14px', color: '#EF4444' }}>✗</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </>
       )}
 
-      {/* Results */}
+      {/* ── Results ── */}
       {state === 'done' && (
-        <div style={{ textAlign: 'center', padding: '.5rem 0' }}>
-          <div style={{ fontSize: '48px', fontWeight: '800', fontFamily: 'Poppins', background: 'linear-gradient(135deg, var(--purple3), var(--blue2))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '4px' }}>
-            {score}/{TOTAL_Q}
+        <div style={{ textAlign: 'center' }}>
+
+          {/* Score card — pulse gold border on new record */}
+          <div style={{
+            display: 'inline-block', position: 'relative',
+            borderRadius: '16px', padding: '18px 32px', marginBottom: '12px',
+            background: isNewRecord
+              ? 'linear-gradient(135deg, rgba(255,179,0,0.12), rgba(93,76,255,0.1))'
+              : 'rgba(255,255,255,0.03)',
+            border: isNewRecord ? '1px solid rgba(255,179,0,0.5)' : '1px solid rgba(255,255,255,0.06)',
+            animation: isNewRecord ? 'newRecPulse 0.8s ease-out' : 'none',
+          }}>
+            {isNewRecord && <ConfettiBurst />}
+
+            <div style={{
+              fontSize: '52px', fontWeight: '800', fontFamily: 'Poppins',
+              background: 'linear-gradient(135deg, var(--purple3), var(--blue2))',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              lineHeight: 1,
+            }}>
+              {score}/{TOTAL_Q}
+            </div>
+            <div style={{ fontSize: '15px', color: 'var(--text2)', marginTop: '6px', fontVariantNumeric: 'tabular-nums' }}>
+              ⏱ {fmtTimeSecs(finalSecs)}
+            </div>
+
+            {isNewRecord && (
+              <div style={{
+                marginTop: '8px', fontSize: '13px', fontWeight: '700',
+                color: '#FFB300', animation: 'newRecBadge 0.5s cubic-bezier(.34,1.56,.64,1) 0.1s both',
+                letterSpacing: '0.5px',
+              }}>
+                🏆 NOVÝ REKORD!
+              </div>
+            )}
           </div>
-          <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '12px' }}>
+
+          {/* Reaction text */}
+          <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '14px' }}>
             {score === 10 ? '🏆 Perfektní skóre!' : score >= 8 ? '🌟 Výborně!' : score >= 6 ? '👍 Dobře!' : score >= 4 ? '📚 Trénuj dál' : '🌍 Zeměpis není snadný'}
           </div>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px' }}>
+
+          {/* Stat chips */}
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '14px' }}>
             <StatChip label="Správně" value={score} />
-            <StatChip label="Špatně" value={TOTAL_Q - score} />
+            <StatChip label="Špatně"  value={TOTAL_Q - score} />
             {maxStreak >= 2 && <StatChip label="Max série" value={`${maxStreak} 🔥`} />}
           </div>
-          {bestRef.current > 0 && <div style={{ marginBottom: '14px' }}><BestBadge label="Rekord" value={`${bestRef.current}/${TOTAL_Q}`} /></div>}
-          <button onClick={init} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '10px 28px', cursor: 'pointer', fontWeight: '600' }}>
-            Hrát znovu
-          </button>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '18px', flexWrap: 'wrap' }}>
+            <button onClick={() => init()} style={{
+              background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
+              border: 'none', borderRadius: '10px', color: '#fff',
+              fontSize: '13px', fontWeight: '600', padding: '10px 22px', cursor: 'pointer',
+            }}>
+              ↺ Hrát znovu
+            </button>
+            <button onClick={handleShare} style={{
+              background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.07)',
+              border: copied ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '10px', color: copied ? 'var(--green2)' : 'var(--text2)',
+              fontSize: '13px', fontWeight: '600', padding: '10px 22px', cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}>
+              {copied ? '✓ Zkopírováno!' : '↗ Sdílet výsledek'}
+            </button>
+          </div>
+
+          {/* Leaderboard */}
+          <div style={{ textAlign: 'left' }}>
+            <button
+              onClick={() => setShowBoard(v => !v)}
+              style={{
+                width: '100%', background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px',
+                color: 'var(--text3)', fontSize: '12px', fontWeight: '600',
+                padding: '8px 12px', cursor: 'pointer', textAlign: 'left',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              }}
+            >
+              <span>🏅 Moje top 5 výsledků</span>
+              <span>{showBoard ? '▲' : '▼'}</span>
+            </button>
+
+            {showBoard && top5.length > 0 && (
+              <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {top5.map((rec, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '7px 12px', borderRadius: '9px',
+                    background: i === 0 && rec.score === score && rec.time === finalSecs
+                      ? 'rgba(255,179,0,0.10)'
+                      : 'rgba(255,255,255,0.03)',
+                    border: i === 0 && rec.score === score && rec.time === finalSecs
+                      ? '1px solid rgba(255,179,0,0.25)'
+                      : '1px solid transparent',
+                  }}>
+                    <span style={{ fontSize: '15px', width: '22px', textAlign: 'center', flexShrink: 0 }}>
+                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#fff', minWidth: '36px' }}>
+                      {rec.score}/{TOTAL_Q}
+                    </span>
+                    <span style={{ fontSize: '12px', color: 'var(--text2)', fontVariantNumeric: 'tabular-nums' }}>
+                      {fmtTimeSecs(rec.time)}
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                      {new Date(rec.date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' })}
+                    </span>
+                    <span style={{
+                      fontSize: '10px', color: 'var(--text3)',
+                      background: 'rgba(255,255,255,0.06)', borderRadius: '5px',
+                      padding: '2px 5px', whiteSpace: 'nowrap', flexShrink: 0,
+                    }}>
+                      {diffLabel(rec.diff)}{rec.variant}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {showBoard && top5.length === 0 && (
+              <div style={{ padding: '12px', textAlign: 'center', fontSize: '12px', color: 'var(--text3)' }}>
+                Zatím žádné záznamy.
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -583,9 +884,9 @@ function FlagQuiz() {
 
 type TabId = 'memory' | 'wordchain' | 'flagquiz';
 const TABS: { id: TabId; label: string; emoji: string }[] = [
-  { id: 'memory',    label: 'Pexeso',  emoji: '🃏' },
-  { id: 'wordchain', label: 'Řetěz',   emoji: '📝' },
-  { id: 'flagquiz',  label: 'Vlajky',  emoji: '🌍' },
+  { id: 'memory',    label: 'Pexeso', emoji: '🃏' },
+  { id: 'wordchain', label: 'Řetěz',  emoji: '📝' },
+  { id: 'flagquiz',  label: 'Vlajky', emoji: '🌍' },
 ];
 
 export default function DailyGames() {
@@ -597,7 +898,6 @@ export default function DailyGames() {
         🎮 Denní hry
       </h2>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
@@ -632,6 +932,19 @@ export default function DailyGames() {
         @keyframes firePulse {
           0%,100% { transform: scale(1); }
           50%     { transform: scale(1.3); }
+        }
+        @keyframes cflyOut {
+          from { opacity: 1; transform: translate(0,0) scale(1) rotate(0deg); }
+          to   { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.25) rotate(200deg); }
+        }
+        @keyframes newRecPulse {
+          0%   { box-shadow: 0 0 0 0 rgba(255,179,0,0.7); }
+          50%  { box-shadow: 0 0 0 18px rgba(255,179,0,0); }
+          100% { box-shadow: 0 0 0 0 rgba(255,179,0,0); }
+        }
+        @keyframes newRecBadge {
+          from { opacity: 0; transform: scale(0.5) translateY(6px); }
+          to   { opacity: 1; transform: scale(1)   translateY(0); }
         }
       `}</style>
     </div>

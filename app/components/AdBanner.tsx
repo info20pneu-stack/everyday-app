@@ -28,7 +28,35 @@ declare global {
   interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     adsbygoogle: any[];
+    googletag?: {
+      cmd: Array<() => void>;
+      pubads: () => { refresh: (slots?: unknown[]) => void };
+    };
   }
+}
+
+/* ── Tab-visibility refresh — one listener for all banner instances ── */
+const MIN_REFRESH_INTERVAL = 30_000;
+let lastRefreshTime = 0;
+let refreshListenerRegistered = false;
+
+function ensureRefreshListener() {
+  if (refreshListenerRegistered) return;
+  refreshListenerRegistered = true;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    const now = Date.now();
+    if (now - lastRefreshTime < MIN_REFRESH_INTERVAL) return;
+    lastRefreshTime = now;
+    try {
+      if (window.googletag?.cmd) {
+        window.googletag.cmd.push(() => {
+          window.googletag!.pubads().refresh();
+        });
+      }
+    } catch { /* googletag not available yet — silently skip */ }
+  });
 }
 
 export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps) {
@@ -37,6 +65,10 @@ export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps
   const pushed = useRef(false);
 
   useEffect(() => {
+    // Register the global tab-visibility refresh listener once
+    ensureRefreshListener();
+
+    // Push initial ad load
     if (pushed.current) return;
     pushed.current = true;
     try {
