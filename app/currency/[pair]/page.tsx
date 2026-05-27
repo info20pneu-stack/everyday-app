@@ -12,9 +12,15 @@ const PAIRS: Record<string, { from: string; to: string; fromName: string; toName
   'usd-cny': { from: 'USD', to: 'CNY', fromName: 'US Dollar',       toName: 'Chinese Yuan' },
   'usd-inr': { from: 'USD', to: 'INR', fromName: 'US Dollar',       toName: 'Indian Rupee' },
   'usd-czk': { from: 'USD', to: 'CZK', fromName: 'US Dollar',       toName: 'Czech Koruna' },
+  'usd-brl': { from: 'USD', to: 'BRL', fromName: 'US Dollar',       toName: 'Brazilian Real' },
+  'usd-mxn': { from: 'USD', to: 'MXN', fromName: 'US Dollar',       toName: 'Mexican Peso' },
+  'usd-sgd': { from: 'USD', to: 'SGD', fromName: 'US Dollar',       toName: 'Singapore Dollar' },
+  'usd-hkd': { from: 'USD', to: 'HKD', fromName: 'US Dollar',       toName: 'Hong Kong Dollar' },
+  'usd-krw': { from: 'USD', to: 'KRW', fromName: 'US Dollar',       toName: 'South Korean Won' },
   'eur-usd': { from: 'EUR', to: 'USD', fromName: 'Euro',             toName: 'US Dollar' },
   'eur-gbp': { from: 'EUR', to: 'GBP', fromName: 'Euro',             toName: 'British Pound' },
   'eur-czk': { from: 'EUR', to: 'CZK', fromName: 'Euro',             toName: 'Czech Koruna' },
+  'eur-jpy': { from: 'EUR', to: 'JPY', fromName: 'Euro',             toName: 'Japanese Yen' },
   'gbp-usd': { from: 'GBP', to: 'USD', fromName: 'British Pound',   toName: 'US Dollar' },
   'gbp-eur': { from: 'GBP', to: 'EUR', fromName: 'British Pound',   toName: 'Euro' },
 };
@@ -36,6 +42,7 @@ export async function generateMetadata(
   return {
     title,
     description,
+    alternates: { canonical: `/currency/${pair}` },
     openGraph: {
       title,
       description,

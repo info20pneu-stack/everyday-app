@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import Providers from "./components/Providers";
 import Analytics from "./components/Analytics";
+import StructuredData from "./components/StructuredData";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>{children}</Providers>
+        <StructuredData />
         <Analytics />
         <VercelAnalytics />
       </body>

@@ -8,6 +8,11 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://everyday-app.vercel.app/suggest</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://everyday-app.vercel.app/privacy-policy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
@@ -20,14 +25,19 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://everyday-app.vercel.app/weather</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://everyday-app.vercel.app/currency</loc>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://everyday-app.vercel.app/weather</loc>
+    <loc>https://everyday-app.vercel.app/crypto</loc>
     <changefreq>hourly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://everyday-app.vercel.app/sports</loc>
@@ -35,9 +45,34 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://everyday-app.vercel.app/crypto</loc>
-    <changefreq>hourly</changefreq>
+    <loc>https://everyday-app.vercel.app/markets</loc>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://everyday-app.vercel.app/rankings</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://everyday-app.vercel.app/daily-games</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://everyday-app.vercel.app/daily-boost</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://everyday-app.vercel.app/sunrise-sunset</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://everyday-app.vercel.app/bmi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://everyday-app.vercel.app/age-calculator</loc>
@@ -55,26 +90,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://everyday-app.vercel.app/rankings</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://everyday-app.vercel.app/daily-boost</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://everyday-app.vercel.app/daily-games</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://everyday-app.vercel.app/markets</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://everyday-app.vercel.app/ip-address</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -89,23 +104,15 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
-  <url>
-    <loc>https://everyday-app.vercel.app/sunrise-sunset</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://everyday-app.vercel.app/bmi</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
 
-  <!-- Dynamic city time pages -->
+  <!-- Dynamic city time pages (42 cities) -->
   <url><loc>https://everyday-app.vercel.app/time/new-york</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/los-angeles</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/chicago</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/toronto</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/sao-paulo</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/mexico-city</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/buenos-aires</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/london</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/paris</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/berlin</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
@@ -116,6 +123,16 @@
   <url><loc>https://everyday-app.vercel.app/time/stockholm</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/moscow</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/istanbul</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/warsaw</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/vienna</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/budapest</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/zurich</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/brussels</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/helsinki</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/oslo</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/copenhagen</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/athens</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/lisbon</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/tokyo</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/beijing</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/seoul</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
@@ -124,11 +141,15 @@
   <url><loc>https://everyday-app.vercel.app/time/dubai</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/mumbai</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/bangkok</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/karachi</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/jakarta</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/sydney</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/cairo</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/time/johannesburg</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/lagos</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/time/nairobi</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
 
-  <!-- Dynamic currency pair pages -->
+  <!-- Dynamic currency pair pages (20 pairs) -->
   <url><loc>https://everyday-app.vercel.app/currency/usd-eur</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/usd-gbp</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/usd-jpy</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
@@ -138,9 +159,15 @@
   <url><loc>https://everyday-app.vercel.app/currency/usd-cny</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/usd-inr</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/usd-czk</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/currency/usd-brl</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/currency/usd-mxn</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/currency/usd-sgd</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/currency/usd-hkd</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/currency/usd-krw</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/eur-usd</loc><changefreq>hourly</changefreq><priority>0.8</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/eur-gbp</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/eur-czk</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://everyday-app.vercel.app/currency/eur-jpy</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/gbp-usd</loc><changefreq>hourly</changefreq><priority>0.7</priority></url>
   <url><loc>https://everyday-app.vercel.app/currency/gbp-eur</loc><changefreq>hourly</changefreq><priority>0.6</priority></url>
 
