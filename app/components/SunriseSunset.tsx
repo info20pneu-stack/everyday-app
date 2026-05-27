@@ -132,7 +132,7 @@ export default function SunriseSunset() {
   /* ── Loading / error ── */
   if (status !== 'ok') {
     return (
-      <div style={card}>
+      <div className="card" style={card}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
           🌅 Slunce
         </h2>

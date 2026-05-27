@@ -104,7 +104,7 @@ export default function Currency() {
   };
 
   return (
-    <div style={card}>
+    <div className="card" style={card}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>

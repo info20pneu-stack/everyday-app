@@ -7,7 +7,7 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
       <Topbar />
       <div style={{ display: 'flex', flex: 1 }}>
         <Sidebar />
-        <main style={{ flex: 1, background: 'var(--bg1)', padding: '1.25rem' }}>
+        <main className="main-content" style={{ flex: 1, background: 'var(--bg1)', padding: '1.25rem' }}>
           <div style={{ maxWidth: '680px', margin: '0 auto' }}>
             {children}
           </div>

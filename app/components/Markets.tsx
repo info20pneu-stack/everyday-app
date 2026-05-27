@@ -103,7 +103,7 @@ export default function Markets() {
   const tickers = isFinite(listLimit) ? data[tab].slice(0, listLimit) : data[tab];
 
   return (
-    <div style={{
+    <div className="card" style={{
       background: 'rgba(15,20,40,0.92)',
       border: '1px solid rgba(255,255,255,0.05)',
       borderRadius: 'var(--card-radius)',

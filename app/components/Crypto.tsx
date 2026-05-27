@@ -340,7 +340,7 @@ export default function Crypto() {
   };
 
   return (
-    <div style={cardStyle}>
+    <div className="card" style={cardStyle}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>₿ Kryptoměny</h2>

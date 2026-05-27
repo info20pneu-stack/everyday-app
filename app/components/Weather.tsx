@@ -244,7 +244,7 @@ export default function Weather() {
   /* ── Loading / error states ── */
   if (status === 'idle' || status === 'locating' || status === 'loading') {
     return (
-      <div style={card}>
+      <div className="card" style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Počasí</h2>
           <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
@@ -269,7 +269,7 @@ export default function Weather() {
 
   if (status === 'error') {
     return (
-      <div style={card}>
+      <div className="card" style={card}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
           🌤️ Počasí
         </h2>

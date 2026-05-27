@@ -1391,7 +1391,7 @@ export default function DailyGames() {
   const [tab, setTab] = useState<TabId>('memory');
 
   return (
-    <div style={CARD_BG}>
+    <div className="card" style={CARD_BG}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
         🎮 Denní hry
       </h2>

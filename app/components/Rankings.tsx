@@ -518,7 +518,7 @@ export default function Rankings() {
   });
 
   return (
-    <div style={CARD}>
+    <div className="card" style={CARD}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
         🏅 Žebříčky
       </h2>

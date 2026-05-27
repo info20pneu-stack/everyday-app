@@ -184,7 +184,7 @@ export default function BMI() {
   const weightUnit = system === 'metric' ? 'kg' : 'lb';
 
   return (
-    <div style={cardStyle}>
+    <div className="card" style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>
           ⚖️ BMI Kalkulačka

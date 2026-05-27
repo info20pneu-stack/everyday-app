@@ -176,7 +176,7 @@ export default function UnitConverter() {
   }
 
   return (
-    <div style={cardStyle}>
+    <div className="card" style={cardStyle}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
         📐 Převodník jednotek
       </h2>

@@ -24,7 +24,7 @@ const card: React.CSSProperties = {
   border: '1px solid rgba(255,255,255,0.05)',
   borderRadius: 'var(--card-radius)',
   boxShadow: 'var(--card-shadow)',
-  padding: '1.5rem',
+  padding: '1.25rem',
   display: 'flex',
   flexDirection: 'column',
   gap: '1.25rem',
@@ -110,7 +110,7 @@ export default function IPAddress() {
   }
 
   return (
-    <div style={card}>
+    <div className="card" style={card}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
