@@ -515,12 +515,17 @@ export default function Sports() {
 
   const [detailCache, setDetailCache] = useState<Record<string, DetailCache>>({});
 
-  // Fetch scoreboard for a league
+  // Fetch scoreboard for a league (with backup ESPN subdomain)
   async function fetchLeague(id: LeagueId) {
     setLeagueCache(prev => ({ ...prev, [id]: { ...prev[id], state: 'loading' } }));
+    const primaryUrl = ESPN_CONFIG[id].scoreboardUrl;
+    const backupUrl = primaryUrl.replace('site.api.espn.com', 'site.web.api.espn.com');
     try {
-      const res = await fetch(ESPN_CONFIG[id].scoreboardUrl);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      let res = await fetch(primaryUrl);
+      if (!res.ok) {
+        res = await fetch(backupUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json();
       const games = parseGames(data, id);
       setLeagueCache(prev => ({ ...prev, [id]: { games, state: 'ok' } }));
@@ -620,11 +625,18 @@ export default function Sports() {
         <button onClick={() => setView('standings')} style={viewBtn(view === 'standings')}>📊 Tabulka</button>
       </div>
 
-      {/* Loading */}
+      {/* Loading skeleton */}
       {view === 'games' && state === 'loading' && (
-        <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-          <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔄</div>
-          Načítám výsledky…
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{
+              height: '64px', borderRadius: '12px',
+              background: 'rgba(255,255,255,0.025)',
+              animation: 'shimmer 1.5s infinite',
+              animationDelay: `${i * 0.1}s`,
+            }} />
+          ))}
+          <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
         </div>
       )}
 

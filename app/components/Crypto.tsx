@@ -23,6 +23,7 @@ type Coin = {
 };
 
 type FetchState = 'loading' | 'ok' | 'error' | 'rate-limit';
+type DataSource = 'coingecko' | 'coincap';
 
 /* ═══════════════════════ HELPERS ═══════════════════════ */
 
@@ -255,14 +256,35 @@ function SparklineLarge({ prices, positive, id }: { prices: number[]; positive: 
 
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
-const API_URL =
+const COINGECKO_URL =
   'https://api.coingecko.com/api/v3/coins/markets' +
   '?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=true&price_change_percentage=24h';
+const COINCAP_URL = 'https://api.coincap.io/v2/assets?limit=20';
+
+function mapCoinCapToCoins(assets: any[]): Coin[] {
+  return assets.map((a: any) => ({
+    id: a.id,
+    symbol: a.symbol.toLowerCase(),
+    name: a.name,
+    image: `https://assets.coincap.io/assets/icons/${a.symbol.toLowerCase()}@2x.png`,
+    current_price: parseFloat(a.priceUsd) || 0,
+    price_change_24h: 0,
+    price_change_percentage_24h: parseFloat(a.changePercent24Hr) || 0,
+    market_cap: parseFloat(a.marketCapUsd) || 0,
+    market_cap_rank: parseInt(a.rank) || 0,
+    total_volume: parseFloat(a.volumeUsd24Hr) || 0,
+    high_24h: 0,
+    low_24h: 0,
+    circulating_supply: parseFloat(a.supply) || 0,
+    sparkline_in_7d: null,
+  }));
+}
 
 export default function Crypto() {
   const { listLimit, showCharts, isMobile } = useDeviceDetect();
   const [coins, setCoins]       = useState<Coin[]>([]);
   const [state, setState]       = useState<FetchState>('loading');
+  const [source, setSource]     = useState<DataSource>('coingecko');
   const [search, setSearch]     = useState('');
   const [expandedId, setExpanded] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -270,15 +292,27 @@ export default function Crypto() {
   async function load() {
     setState('loading');
     try {
-      const res = await fetch(API_URL);
-      if (res.status === 429) { setState('rate-limit'); return; }
+      const res = await fetch(COINGECKO_URL);
+      if (res.status === 429) throw new Error('rate-limit');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Coin[] = await res.json();
       setCoins(data);
+      setSource('coingecko');
       setLastUpdated(new Date());
       setState('ok');
-    } catch {
-      setState('error');
+    } catch (e: any) {
+      // Fallback: CoinCap API
+      try {
+        const res2 = await fetch(COINCAP_URL);
+        if (!res2.ok) throw new Error(`CoinCap HTTP ${res2.status}`);
+        const data2 = await res2.json();
+        setCoins(mapCoinCapToCoins(data2.data ?? []));
+        setSource('coincap');
+        setLastUpdated(new Date());
+        setState('ok');
+      } catch {
+        setState(e.message === 'rate-limit' ? 'rate-limit' : 'error');
+      }
     }
   }
 
@@ -410,7 +444,7 @@ export default function Crypto() {
           )}
 
           <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            Zdroj: CoinGecko API · Klikni na minci pro detail a 7d graf
+            Zdroj: {source === 'coingecko' ? 'CoinGecko API' : 'CoinCap API (záloha)'} · Klikni na minci pro detail a 7d graf
           </div>
         </>
       )}

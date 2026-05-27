@@ -61,6 +61,7 @@ type WeatherData = {
 };
 
 type Status = 'idle' | 'locating' | 'loading' | 'ok' | 'error';
+type DataSource = 'open-meteo' | 'weatherapi';
 
 async function fetchCity(lat: number, lon: number): Promise<string> {
   try {
@@ -73,6 +74,61 @@ async function fetchCity(lat: number, lon: number): Promise<string> {
   } catch {
     return 'Moje poloha';
   }
+}
+
+/* WeatherAPI condition code → WMO equivalent */
+function weatherApiCodeToWmo(code: number): number {
+  if (code === 1000) return 0;
+  if (code === 1003) return 2;
+  if (code <= 1009) return 3;
+  if (code === 1030 || code === 1135) return 45;
+  if (code === 1147) return 48;
+  if (code >= 1150 && code <= 1153) return 53;
+  if (code >= 1168 && code <= 1171) return 55;
+  if (code === 1063 || code === 1180 || code === 1183) return 61;
+  if (code >= 1186 && code <= 1189) return 63;
+  if (code >= 1192 && code <= 1201) return 65;
+  if (code === 1066 || code === 1210 || code === 1213) return 71;
+  if (code >= 1216 && code <= 1219) return 73;
+  if (code >= 1222 && code <= 1225) return 75;
+  if (code === 1069 || code === 1204 || code === 1207 || code === 1237) return 77;
+  if (code === 1240) return 80;
+  if (code === 1243) return 81;
+  if (code === 1246) return 82;
+  if (code >= 1249 && code <= 1264) return 85;
+  if (code >= 1273 && code <= 1276) return 95;
+  if (code >= 1279 && code <= 1282) return 99;
+  return 3;
+}
+
+async function fetchWeatherFallback(lat: number, lon: number): Promise<WeatherData> {
+  const key = process.env.NEXT_PUBLIC_WEATHERAPI_KEY;
+  if (!key) throw new Error('WeatherAPI key not configured');
+  const url = `https://api.weatherapi.com/v1/forecast.json?key=${key}&q=${lat},${lon}&days=5&aqi=no`;
+  const [res, city] = await Promise.all([fetch(url), fetchCity(lat, lon)]);
+  if (!res.ok) throw new Error(`WeatherAPI HTTP ${res.status}`);
+  const d = await res.json();
+  const c = d.current;
+  const forecast: DayForecast[] = d.forecast.forecastday.map((day: any) => ({
+    date: day.date,
+    code: weatherApiCodeToWmo(day.day.condition.code),
+    max: Math.round(day.day.maxtemp_c),
+    min: Math.round(day.day.mintemp_c),
+    precip: day.day.daily_chance_of_rain ?? 0,
+  }));
+  return {
+    city,
+    current: {
+      temp: Math.round(c.temp_c),
+      feels: Math.round(c.feelslike_c),
+      humidity: c.humidity,
+      wind: Math.round(c.wind_kph),
+      pressure: Math.round(c.pressure_mb),
+      uv: Math.round(c.uv),
+      code: weatherApiCodeToWmo(c.condition.code),
+    },
+    forecast,
+  };
 }
 
 async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
@@ -136,6 +192,7 @@ export default function Weather() {
   const [status, setStatus] = useState<Status>('idle');
   const [data, setData] = useState<WeatherData | null>(null);
   const [error, setError] = useState('');
+  const [source, setSource] = useState<DataSource>('open-meteo');
 
   function load() {
     if (!navigator.geolocation) {
@@ -147,13 +204,23 @@ export default function Weather() {
     navigator.geolocation.getCurrentPosition(
       async pos => {
         setStatus('loading');
+        const { latitude: lat, longitude: lon } = pos.coords;
         try {
-          const d = await fetchWeather(pos.coords.latitude, pos.coords.longitude);
+          const d = await fetchWeather(lat, lon);
           setData(d);
+          setSource('open-meteo');
           setStatus('ok');
         } catch {
-          setStatus('error');
-          setError('Nepodařilo se načíst data počasí.');
+          // Fallback: WeatherAPI
+          try {
+            const d2 = await fetchWeatherFallback(lat, lon);
+            setData(d2);
+            setSource('weatherapi');
+            setStatus('ok');
+          } catch {
+            setStatus('error');
+            setError('Nepodařilo se načíst data počasí.');
+          }
         }
       },
       () => {
@@ -178,15 +245,24 @@ export default function Weather() {
   if (status === 'idle' || status === 'locating' || status === 'loading') {
     return (
       <div style={card}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
-          🌤️ Počasí
-        </h2>
-        <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-          <div style={{ fontSize: '32px', marginBottom: '1rem' }}>
-            {status === 'locating' ? '📍' : '🌐'}
-          </div>
-          {status === 'locating' ? 'Zjišťuji polohu…' : 'Načítám počasí…'}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Počasí</h2>
+          <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
+            {status === 'locating' ? '📍 Zjišťuji polohu…' : '🌐 Načítám…'}
+          </span>
         </div>
+        <div style={{ height: '110px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', marginBottom: '.75rem' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{ height: '58px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', animationDelay: `${i * 0.1}s` }} />
+          ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} style={{ height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', animationDelay: `${i * 0.08}s` }} />
+          ))}
+        </div>
+        <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
       </div>
     );
   }
@@ -326,8 +402,9 @@ export default function Weather() {
       </div>
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        Zdroj: Open-Meteo · Nominatim OSM
+        Zdroj: {source === 'open-meteo' ? 'Open-Meteo' : 'WeatherAPI (záloha)'} · Nominatim OSM
       </div>
+      <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
     </div>
   );
 }

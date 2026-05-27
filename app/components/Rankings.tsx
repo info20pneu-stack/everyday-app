@@ -102,6 +102,33 @@ async function fetchStock(symbol: string): Promise<Stock> {
   };
 }
 
+async function fetchStockAlphaVantage(symbol: string): Promise<Stock> {
+  const key = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY;
+  if (!key) throw new Error('no-key');
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${key}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const q = json['Global Quote'];
+  if (!q?.['05. price']) throw new Error('No data');
+  const price      = parseFloat(q['05. price']);
+  const change     = parseFloat(q['09. change']);
+  const changePct  = parseFloat((q['10. change percent'] ?? '0').replace('%', ''));
+  const dayHigh    = parseFloat(q['03. high']);
+  const dayLow     = parseFloat(q['04. low']);
+  const volume     = parseInt(q['06. volume']);
+  const prevClose  = parseFloat(q['08. previous close']);
+  return {
+    symbol: q['01. symbol'] ?? symbol,
+    name: STOCK_SYMBOLS.find(s => s.symbol === symbol)?.name ?? symbol,
+    price, change, changePct,
+    dayHigh, dayLow,
+    weekHigh: Math.max(price, prevClose) * 1.05,
+    weekLow:  Math.min(price, prevClose) * 0.95,
+    volume,
+  };
+}
+
 async function fetchTracks(): Promise<Track[]> {
   const res = await fetch('https://rss.applemarketingtools.com/api/v2/us/music/most-played/10/songs.json');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -248,37 +275,61 @@ function StocksTab() {
   ) as Record<string, StockEntry>;
 
   const [stocks, setStocks] = useState<Record<string, StockEntry>>(initial);
+  const [source, setSource] = useState<'yahoo' | 'alphavantage' | 'none'>('none');
 
   async function loadAll() {
     setStocks(Object.fromEntries(
       STOCK_SYMBOLS.map(s => [s.symbol, { data: null, state: 'loading' }])
     ));
+    const hasAlphaKey = !!process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY;
+    let usedSource: 'yahoo' | 'alphavantage' | 'none' = 'none';
+
     await Promise.allSettled(
-      STOCK_SYMBOLS.map(async ({ symbol }) => {
+      STOCK_SYMBOLS.map(async ({ symbol }, idx) => {
         try {
           const data = await fetchStock(symbol);
+          usedSource = 'yahoo';
           setStocks(prev => ({ ...prev, [symbol]: { data, state: 'ok' } }));
         } catch {
-          setStocks(prev => ({ ...prev, [symbol]: { data: null, state: 'error' } }));
+          if (!hasAlphaKey) {
+            setStocks(prev => ({ ...prev, [symbol]: { data: null, state: 'error' } }));
+            return;
+          }
+          // Alpha Vantage fallback — stagger requests to stay under 5 req/min
+          await new Promise(r => setTimeout(r, idx * 250));
+          try {
+            const data = await fetchStockAlphaVantage(symbol);
+            usedSource = 'alphavantage';
+            setStocks(prev => ({ ...prev, [symbol]: { data, state: 'ok' } }));
+          } catch {
+            setStocks(prev => ({ ...prev, [symbol]: { data: null, state: 'error' } }));
+          }
         }
       })
     );
+    setSource(usedSource);
   }
 
   useEffect(() => { loadAll(); }, []);
 
   const allError = STOCK_SYMBOLS.every(s => stocks[s.symbol]?.state === 'error');
+  const hasAlphaKey = !!process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY;
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>Yahoo Finance · denní data</span>
+        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
+          {source === 'alphavantage' ? 'Alpha Vantage (záloha)' : source === 'yahoo' ? 'Yahoo Finance · denní data' : 'Yahoo Finance · denní data'}
+        </span>
         <button onClick={loadAll} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text3)', fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}>↺</button>
       </div>
 
       {allError && (
         <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px', fontSize: '12px', color: 'var(--text2)' }}>
-          ⚠️ Yahoo Finance blokuje přímé požadavky z prohlížeče (CORS). Pro produkci přidej Next.js API route jako proxy: <code style={{ color: 'var(--purple3)' }}>/api/stock?symbol=AAPL</code>
+          ⚠️ Yahoo Finance blokuje přímé požadavky (CORS).
+          {!hasAlphaKey
+            ? <> Nastav <code style={{ color: 'var(--purple3)' }}>NEXT_PUBLIC_ALPHA_VANTAGE_KEY</code> pro záložní data z Alpha Vantage.</>
+            : <> Zkouším Alpha Vantage zálohu…</>}
         </div>
       )}
 
@@ -290,6 +341,7 @@ function StocksTab() {
         <span style={{ textAlign: 'right' }}>Objem</span>
       </div>
 
+      <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {STOCK_SYMBOLS.map(({ symbol, name, color }, idx) => {
           const { data, state } = stocks[symbol] ?? { data: null, state: 'loading' };
@@ -329,13 +381,14 @@ function StocksTab() {
 
               {/* Price */}
               <div style={{ textAlign: 'right' }}>
-                {state === 'loading' && <span style={{ color: 'var(--text3)', fontSize: '12px' }}>…</span>}
+                {state === 'loading' && <div style={{ height: '14px', width: '52px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', marginLeft: 'auto', animation: 'shimmer 1.5s infinite' }} />}
                 {state === 'error'   && <span style={{ color: '#EF4444', fontSize: '11px' }}>–</span>}
                 {state === 'ok' && data && <span style={{ fontSize: '14px', fontWeight: '700', fontFamily: 'Poppins', color: '#fff' }}>${fmtUSD(data.price)}</span>}
               </div>
 
               {/* Change */}
               <div style={{ textAlign: 'right' }}>
+                {state === 'loading' && <div style={{ height: '12px', width: '40px', borderRadius: '4px', background: 'rgba(255,255,255,0.06)', marginLeft: 'auto', marginTop: '3px', animation: 'shimmer 1.5s infinite' }} />}
                 {state === 'ok' && data && (
                   <>
                     <div style={{ fontSize: '12px', fontWeight: '600', color: cc }}>{up ? '+' : ''}{fmtUSD(data.changePct)}%</div>
@@ -346,6 +399,7 @@ function StocksTab() {
 
               {/* Volume */}
               <div style={{ textAlign: 'right' }}>
+                {state === 'loading' && <div style={{ height: '10px', width: '32px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', marginLeft: 'auto', animation: 'shimmer 1.5s infinite' }} />}
                 {state === 'ok' && data && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{fmtVol(data.volume)}</span>}
               </div>
             </div>
