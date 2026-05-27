@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 
 const TILES = [
@@ -23,7 +24,7 @@ const TILES = [
   { icon: '💡', label: 'Suggest & Vote',     href: '/suggest'           },
 ];
 
-export default function MobileDashboard() {
+function MobileDashboard() {
   return (
     <div style={{
       display: 'grid',
@@ -72,3 +73,5 @@ export default function MobileDashboard() {
     </div>
   );
 }
+
+export default memo(MobileDashboard);

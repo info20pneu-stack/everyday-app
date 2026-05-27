@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { memo, useState, useEffect } from 'react';
+import Image from 'next/image';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
@@ -175,7 +176,7 @@ const SORT_OPTS: { key: SortKey; label: string }[] = [
 
 /* ═══════════════════════ AI TAB ═══════════════════════ */
 
-function AIModelsTab() {
+const AIModelsTab = memo(function AIModelsTab() {
   const [sort, setSort] = useState<SortKey>('score');
 
   const sorted = [...AI_MODELS].sort((a, b) => {
@@ -265,11 +266,11 @@ function AIModelsTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ═══════════════════════ STOCKS TAB ═══════════════════════ */
 
-function StocksTab() {
+const StocksTab = memo(function StocksTab() {
   const initial = Object.fromEntries(
     STOCK_SYMBOLS.map(s => [s.symbol, { data: null, state: 'loading' as FetchState }])
   ) as Record<string, StockEntry>;
@@ -408,11 +409,11 @@ function StocksTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ═══════════════════════ MUSIC TAB ═══════════════════════ */
 
-function MusicTab() {
+const MusicTab = memo(function MusicTab() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [state, setState] = useState<FetchState>('loading');
 
@@ -467,7 +468,7 @@ function MusicTab() {
 
                 {/* Artwork */}
                 {t.artwork ? (
-                  <img src={t.artwork} alt="" width={42} height={42} style={{ borderRadius: '7px', flexShrink: 0, objectFit: 'cover' }} />
+                  <Image src={t.artwork} alt="" width={42} height={42} unoptimized loading="lazy" style={{ borderRadius: '7px', flexShrink: 0, objectFit: 'cover' }} />
                 ) : (
                   <div style={{ width: 42, height: 42, borderRadius: '7px', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>🎵</div>
                 )}
@@ -494,7 +495,7 @@ function MusicTab() {
       </div>
     </div>
   );
-}
+});
 
 /* ═══════════════════════ MAIN ═══════════════════════ */
 

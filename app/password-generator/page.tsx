@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Password Generator | EVERY DAY',
     description: 'Generate secure passwords with custom options — 100% private, runs in your browser.',
-  alternates: { canonical: '/password-generator' },
     url: 'https://everyday-app.vercel.app/password-generator',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Password Generator | EVERY DAY',
     description: 'Generate secure passwords — 100% private, client-side.',
-  alternates: { canonical: '/password-generator' },
     images: ['/og-image.png'],
   },
 };

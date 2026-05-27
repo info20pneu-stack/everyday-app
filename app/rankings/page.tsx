@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Charts & Rankings | EVERY DAY',
     description: 'AI models, top stocks, Billboard music and trending tech — all rankings updated daily.',
-  alternates: { canonical: '/rankings' },
     url: 'https://everyday-app.vercel.app/rankings',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Charts & Rankings | EVERY DAY',
     description: 'AI, stocks, music and tech rankings — updated daily.',
-  alternates: { canonical: '/rankings' },
     images: ['/og-image.png'],
   },
 };

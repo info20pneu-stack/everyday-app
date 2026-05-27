@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'BMI Calculator | EVERY DAY',
     description: 'Calculate BMI, find your ideal weight range and get personalised health tips.',
-  alternates: { canonical: '/bmi' },
     url: 'https://everyday-app.vercel.app/bmi',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'BMI Calculator | EVERY DAY',
     description: 'Calculate BMI and get personalised health recommendations.',
-  alternates: { canonical: '/bmi' },
     images: ['/og-image.png'],
   },
 };

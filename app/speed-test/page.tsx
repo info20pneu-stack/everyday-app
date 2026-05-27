@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Internet Speed Test | EVERY DAY',
     description: 'Free online speed test — measure download, upload and ping instantly.',
-  alternates: { canonical: '/speed-test' },
     url: 'https://everyday-app.vercel.app/speed-test',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Internet Speed Test | EVERY DAY',
     description: 'Free online speed test — download, upload and ping.',
-  alternates: { canonical: '/speed-test' },
     images: ['/og-image.png'],
   },
 };

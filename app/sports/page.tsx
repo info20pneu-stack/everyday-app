@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sports Scores & Results | EVERY DAY',
     description: 'Live scores, results and standings for NFL, NBA, NHL, MLB and soccer.',
-  alternates: { canonical: '/sports' },
     url: 'https://everyday-app.vercel.app/sports',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Sports Scores & Results | EVERY DAY',
     description: 'Live scores and standings for NFL, NBA, NHL, MLB and soccer.',
-  alternates: { canonical: '/sports' },
     images: ['/og-image.png'],
   },
 };

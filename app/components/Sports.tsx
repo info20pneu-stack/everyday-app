@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
@@ -245,7 +245,7 @@ function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): Gam
 
 /* ═══════════════════════ UI COMPONENTS ═══════════════════════ */
 
-function TeamBadge({ team, align = 'left' }: { team: Team; align?: 'left' | 'right' }) {
+const TeamBadge = memo(function TeamBadge({ team, align = 'left' }: { team: Team; align?: 'left' | 'right' }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexDirection: align === 'right' ? 'row-reverse' : 'row', flex: 1, minWidth: 0 }}>
       <div style={{
@@ -262,9 +262,9 @@ function TeamBadge({ team, align = 'left' }: { team: Team; align?: 'left' | 'rig
       </div>
     </div>
   );
-}
+});
 
-function StatusBadge({ game }: { game: Game }) {
+const StatusBadge = memo(function StatusBadge({ game }: { game: Game }) {
   if (game.status === 'live') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
@@ -296,9 +296,9 @@ function StatusBadge({ game }: { game: Game }) {
       <div style={{ fontSize: '12px', color: 'var(--blue2)', fontWeight: '500' }}>{game.scheduledTime}</div>
     </div>
   );
-}
+});
 
-function GameDetailPanel({ game, detail }: { game: Game; detail: GameDetail }) {
+const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: Game; detail: GameDetail }) {
   const awayWins = (game.away.score ?? 0) > (game.home.score ?? 0);
   const cols = detail.periodScores.length;
 
@@ -394,9 +394,9 @@ function GameDetailPanel({ game, detail }: { game: Game; detail: GameDetail }) {
       )}
     </div>
   );
-}
+});
 
-function GameRow({
+const GameRow = memo(function GameRow({
   game, leagueId, expanded, onToggle, detailState, detail,
 }: {
   game: Game; leagueId: LeagueId; expanded: boolean;
@@ -455,9 +455,9 @@ function GameRow({
       )}
     </div>
   );
-}
+});
 
-function StandingsTable({ rows, headers }: { rows: StandingRow[]; headers: string[] }) {
+const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: StandingRow[]; headers: string[] }) {
   const colTemplate = `24px 1fr ${headers.map(() => '36px').join(' ')}`;
   return (
     <div>
@@ -487,16 +487,16 @@ function StandingsTable({ rows, headers }: { rows: StandingRow[]; headers: strin
       ))}
     </div>
   );
-}
+});
 
-function SectionLabel({ label, count }: { label: string; count: number }) {
+const SectionLabel = memo(function SectionLabel({ label, count }: { label: string; count: number }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', margin: '.75rem 0 .4rem' }}>
       {label}
       <span style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '1px 7px', fontSize: '10px', color: 'var(--text2)', letterSpacing: 0, textTransform: 'none' }}>{count}</span>
     </div>
   );
-}
+});
 
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
@@ -516,7 +516,7 @@ export default function Sports() {
   const [detailCache, setDetailCache] = useState<Record<string, DetailCache>>({});
 
   // Fetch scoreboard for a league (with backup ESPN subdomain)
-  async function fetchLeague(id: LeagueId) {
+  const fetchLeague = useCallback(async (id: LeagueId) => {
     setLeagueCache(prev => ({ ...prev, [id]: { ...prev[id], state: 'loading' } }));
     const primaryUrl = ESPN_CONFIG[id].scoreboardUrl;
     const backupUrl = primaryUrl.replace('site.api.espn.com', 'site.web.api.espn.com');
@@ -532,27 +532,27 @@ export default function Sports() {
     } catch (e: any) {
       setLeagueCache(prev => ({ ...prev, [id]: { ...prev[id], state: 'error', error: e.message } }));
     }
-  }
+  }, []);
 
   // Fetch game detail
-  async function fetchDetail(game: Game, leagueId: LeagueId) {
+  const fetchDetail = useCallback(async (game: Game, lid: LeagueId) => {
     setDetailCache(prev => ({ ...prev, [game.id]: { detail: null, state: 'loading' } }));
     try {
-      const url = `${ESPN_CONFIG[leagueId].summaryUrl}?event=${game.id}`;
+      const url = `${ESPN_CONFIG[lid].summaryUrl}?event=${game.id}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const detail = parseDetail(data, game.home, game.away, leagueId);
+      const detail = parseDetail(data, game.home, game.away, lid);
       setDetailCache(prev => ({ ...prev, [game.id]: { detail, state: 'ok' } }));
     } catch {
       setDetailCache(prev => ({ ...prev, [game.id]: { detail: null, state: 'error' } }));
     }
-  }
+  }, []);
 
   // Fetch current league on mount; lazy-load others on tab switch
   useEffect(() => {
     fetchLeague(leagueId);
-  }, [leagueId]);
+  }, [leagueId, fetchLeague]);
 
   // Auto-refresh every 60s if any live games in current league
   useEffect(() => {
@@ -560,26 +560,29 @@ export default function Sports() {
     if (!hasLive) return;
     const id = setInterval(() => fetchLeague(leagueId), 60_000);
     return () => clearInterval(id);
-  }, [leagueId, leagueCache]);
+  }, [leagueId, leagueCache, fetchLeague]);
 
-  function toggleGame(game: Game) {
-    const next = expandedId === game.id ? null : game.id;
-    setExpandedId(next);
-    if (next && !detailCache[game.id]) {
-      fetchDetail(game, leagueId);
-    }
-  }
+  const toggleGame = useCallback((game: Game) => {
+    setExpandedId(prev => {
+      const next = prev === game.id ? null : game.id;
+      if (next && !detailCache[game.id]) fetchDetail(game, leagueId);
+      return next;
+    });
+  }, [detailCache, leagueId, fetchDetail]);
 
-  function switchLeague(id: LeagueId) {
+  const switchLeague = useCallback((id: LeagueId) => {
     setLeagueId(id);
     setExpandedId(null);
-    if (leagueCache[id].state === 'idle') fetchLeague(id);
-  }
+    setLeagueCache(prev => {
+      if (prev[id].state === 'idle') fetchLeague(id);
+      return prev;
+    });
+  }, [fetchLeague]);
 
   const { games, state, error } = leagueCache[leagueId];
-  const live     = games.filter(g => g.status === 'live');
-  const final    = games.filter(g => g.status === 'final');
-  const upcoming = games.filter(g => g.status === 'upcoming');
+  const live     = useMemo(() => games.filter(g => g.status === 'live'),     [games]);
+  const final    = useMemo(() => games.filter(g => g.status === 'final'),    [games]);
+  const upcoming = useMemo(() => games.filter(g => g.status === 'upcoming'), [games]);
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
     flex: 1, cursor: 'pointer', fontWeight: '500', fontSize: '13px',

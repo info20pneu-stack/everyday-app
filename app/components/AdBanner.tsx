@@ -65,15 +65,25 @@ export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps
   const pushed = useRef(false);
 
   useEffect(() => {
-    // Register the global tab-visibility refresh listener once
     ensureRefreshListener();
-
-    // Push initial ad load
     if (pushed.current) return;
-    pushed.current = true;
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({} as never);
-    } catch {}
+    const el = insRef.current;
+    if (!el) return;
+
+    // Only push the ad when the banner enters the viewport
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || pushed.current) return;
+        pushed.current = true;
+        try {
+          (window.adsbygoogle = window.adsbygoogle || []).push({} as never);
+        } catch {}
+        obs.disconnect();
+      },
+      { rootMargin: '300px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   const isPlaceholder = AD_CLIENT.includes('XXXX') || slot === '0000000000';

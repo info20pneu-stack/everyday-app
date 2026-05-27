@@ -1,0 +1,48 @@
+'use client';
+
+import { useRef, useState, useEffect, ReactNode, memo } from 'react';
+
+interface LazyWidgetProps {
+  children: ReactNode;
+  height?: number;
+}
+
+function LazyWidget({ children, height = 320 }: LazyWidgetProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          obs.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  if (visible) return <>{children}</>;
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        minHeight: height,
+        borderRadius: 'var(--card-radius)',
+        background: 'rgba(255,255,255,0.02)',
+        border: '1px solid rgba(255,255,255,0.04)',
+        animation: 'shimmer 1.5s infinite',
+      }}
+    >
+      <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }`}</style>
+    </div>
+  );
+}
+
+export default memo(LazyWidget);

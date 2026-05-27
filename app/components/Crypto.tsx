@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import Image from 'next/image';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
@@ -86,7 +87,7 @@ function Sparkline({ prices, positive, id }: { prices: number[]; positive: boole
 
 /* ═══════════════════════ COIN ROW ═══════════════════════ */
 
-function CoinRow({ coin, expanded, onToggle, showCharts }: {
+const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: {
   coin: Coin;
   expanded: boolean;
   onToggle: () => void;
@@ -122,13 +123,15 @@ function CoinRow({ coin, expanded, onToggle, showCharts }: {
 
         {/* Logo + name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-          <img
+          <Image
             src={coin.image}
             alt={coin.name}
             width={26}
             height={26}
             style={{ borderRadius: '50%', flexShrink: 0, background: 'rgba(255,255,255,0.06)' }}
             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            loading="lazy"
+            unoptimized={coin.image.includes('coincap')}
           />
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -203,11 +206,11 @@ function CoinRow({ coin, expanded, onToggle, showCharts }: {
       )}
     </div>
   );
-}
+});
 
 /* ═══════════════════════ LARGE SPARKLINE ═══════════════════════ */
 
-function SparklineLarge({ prices, positive, id }: { prices: number[]; positive: boolean; id: string }) {
+const SparklineLarge = memo(function SparklineLarge({ prices, positive, id }: { prices: number[]; positive: boolean; id: string }) {
   const step = Math.max(1, Math.floor(prices.length / 80));
   const pts = prices.filter((_, i) => i % step === 0);
 
@@ -252,7 +255,7 @@ function SparklineLarge({ prices, positive, id }: { prices: number[]; positive: 
       </div>
     </div>
   );
-}
+});
 
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
@@ -289,7 +292,7 @@ export default function Crypto() {
   const [expandedId, setExpanded] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setState('loading');
     try {
       const res = await fetch(COINGECKO_URL);
@@ -314,9 +317,9 @@ export default function Crypto() {
         setState(e.message === 'rate-limit' ? 'rate-limit' : 'error');
       }
     }
-  }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const filtered = useMemo(() =>
     search.trim()

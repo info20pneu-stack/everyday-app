@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Date Counter & Countdown | EVERY DAY',
     description: 'Days between dates, event countdowns and time difference calculator.',
-  alternates: { canonical: '/date-counter' },
     url: 'https://everyday-app.vercel.app/date-counter',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
@@ -19,7 +18,6 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Date Counter & Countdown | EVERY DAY',
     description: 'Days between dates and event countdown calculator.',
-  alternates: { canonical: '/date-counter' },
     images: ['/og-image.png'],
   },
 };
