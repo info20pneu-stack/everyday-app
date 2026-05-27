@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import Providers from "./components/Providers";
+import Analytics from "./components/Analytics";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://everyday-app.vercel.app'),
@@ -37,6 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>{children}</Providers>
+        <Analytics />
+        <VercelAnalytics />
       </body>
     </html>
   );
