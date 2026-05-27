@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
@@ -880,13 +880,511 @@ function FlagQuiz() {
   );
 }
 
+/* ═══════════════════════ SLIDING PUZZLE ═══════════════════════ */
+
+interface LBEntry {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  timeMs: number;
+  moves: number;
+  date: number;
+}
+
+function fmtPrecise(ms: number): string {
+  const secs = Math.floor(ms / 1000);
+  const frac = Math.floor((ms % 1000) * 10);
+  const mins = Math.floor(secs / 60);
+  const s    = secs % 60;
+  if (mins > 0) return `${mins}:${String(s).padStart(2, '0')}.${String(frac).padStart(4, '0')}`;
+  return `${s}.${String(frac).padStart(4, '0')}`;
+}
+
+const SP_GOAL = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+
+function spIsSolvable(tiles: number[]): boolean {
+  const arr = tiles.filter(t => t !== 0);
+  let inv = 0;
+  for (let i = 0; i < arr.length; i++)
+    for (let j = i + 1; j < arr.length; j++)
+      if (arr[i] > arr[j]) inv++;
+  const blankRowFromBottom = 4 - Math.floor(tiles.indexOf(0) / 4);
+  return (inv + blankRowFromBottom) % 2 === 0;
+}
+
+function spIsSolved(tiles: number[]): boolean {
+  return tiles.every((t, i) => t === SP_GOAL[i]);
+}
+
+function spGenerate(): number[] {
+  let t: number[];
+  do {
+    t = [...SP_GOAL];
+    for (let i = t.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [t[i], t[j]] = [t[j], t[i]];
+    }
+  } while (!spIsSolvable(t) || spIsSolved(t));
+  return t;
+}
+
+function SlidingPuzzle() {
+  const [tiles, setTiles]           = useState<number[]>(() => spGenerate());
+  const [phase, setPhase]           = useState<'idle' | 'playing' | 'solved'>('idle');
+  const [moves, setMoves]           = useState(0);
+  const [elapsedMs, setElapsedMs]   = useState(0);
+  const [finalMs, setFinalMs]       = useState(0);
+  const [isNewBest, setIsNewBest]   = useState(false);
+  const [bestMs, setBestMs]         = useState<number | null>(() => lsGet<number | null>('sp_best_ms', null));
+  const [leaderboard, setLB]        = useState<LBEntry[]>([]);
+  const [showLB, setShowLB]         = useState(false);
+  const [playerName, setName]       = useState(() => lsGet<string>('sp_name', ''));
+  const [submitted, setSubmitted]       = useState(false);
+  const [submitting, setSubmitting]     = useState(false);
+  const [submitErr, setSubmitErr]       = useState('');
+  const [myRank, setMyRank]             = useState<number | null>(null);
+  const [submittedId, setSubmittedId]   = useState<string | null>(null);
+  const [notBetterMs, setNotBetterMs]   = useState<number | null>(null);
+  const [notInTop, setNotInTop]         = useState(false);
+  const { lang }                          = useLang();
+  const [filterCountry, setFilterCountry] = useState('');
+  const [filterCity, setFilterCity]       = useState('');
+
+  const countries = useMemo(() =>
+    [...new Set(leaderboard.map(e => e.country).filter(Boolean))].sort(),
+    [leaderboard]
+  );
+  const citiesForCountry = useMemo(() =>
+    filterCountry
+      ? [...new Set(leaderboard.filter(e => e.country === filterCountry).map(e => e.city).filter(Boolean))].sort()
+      : [],
+    [leaderboard, filterCountry]
+  );
+  const filteredLB = useMemo(() =>
+    leaderboard.filter(e => {
+      if (filterCountry && e.country !== filterCountry) return false;
+      if (filterCity && e.city !== filterCity) return false;
+      return true;
+    }),
+    [leaderboard, filterCountry, filterCity]
+  );
+  const globalRankMap = useMemo(() =>
+    new Map(leaderboard.map((e, i) => [e.id, i + 1])),
+    [leaderboard]
+  );
+
+  const startRef  = useRef<number>(0);
+  const rafRef    = useRef<number>(0);
+  const activeRef = useRef(false);
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+  async function fetchLB(): Promise<LBEntry[]> {
+    try {
+      const r = await fetch('/api/sliding-puzzle');
+      if (r.ok) { const d = await r.json() as LBEntry[]; setLB(d); return d; }
+    } catch { /* ignore */ }
+    return [];
+  }
+
+  function reset() {
+    cancelAnimationFrame(rafRef.current);
+    activeRef.current = false;
+    setTiles(spGenerate());
+    setPhase('idle');
+    setMoves(0);
+    setElapsedMs(0);
+    setFinalMs(0);
+    setIsNewBest(false);
+    setSubmitted(false);
+    setSubmitErr('');
+    setMyRank(null);
+    setSubmittedId(null);
+    setNotBetterMs(null);
+    setNotInTop(false);
+    setFilterCountry('');
+    setFilterCity('');
+    setShowLB(false);
+  }
+
+  function handleTileClick(idx: number) {
+    if (phase === 'solved') return;
+    const emptyIdx = tiles.indexOf(0);
+    const row = Math.floor(idx / 4),      col = idx % 4;
+    const eRow = Math.floor(emptyIdx / 4), eCol = emptyIdx % 4;
+    if (!(row === eRow && Math.abs(col - eCol) === 1) &&
+        !(col === eCol && Math.abs(row - eRow) === 1)) return;
+
+    const next = [...tiles];
+    [next[idx], next[emptyIdx]] = [0, next[idx]];
+    setTiles(next);
+    const newMoves = moves + 1;
+    setMoves(newMoves);
+
+    if (!activeRef.current) {
+      activeRef.current = true;
+      startRef.current  = performance.now();
+      setPhase('playing');
+      const tick = () => {
+        setElapsedMs(performance.now() - startRef.current);
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    }
+
+    if (spIsSolved(next)) {
+      cancelAnimationFrame(rafRef.current);
+      activeRef.current = false;
+      const done = performance.now() - startRef.current;
+      setElapsedMs(done);
+      setFinalMs(done);
+      setPhase('solved');
+      const prev    = lsGet<number | null>('sp_best_ms', null);
+      const newBest = !prev || done < prev;
+      if (newBest) { lsSet('sp_best_ms', done); setBestMs(done); }
+      setIsNewBest(newBest);
+      fetchLB();
+    }
+  }
+
+  async function handleSubmit() {
+    if (!playerName.trim() || submitting) return;
+    setSubmitting(true);
+    setSubmitErr('');
+    try {
+      lsSet('sp_name', playerName.trim());
+      const res  = await fetch('/api/sliding-puzzle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: playerName.trim(), timeMs: finalMs, moves }),
+      });
+      const data = await res.json() as Record<string, unknown>;
+      if (res.status === 201 && data.success) {
+        const entry = data.entry as LBEntry;
+        setSubmitted(true);
+        setSubmittedId(entry.id);
+        const lb  = await fetchLB();
+        const idx = lb.findIndex(e => e.id === entry.id);
+        setMyRank(idx >= 0 ? idx + 1 : null);
+      } else if (res.ok && data.notBetter) {
+        setNotBetterMs(data.currentBestMs as number);
+        setMyRank(data.rank as number);
+        await fetchLB();
+      } else if (res.ok && data.notInTop) {
+        setNotInTop(true);
+        setMyRank(data.rank as number);
+      } else if (!res.ok) {
+        setSubmitErr((data.error as string) || 'Chyba při odesílání');
+      }
+    } catch {
+      setSubmitErr('Chyba připojení');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const emptyIdx = tiles.indexOf(0);
+  const eRow = Math.floor(emptyIdx / 4);
+  const eCol = emptyIdx % 4;
+
+  return (
+    <div>
+      {/* Stats row */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
+        <StatChip label="Tahy" value={moves} />
+        <div style={{
+          flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
+          padding: '5px 12px', textAlign: 'center',
+        }}>
+          <div style={{
+            fontSize: '15px', fontWeight: '700', fontFamily: 'monospace',
+            letterSpacing: '0.5px', fontVariantNumeric: 'tabular-nums',
+            color: phase === 'solved' ? 'var(--green2)' : '#fff',
+          }}>
+            {fmtPrecise(elapsedMs)}
+          </div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Čas (s.XXXX)</div>
+        </div>
+        <button onClick={reset} style={{
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '8px', color: 'var(--text3)', fontSize: '13px',
+          padding: '0 14px', cursor: 'pointer', alignSelf: 'stretch',
+        }}>↺</button>
+      </div>
+
+      {bestMs !== null && phase !== 'solved' && (
+        <div style={{ marginBottom: '10px' }}>
+          <BestBadge label="Nejlepší čas" value={fmtPrecise(bestMs)} />
+        </div>
+      )}
+
+      {phase === 'idle' && (
+        <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', marginBottom: '8px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+          Klikni na dlaždici pro start ↓
+        </div>
+      )}
+
+      {/* 4×4 grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '5px', maxWidth: '280px', margin: '0 auto' }}>
+        {tiles.map((tile, idx) => {
+          if (tile === 0) return <div key="empty" style={{ height: '64px' }} />;
+          const tRow = Math.floor(idx / 4), tCol = idx % 4;
+          const canSlide = (tRow === eRow && Math.abs(tCol - eCol) === 1) ||
+                           (tCol === eCol && Math.abs(tRow - eRow) === 1);
+          const inPlace  = SP_GOAL[idx] === tile && phase === 'playing';
+          return (
+            <button
+              key={tile}
+              onClick={() => handleTileClick(idx)}
+              style={{
+                height: '64px', borderRadius: '10px',
+                fontSize: '20px', fontWeight: '700', fontFamily: 'Poppins', color: '#fff',
+                cursor: canSlide ? 'pointer' : 'default',
+                border: phase === 'solved'
+                  ? '1px solid rgba(34,197,94,0.5)'
+                  : canSlide
+                  ? '1px solid rgba(93,76,255,0.8)'
+                  : inPlace
+                  ? '1px solid rgba(34,197,94,0.2)'
+                  : '1px solid rgba(93,76,255,0.28)',
+                background: phase === 'solved'
+                  ? 'rgba(34,197,94,0.13)'
+                  : canSlide
+                  ? 'rgba(93,76,255,0.28)'
+                  : inPlace
+                  ? 'rgba(34,197,94,0.07)'
+                  : 'rgba(93,76,255,0.10)',
+                boxShadow: canSlide ? '0 0 10px rgba(93,76,255,0.35)' : 'none',
+                transition: 'background 0.12s, border 0.12s, box-shadow 0.12s',
+              }}
+            >
+              {tile}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Solved panel */}
+      {phase === 'solved' && (
+        <div style={{
+          marginTop: '16px',
+          background: 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(93,76,255,0.06))',
+          border: '1px solid rgba(34,197,94,0.3)', borderRadius: '14px',
+          padding: '16px', textAlign: 'center',
+        }}>
+          <div style={{ fontSize: '26px', marginBottom: '6px' }}>🎉</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
+            Vyřešeno!
+          </div>
+          <div style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: '700', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
+            {fmtPrecise(finalMs)}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: isNewBest ? '4px' : '12px' }}>
+            {moves} tahů
+          </div>
+          {isNewBest && (
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFB300', marginBottom: '12px', animation: 'newRecBadge 0.5s cubic-bezier(.34,1.56,.64,1) both' }}>
+              🏆 Nový rekord!
+            </div>
+          )}
+
+          {!submitted && notBetterMs === null && !notInTop ? (
+            <div style={{ marginBottom: '12px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>
+                Přidat do globálního žebříčku:
+              </div>
+              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  placeholder="Tvoje jméno / přezdívka"
+                  value={playerName}
+                  onChange={e => setName(e.target.value.slice(0, 30))}
+                  maxLength={30}
+                  style={{
+                    background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: '8px', color: '#fff', fontSize: '13px',
+                    padding: '7px 12px', outline: 'none', width: '150px',
+                  }}
+                />
+                <button
+                  onClick={handleSubmit}
+                  disabled={!playerName.trim() || submitting}
+                  style={{
+                    background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
+                    border: 'none', borderRadius: '8px', color: '#fff',
+                    fontSize: '13px', fontWeight: '600', padding: '7px 16px', cursor: 'pointer',
+                    opacity: playerName.trim() && !submitting ? 1 : 0.5,
+                  }}
+                >
+                  {submitting ? '…' : 'Odeslat'}
+                </button>
+              </div>
+              {submitErr && (
+                <div style={{ fontSize: '11px', color: '#EF4444', marginTop: '5px' }}>{submitErr}</div>
+              )}
+            </div>
+          ) : submitted ? (
+            <div style={{ fontSize: '12px', color: 'var(--green2)', marginBottom: '12px' }}>
+              ✓ Přidáno{myRank ? ` – jsi #${myRank} v žebříčku` : ' do žebříčku'}!
+            </div>
+          ) : notBetterMs !== null ? (
+            <div style={{ fontSize: '12px', color: 'var(--amber)', marginBottom: '12px' }}>
+              🏆 Máš lepší rekord: {fmtPrecise(notBetterMs)}{myRank ? ` – #${myRank} v žebříčku` : ''}
+            </div>
+          ) : (
+            <div style={{ fontSize: '12px', color: 'var(--text2)', marginBottom: '12px' }}>
+              Výsledek mimo Top 1000{myRank ? ` (tvoje pozice: #${myRank})` : ''}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={reset} style={{
+              background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
+              border: 'none', borderRadius: '9px', color: '#fff',
+              fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer',
+            }}>
+              ↺ Hrát znovu
+            </button>
+            <button onClick={async () => { const next = !showLB; setShowLB(next); if (next) await fetchLB(); }} style={{
+              background: showLB ? 'rgba(255,179,0,0.1)' : 'rgba(255,255,255,0.06)',
+              border: showLB ? '1px solid rgba(255,179,0,0.25)' : '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '9px', color: showLB ? '#FFB300' : 'var(--text2)',
+              fontSize: '13px', fontWeight: '600', padding: '9px 16px', cursor: 'pointer',
+            }}>
+              🏆 {showLB ? 'Skrýt' : 'Žebříček'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Global leaderboard */}
+      {showLB && (
+        <div style={{ marginTop: '12px' }}>
+
+          {/* Filter bar */}
+          {leaderboard.length > 0 && (
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
+              <select
+                value={filterCountry}
+                onChange={e => { setFilterCountry(e.target.value); setFilterCity(''); }}
+                style={{
+                  flex: 1, minWidth: '120px',
+                  background: 'rgba(255,255,255,0.07)',
+                  border: filterCountry ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '8px', color: '#fff', fontSize: '11px',
+                  padding: '5px 8px', outline: 'none', cursor: 'pointer',
+                }}
+              >
+                <option value="">🌍 Všechny země ({leaderboard.length})</option>
+                {countries.map(c => (
+                  <option key={c} value={c}>
+                    {flagEmoji(c)} {getCountryName(c, lang)} ({leaderboard.filter(e => e.country === c).length})
+                  </option>
+                ))}
+              </select>
+              {filterCountry && citiesForCountry.length > 1 && (
+                <select
+                  value={filterCity}
+                  onChange={e => setFilterCity(e.target.value)}
+                  style={{
+                    flex: 1, minWidth: '90px',
+                    background: 'rgba(255,255,255,0.07)',
+                    border: filterCity ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: '8px', color: '#fff', fontSize: '11px',
+                    padding: '5px 8px', outline: 'none', cursor: 'pointer',
+                  }}
+                >
+                  <option value="">Všechna města ({filteredLB.length})</option>
+                  {citiesForCountry.map(city => (
+                    <option key={city} value={city}>
+                      {city} ({leaderboard.filter(e => e.country === filterCountry && e.city === city).length})
+                    </option>
+                  ))}
+                </select>
+              )}
+              {(filterCountry || filterCity) && (
+                <button
+                  onClick={() => { setFilterCountry(''); setFilterCity(''); }}
+                  title="Zrušit filtr"
+                  style={{
+                    background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
+                    borderRadius: '8px', color: '#EF4444', fontSize: '12px',
+                    padding: '5px 10px', cursor: 'pointer', flexShrink: 0,
+                  }}
+                >✕</button>
+              )}
+            </div>
+          )}
+
+          <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+            {filterCountry
+              ? `${flagEmoji(filterCountry)} ${getCountryName(filterCountry, lang)}${filterCity ? ' · ' + filterCity : ''} — ${filteredLB.length} hráčů`
+              : '🌍 Globální žebříček – Top 1000'}
+          </div>
+
+          {leaderboard.length === 0 ? (
+            <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '16px' }}>
+              Zatím žádné záznamy. Buď první!
+            </div>
+          ) : filteredLB.length === 0 ? (
+            <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '12px' }}>
+              Žádní hráči z této oblasti.
+            </div>
+          ) : (
+            <div style={{ maxHeight: '300px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {filteredLB.map((entry, i) => {
+                const globalRank = globalRankMap.get(entry.id) ?? (i + 1);
+                const isMine = (submitted && entry.id === submittedId)
+                  || (notBetterMs !== null && entry.name === playerName.trim() && Math.abs(entry.timeMs - notBetterMs) < 1);
+                return (
+                  <div key={entry.id} style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '6px 10px', borderRadius: '8px',
+                    background: isMine ? 'rgba(255,179,0,0.08)' : 'rgba(255,255,255,0.03)',
+                    border: isMine ? '1px solid rgba(255,179,0,0.22)' : '1px solid transparent',
+                  }}>
+                    <span style={{ fontSize: '13px', width: '28px', textAlign: 'right', flexShrink: 0, color: 'var(--text3)' }}>
+                      {globalRank === 1 ? '🥇' : globalRank === 2 ? '🥈' : globalRank === 3 ? '🥉' : `${globalRank}.`}
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: '600', color: isMine ? '#FFB300' : '#fff', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {entry.name}
+                    </span>
+                    {entry.country && !filterCountry && (
+                      <span style={{ fontSize: '14px', flexShrink: 0, lineHeight: 1 }} title={entry.city || entry.country}>
+                        {flagEmoji(entry.country)}
+                      </span>
+                    )}
+                    {entry.city && !filterCity && (
+                      <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0, maxWidth: '56px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {entry.city}
+                      </span>
+                    )}
+                    <span style={{ fontFamily: 'monospace', fontSize: '13px', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                      {fmtPrecise(entry.timeMs)}
+                    </span>
+                    <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0 }}>
+                      {entry.moves}t
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
-type TabId = 'memory' | 'wordchain' | 'flagquiz';
+type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding';
 const TABS: { id: TabId; label: string; emoji: string }[] = [
-  { id: 'memory',    label: 'Pexeso', emoji: '🃏' },
-  { id: 'wordchain', label: 'Řetěz',  emoji: '📝' },
-  { id: 'flagquiz',  label: 'Vlajky', emoji: '🌍' },
+  { id: 'memory',    label: 'Pexeso',  emoji: '🃏' },
+  { id: 'wordchain', label: 'Řetěz',   emoji: '📝' },
+  { id: 'flagquiz',  label: 'Vlajky',  emoji: '🌍' },
+  { id: 'sliding',   label: 'Puzzle',  emoji: '🧩' },
 ];
 
 export default function DailyGames() {
@@ -915,6 +1413,7 @@ export default function DailyGames() {
       {tab === 'memory'    && <MemoryGame />}
       {tab === 'wordchain' && <WordChain />}
       {tab === 'flagquiz'  && <FlagQuiz />}
+      {tab === 'sliding'   && <SlidingPuzzle />}
 
       <style>{`
         @keyframes shake {
