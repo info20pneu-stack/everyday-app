@@ -1,9 +1,9 @@
-import { kv } from '@vercel/kv';
+import { redis } from '../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 
 const MAX_ENTRIES = 1000;
-const KV_KEY  = 'sliding:lb';
+const LB_KEY  = 'sliding:lb';
 const IPS_KEY = 'sliding:ips';
 
 export interface LBEntry {
@@ -16,8 +16,9 @@ export interface LBEntry {
   date: number;
 }
 
+// Stored per IP hash in a Redis hash — tracks their best sorted-set member string
 interface IpRecord {
-  member: string;
+  member: string;  // exact JSON string used as the sorted-set member
   timeMs: number;
 }
 
@@ -27,11 +28,8 @@ function hashIp(ip: string): string {
 
 export async function GET() {
   try {
-    const raw = await kv.zrange(KV_KEY, 0, MAX_ENTRIES - 1) as string[];
-    const entries = raw
-      .map(r => { try { return JSON.parse(r) as LBEntry; } catch { return null; } })
-      .filter((e): e is LBEntry => e !== null);
-    return NextResponse.json(entries);
+    const entries = await redis.zrange<LBEntry[]>(LB_KEY, 0, MAX_ENTRIES - 1);
+    return NextResponse.json(entries ?? []);
   } catch {
     return NextResponse.json([]);
   }
@@ -42,7 +40,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json() as { name: string; timeMs: number; moves: number };
     const { name, timeMs, moves } = body;
 
-    if (!name?.trim() || typeof timeMs !== 'number' || timeMs <= 0 || typeof moves !== 'number' || moves < 1) {
+    if (
+      !name?.trim() ||
+      typeof timeMs !== 'number' || timeMs <= 0 ||
+      typeof moves !== 'number' || moves < 1
+    ) {
       return NextResponse.json({ error: 'Neplatná data' }, { status: 400 });
     }
 
@@ -55,27 +57,25 @@ export async function POST(req: NextRequest) {
     const rawCity = req.headers.get('x-vercel-ip-city') ?? '';
     const city    = rawCity ? decodeURIComponent(rawCity).slice(0, 60) : '';
 
+    // Round to 0.1 ms (ten-thousandths of a second)
     const roundedMs = Math.round(timeMs * 10) / 10;
 
-    const existingRaw = await kv.hget(IPS_KEY, ipHash) as string | null;
-    const existing: IpRecord | null = existingRaw
-      ? (() => { try { return JSON.parse(existingRaw) as IpRecord; } catch { return null; } })()
-      : null;
+    // One entry per IP — look up their previous best
+    const existing = await redis.hget<IpRecord>(IPS_KEY, ipHash);
 
-    // Existing IP entry with equal or better time — don't update
     if (existing && roundedMs >= existing.timeMs) {
-      const count = await kv.zcount(KV_KEY, '-inf', String(existing.timeMs)) as number;
-      return NextResponse.json({ notBetter: true, currentBestMs: existing.timeMs, rank: count }, { status: 200 });
+      const rank = await redis.zcount(LB_KEY, '-inf', String(existing.timeMs));
+      return NextResponse.json({ notBetter: true, currentBestMs: existing.timeMs, rank }, { status: 200 });
     }
 
-    // Estimate rank after hypothetical removal of old entry and insertion of new one
-    const currentCard  = await kv.zcard(KV_KEY) as number;
-    let   betterCount  = await kv.zcount(KV_KEY, '-inf', `(${roundedMs}`) as number;
-    let   adjustedCard = currentCard;
+    // Estimate rank in the leaderboard after replacing old entry
+    const currentCard = await redis.zcard(LB_KEY);
+    let betterCount   = await redis.zcount(LB_KEY, '-inf', `(${roundedMs}`);
+    let adjustedCard  = currentCard;
 
     if (existing) {
       adjustedCard = Math.max(0, currentCard - 1);
-      if (existing.timeMs < roundedMs) betterCount--;
+      if (existing.timeMs < roundedMs) betterCount = Math.max(0, betterCount - 1);
     }
 
     const rank = betterCount + 1;
@@ -83,12 +83,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ notInTop: true, rank }, { status: 200 });
     }
 
-    // Remove old entry (no-op if already trimmed out)
+    // Remove superseded entry from the sorted set
     if (existing) {
-      await kv.zrem(KV_KEY, existing.member);
+      await redis.zrem(LB_KEY, existing.member);
     }
 
-    const id    = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const entry: LBEntry = {
       id,
       name:    name.trim().slice(0, 30),
@@ -98,13 +98,13 @@ export async function POST(req: NextRequest) {
       moves,
       date:    Date.now(),
     };
+
+    // Member must be a stable string so we can zrem it later via IpRecord
     const member = JSON.stringify(entry);
 
-    await kv.zadd(KV_KEY, { score: roundedMs, member });
-    await kv.zremrangebyrank(KV_KEY, MAX_ENTRIES, -1);
-
-    const ipRecord: IpRecord = { member, timeMs: roundedMs };
-    await kv.hset(IPS_KEY, { [ipHash]: JSON.stringify(ipRecord) });
+    await redis.zadd(LB_KEY, { score: roundedMs, member });
+    await redis.zremrangebyrank(LB_KEY, MAX_ENTRIES, -1);
+    await redis.hset(IPS_KEY, { [ipHash]: { member, timeMs: roundedMs } });
 
     return NextResponse.json({ success: true, entry }, { status: 201 });
   } catch {

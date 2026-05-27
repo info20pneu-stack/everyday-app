@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { redis } from '../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 
 export type SuggestionStatus =
@@ -22,10 +22,10 @@ export interface Suggestion {
 
 export async function GET() {
   try {
-    const ids = await kv.lrange<string>('suggestions:list', 0, -1);
+    const ids = await redis.lrange<string>('suggestions:list', 0, -1);
     if (!ids || ids.length === 0) return NextResponse.json([]);
     const suggestions = await Promise.all(
-      ids.map(id => kv.hgetall<Suggestion>(`suggestion:${id}`))
+      ids.map(id => redis.hgetall<Suggestion>(`suggestion:${id}`))
     );
     const valid = suggestions
       .filter((s): s is Suggestion => s !== null)
@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
       createdAt: Date.now(),
     };
 
-    await kv.hset(`suggestion:${id}`, suggestion);
-    await kv.lpush('suggestions:list', id);
+    await redis.hset(`suggestion:${id}`, suggestion);
+    await redis.lpush('suggestions:list', id);
 
     return NextResponse.json(suggestion, { status: 201 });
   } catch (e) {

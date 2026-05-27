@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import { redis } from '../../../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import type { Suggestion } from '../../route';
 
@@ -19,22 +19,22 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const suggestion = await kv.hgetall<Suggestion>(`suggestion:${id}`);
+    const suggestion = await redis.hgetall<Suggestion>(`suggestion:${id}`);
     if (!suggestion) {
       return NextResponse.json({ error: 'Suggestion not found' }, { status: 404 });
     }
 
     const ip = getClientIP(req);
     const voteKey = `vote:${id}:${ip}`;
-    const lastVote = await kv.get<number>(voteKey);
+    const lastVote = await redis.get<number>(voteKey);
 
     if (lastVote && Date.now() - lastVote < VOTE_WINDOW_MS) {
       return NextResponse.json({ error: 'Already voted in the last 24h' }, { status: 429 });
     }
 
     const newVotes = (suggestion.votes || 0) + 1;
-    await kv.hset(`suggestion:${id}`, { votes: newVotes });
-    await kv.set(voteKey, Date.now(), { ex: Math.ceil(VOTE_WINDOW_MS / 1000) });
+    await redis.hset(`suggestion:${id}`, { votes: newVotes });
+    await redis.set(voteKey, Date.now(), { ex: Math.ceil(VOTE_WINDOW_MS / 1000) });
 
     return NextResponse.json({ votes: newVotes });
   } catch (e) {
