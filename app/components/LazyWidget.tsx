@@ -32,16 +32,13 @@ function LazyWidget({ children, height = 320 }: LazyWidgetProps) {
   return (
     <div
       ref={ref}
+      className="shimmer-card"
       style={{
         minHeight: height,
         borderRadius: 'var(--card-radius)',
-        background: 'rgba(255,255,255,0.02)',
         border: '1px solid rgba(255,255,255,0.04)',
-        animation: 'shimmer 1.5s infinite',
       }}
-    >
-      <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }`}</style>
-    </div>
+    />
   );
 }
 

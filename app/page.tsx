@@ -51,7 +51,7 @@ export default function Home() {
           {/* Hero */}
           <div className="hero-section" style={{
             background: 'linear-gradient(135deg, #0D1324, #050816)',
-            borderRadius: '24px',
+            borderRadius: 'var(--card-radius)',
             border: '1px solid rgba(255,255,255,0.05)',
             padding: '2rem',
             marginBottom: '1.25rem',

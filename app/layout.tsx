@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "./components/Providers";
 import Analytics from "./components/Analytics";
 import StructuredData from "./components/StructuredData";
+import PageLoader from "./components/PageLoader";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        <PageLoader />
         <Providers>{children}</Providers>
         <StructuredData />
         <Analytics />

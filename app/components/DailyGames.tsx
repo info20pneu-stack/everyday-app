@@ -46,11 +46,129 @@ const POOL_HARD   = ALL_COUNTRIES;            // all 80
 // MemoryGame still needs a flat unique array (up to 50 pairs for 10×10)
 const UNIQUE_COUNTRIES = ALL_COUNTRIES;
 
-const WORD_BANK = [
-  'Slunce','Měsíc','Hvězda','Mrak','Déšť','Strom','Květ','List','Hora','Řeka',
-  'Kočka','Pes','Pták','Ryba','Vlk','Červená','Modrá','Zelená','Žlutá','Bílá',
-  'Jaro','Léto','Podzim','Zima','Vítr','Oheň','Voda','Země','Led','Kámen',
-];
+// Multilingual word banks — 5 topics × 12 words = 60 per language
+// Topics: capitals, currencies, sports teams, countries, animals
+const WORD_BANKS: Record<string, string[]> = {
+  en: [
+    'London','Paris','Berlin','Tokyo','Rome','Madrid','Moscow','Beijing','Cairo','Ottawa',
+    'Canberra','Seoul','Vienna','Warsaw','Prague','Lisbon','Athens','Budapest','Brussels','Amsterdam',
+    'Dollar','Euro','Yen','Pound','Yuan','Ruble','Rupee','Peso','Franc','Krona',
+    'Arsenal','Chelsea','Bayern','Juventus','Barcelona','Liverpool','PSG','Ajax','Lakers','Yankees',
+    'France','Germany','Japan','Italy','Spain','Brazil','Russia','China','India','Mexico',
+    'Lion','Tiger','Eagle','Wolf','Shark','Dolphin','Elephant','Leopard','Cobra','Falcon',
+  ],
+  de: [
+    'Berlin','Paris','London','Tokio','Rom','Madrid','Moskau','Peking','Kairo','Ottawa',
+    'Canberra','Seoul','Wien','Warschau','Prag','Lissabon','Athen','Budapest','Brüssel','Amsterdam',
+    'Euro','Dollar','Yen','Pfund','Yuan','Rubel','Rupie','Peso','Franken','Krone',
+    'Bayern','Dortmund','Schalke','Juventus','Arsenal','Chelsea','Barcelona','Real','PSG','Ajax',
+    'Frankreich','Deutschland','Japan','Italien','Spanien','Brasilien','Russland','China','Indien','Mexiko',
+    'Löwe','Tiger','Adler','Wolf','Hai','Delfin','Elefant','Leopard','Kobra','Falke',
+  ],
+  it: [
+    'Roma','Parigi','Berlino','Tokio','Londra','Madrid','Mosca','Pechino','Il Cairo','Ottawa',
+    'Canberra','Seul','Vienna','Varsavia','Praga','Lisbona','Atene','Budapest','Bruxelles','Amsterdam',
+    'Euro','Dollaro','Yen','Sterlina','Yuan','Rublo','Rupia','Peso','Franco','Corona',
+    'Juventus','Milan','Inter','Lazio','Napoli','Arsenal','Barça','Bayern','Chelsea','PSG',
+    'Francia','Germania','Giappone','Italia','Spagna','Brasile','Russia','Cina','India','Messico',
+    'Leone','Tigre','Aquila','Lupo','Squalo','Delfino','Elefante','Leopardo','Cobra','Falcone',
+  ],
+  fr: [
+    'Paris','Berlin','Londres','Tokyo','Rome','Madrid','Moscou','Pékin','Le Caire','Ottawa',
+    'Canberra','Séoul','Vienne','Varsovie','Prague','Lisbonne','Athènes','Budapest','Bruxelles','Amsterdam',
+    'Euro','Dollar','Yen','Livre','Yuan','Rouble','Roupie','Peso','Franc','Couronne',
+    'PSG','Lyon','Monaco','Arsenal','Chelsea','Bayern','Juventus','Barça','Real','Ajax',
+    'France','Allemagne','Japon','Italie','Espagne','Brésil','Russie','Chine','Inde','Mexique',
+    'Lion','Tigre','Aigle','Loup','Requin','Dauphin','Éléphant','Léopard','Cobra','Faucon',
+  ],
+  cs: [
+    'Praha','Berlín','Paříž','Londýn','Tokio','Řím','Madrid','Moskva','Peking','Káhira',
+    'Canberra','Soul','Vídeň','Varšava','Lisabon','Atény','Budapešť','Brusel','Amsterdam','Ottawa',
+    'Koruna','Euro','Dolar','Jen','Libra','Juan','Rubl','Rupie','Peso','Frank',
+    'Sparta','Slavia','Bayern','Arsenal','Chelsea','Juventus','Barça','Real','Ajax','Borussia',
+    'Česko','Německo','Francie','Japonsko','Itálie','Španělsko','Brazílie','Rusko','Čína','Indie',
+    'Lev','Tygr','Orel','Vlk','Žralok','Delfín','Slon','Leopard','Kobra','Sokol',
+  ],
+  es: [
+    'Madrid','París','Berlín','Tokio','Roma','Londres','Moscú','Pekín','El Cairo','Ottawa',
+    'Canberra','Seúl','Viena','Varsovia','Praga','Lisboa','Atenas','Budapest','Bruselas','Ámsterdam',
+    'Euro','Dólar','Yen','Libra','Yuan','Rublo','Rupia','Peso','Franco','Corona',
+    'Real','Barça','Atlético','Sevilla','Arsenal','Chelsea','Bayern','Juventus','PSG','Ajax',
+    'España','Francia','Alemania','Japón','Italia','Brasil','Rusia','China','India','México',
+    'León','Tigre','Águila','Lobo','Tiburón','Delfín','Elefante','Leopardo','Cobra','Halcón',
+  ],
+  pl: [
+    'Warszawa','Berlin','Paryż','Londyn','Tokio','Rzym','Madryt','Moskwa','Pekin','Kair',
+    'Canberra','Seul','Wiedeń','Praga','Lizbona','Ateny','Budapeszt','Bruksela','Amsterdam','Ottawa',
+    'Złoty','Euro','Dolar','Jen','Funt','Juan','Rubel','Rupia','Peso','Frank',
+    'Legia','Wisła','Bayern','Arsenal','Chelsea','Juventus','Barcelona','Real','Ajax','Borussia',
+    'Polska','Niemcy','Francja','Japonia','Włochy','Hiszpania','Brazylia','Rosja','Chiny','Indie',
+    'Lew','Tygrys','Orzeł','Wilk','Rekin','Delfin','Słoń','Lampart','Kobra','Sokół',
+  ],
+  pt: [
+    'Lisboa','Madrid','Paris','Berlim','Tóquio','Roma','Londres','Moscovo','Pequim','Cairo',
+    'Camberra','Seul','Viena','Varsóvia','Praga','Atenas','Budapeste','Bruxelas','Amesterdão','Ottawa',
+    'Euro','Dólar','Iene','Libra','Yuan','Rublo','Rúpia','Peso','Franco','Coroa',
+    'Benfica','Porto','Sporting','Arsenal','Chelsea','Bayern','Juventus','Barça','Real','Ajax',
+    'Portugal','Espanha','França','Alemanha','Japão','Itália','Brasil','Rússia','China','Índia',
+    'Leão','Tigre','Águia','Lobo','Tubarão','Golfinho','Elefante','Leopardo','Cobra','Falcão',
+  ],
+  ru: [
+    'Москва','Берлин','Париж','Лондон','Токио','Рим','Мадрид','Пекин','Каир','Оттава',
+    'Канберра','Сеул','Вена','Варшава','Прага','Лиссабон','Афины','Будапешт','Брюссель','Амстердам',
+    'Рубль','Евро','Доллар','Иена','Фунт','Юань','Рупия','Песо','Франк','Крона',
+    'Зенит','Спартак','ЦСКА','Локомотив','Бавария','Арсенал','Челси','Барселона','Реал','Аякс',
+    'Россия','Германия','Франция','Япония','Италия','Испания','Бразилия','Китай','Индия','Мексика',
+    'Лев','Тигр','Орёл','Волк','Акула','Дельфин','Слон','Леопард','Кобра','Сокол',
+  ],
+  zh: [
+    '北京','巴黎','柏林','东京','伦敦','罗马','马德里','莫斯科','开罗','渥太华',
+    '堪培拉','首尔','维也纳','华沙','布拉格','里斯本','雅典','布达佩斯','布鲁塞尔','阿姆斯特丹',
+    '人民币','欧元','美元','日元','英镑','卢布','卢比','比索','法郎','克朗',
+    '巴萨','皇马','拜仁','曼联','尤文','切尔西','阿森纳','大巴黎','阿贾克斯','利物浦',
+    '中国','法国','德国','日本','意大利','西班牙','巴西','俄罗斯','印度','墨西哥',
+    '狮子','老虎','雄鹰','狼','鲨鱼','海豚','大象','豹子','眼镜蛇','猎鹰',
+  ],
+  ja: [
+    '東京','パリ','ベルリン','ロンドン','ローマ','マドリード','モスクワ','北京','カイロ','オタワ',
+    'キャンベラ','ソウル','ウィーン','ワルシャワ','プラハ','リスボン','アテネ','ブダペスト','ブリュッセル','アムステルダム',
+    '円','ユーロ','ドル','ポンド','元','ルーブル','ルピー','ペソ','フラン','クローナ',
+    'バルサ','レアル','バイエルン','マンU','ユベントス','チェルシー','読売','阪神','楽天','ソフトバンク',
+    '日本','フランス','ドイツ','イギリス','イタリア','スペイン','ブラジル','ロシア','中国','インド',
+    'ライオン','トラ','ワシ','オオカミ','サメ','イルカ','ゾウ','ヒョウ','コブラ','ハヤブサ',
+  ],
+  ko: [
+    '서울','파리','베를린','도쿄','런던','로마','마드리드','모스크바','베이징','카이로',
+    '캔버라','빈','바르샤바','프라하','리스본','아테네','부다페스트','브뤼셀','암스테르담','오타와',
+    '원','유로','달러','엔','파운드','위안','루블','루피','페소','프랑',
+    '바르사','레알','바이에른','맨유','유벤투스','첼시','아스날','삼성','두산','기아',
+    '한국','프랑스','독일','일본','이탈리아','스페인','브라질','러시아','중국','인도',
+    '사자','호랑이','독수리','늑대','상어','돌고래','코끼리','표범','코브라','매',
+  ],
+  ar: [
+    'القاهرة','باريس','برلين','طوكيو','لندن','روما','مدريد','موسكو','بكين','أوتاوا',
+    'كانبيرا','سيول','فيينا','وارسو','براغ','لشبونة','أثينا','بودابست','بروكسل','أمستردام',
+    'دولار','يورو','ين','جنيه','يوان','روبل','روبية','بيسو','فرنك','كرونة',
+    'برشلونة','ريال','بايرن','مانشستر','يوفنتوس','تشيلسي','أرسنال','الأهلي','الزمالك','الهلال',
+    'مصر','فرنسا','ألمانيا','اليابان','إيطاليا','إسبانيا','البرازيل','روسيا','الصين','الهند',
+    'أسد','نمر','نسر','ذئب','قرش','دلفين','فيل','فهد','كوبرا','صقر',
+  ],
+  hi: [
+    'दिल्ली','पेरिस','बर्लिन','टोक्यो','लंदन','रोम','मैड्रिड','मॉस्को','बीजिंग','काहिरा',
+    'कैनबरा','सियोल','वियना','वारसॉ','प्राग','लिस्बन','एथेंस','बुडापेस्ट','ब्रुसेल्स','एम्स्टर्डम',
+    'रुपया','यूरो','डॉलर','येन','पाउंड','युआन','रूबल','पेसो','फ्रैंक','क्रोना',
+    'बार्सा','रियल','बायर्न','मैनयू','जुवेंटस','चेल्सी','आर्सेनल','मुंबई','कोलकाता','चेन्नई',
+    'भारत','फ्रांस','जर्मनी','जापान','इटली','स्पेन','ब्राजील','रूस','चीन','मेक्सिको',
+    'शेर','बाघ','गरुड़','भेड़िया','शार्क','डॉल्फिन','हाथी','तेंदुआ','कोबरा','बाज',
+  ],
+};
+
+if (typeof window !== 'undefined') {
+  console.log(
+    '[WordChain] Word bank sizes:',
+    Object.fromEntries(Object.entries(WORD_BANKS).map(([l, w]) => [l, w.length]))
+  );
+}
 
 function flagEmoji(code: string) {
   return [...code.toUpperCase()].map(c =>
@@ -248,18 +366,31 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
           </div>
         </div>
 
-        {/* Time display */}
+        {/* Result display */}
         <div style={{ textAlign: 'center', marginBottom: '16px', padding: '12px', background: 'rgba(93,76,255,0.1)', borderRadius: '12px', border: '1px solid rgba(93,76,255,0.25)' }}>
-          <div style={{ fontFamily: 'monospace', fontSize: '28px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px', fontVariantNumeric: 'tabular-nums' }}>
-            {fmtTimePrecise4(timeMs)}
-          </div>
-          {score !== undefined && (
-            <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
-              Skóre: {score}{moves !== undefined ? ` · ${moves} tahů` : ''}
-            </div>
-          )}
-          {score === undefined && moves !== undefined && (
-            <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} tahů</div>
+          {game === 'wordchain' && score !== undefined ? (
+            <>
+              <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
+                Zapamatoval/a jsi {score} {score === 1 ? 'slovo' : score < 5 ? 'slova' : 'slov'}
+              </div>
+              <div style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px', fontVariantNumeric: 'tabular-nums' }}>
+                za {fmtTimePrecise4(timeMs)}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontFamily: 'monospace', fontSize: '28px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px', fontVariantNumeric: 'tabular-nums' }}>
+                {fmtTimePrecise4(timeMs)}
+              </div>
+              {score !== undefined && (
+                <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
+                  Skóre: {score}{moves !== undefined ? ` · ${moves} tahů` : ''}
+                </div>
+              )}
+              {score === undefined && moves !== undefined && (
+                <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} tahů</div>
+              )}
+            </>
           )}
         </div>
 
@@ -664,7 +795,10 @@ function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number
 
 type WCPhase = 'showing' | 'recall' | 'success' | 'fail';
 
+const WC_WORD_SHOW_MS = 1500;
+
 function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number) => void }) {
+  const { lang } = useLang();
   const [round, setRound]         = useState(1);
   const [sequence, setSequence]   = useState<string[]>([]);
   const [display, setDisplay]     = useState<string[]>([]);
@@ -673,16 +807,20 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
   const [clicked, setClicked]     = useState<string[]>([]);
   const [shakingWord, setShaking] = useState<string | null>(null);
   const [glowWord, setGlowWord]   = useState<string | null>(null);
-  const [score, setScore]         = useState(0);
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const bestRef   = useRef(lsGet<number>('wc_best', 0));
-  const startRef  = useRef<number>(0);
-  const rafRef    = useRef<number>(0);
+  // words recalled correctly across all completed rounds
+  const [wordsTotal, setWordsTotal] = useState(0);
+  const [elapsedMs, setElapsedMs]   = useState(0);
+  const [finalWords, setFinalWords] = useState(0);
+  const [finalMs, setFinalMs]       = useState(0);
+  const bestRef    = useRef(lsGet<number>('wc_best_words', 0));
+  const startRef   = useRef<number>(0);
+  const rafRef     = useRef<number>(0);
   const startedRef = useRef(false);
 
   function startRound(r: number) {
+    const bank = WORD_BANKS[lang] ?? WORD_BANKS.en;
     const seed = dateSeed() + r * 37;
-    const seq = seededShuffle(WORD_BANK, seed).slice(0, r + 2);
+    const seq = seededShuffle(bank, seed).slice(0, r + 2);
     setSequence(seq);
     setDisplay(seededShuffle(seq, seed + 1));
     setPhase('showing');
@@ -693,11 +831,17 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
   }
 
   useEffect(() => {
-    startRound(1); setRound(1); setScore(0);
-    setElapsedMs(0); startedRef.current = false;
+    startRound(1); setRound(1); setWordsTotal(0);
+    setElapsedMs(0); setFinalWords(0); setFinalMs(0);
+    startedRef.current = false;
     cancelAnimationFrame(rafRef.current);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+  useEffect(() => {
+    const bank = WORD_BANKS[lang] ?? WORD_BANKS.en;
+    console.log(`[WordChain] Lang: ${lang}, word bank: ${bank.length} words`);
+  }, [lang]);
 
   useEffect(() => {
     if (phase !== 'showing') return;
@@ -705,7 +849,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
       const t = setTimeout(() => setPhase('recall'), 700);
       return () => clearTimeout(t);
     }
-    const t = setTimeout(() => setShowIdx(i => i + 1), 800);
+    const t = setTimeout(() => setShowIdx(i => i + 1), WC_WORD_SHOW_MS);
     return () => clearTimeout(t);
   }, [phase, showIdx, sequence.length]);
 
@@ -728,11 +872,11 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
       setClicked(next);
       if (next.length === sequence.length) {
         setPhase('success');
-        const newScore = score + sequence.length;
-        setScore(newScore);
-        if (round + 1 > bestRef.current) {
-          bestRef.current = round + 1;
-          lsSet('wc_best', round + 1);
+        const newTotal = wordsTotal + sequence.length;
+        setWordsTotal(newTotal);
+        if (newTotal > bestRef.current) {
+          bestRef.current = newTotal;
+          lsSet('wc_best_words', newTotal);
         }
         setTimeout(() => {
           const nextRound = round + 1;
@@ -743,12 +887,19 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
     } else {
       setShaking(word);
       cancelAnimationFrame(rafRef.current);
-      const done = startedRef.current ? performance.now() - startRef.current : 0;
+      const done = startedRef.current ? performance.now() - startRef.current : 1;
+      const total = wordsTotal + clicked.length;
       setElapsedMs(done);
+      setFinalMs(done);
+      setFinalWords(total);
+      if (total > bestRef.current) {
+        bestRef.current = total;
+        lsSet('wc_best_words', total);
+      }
       setTimeout(() => setShaking(null), 600);
       setTimeout(() => {
         setPhase('fail');
-        if (done > 0) onComplete(done, score);
+        onComplete(done, total);
       }, 700);
     }
   }
@@ -756,7 +907,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
   function restart() {
     cancelAnimationFrame(rafRef.current);
     startedRef.current = false;
-    setRound(1); setScore(0); setElapsedMs(0);
+    setRound(1); setWordsTotal(0); setElapsedMs(0); setFinalWords(0); setFinalMs(0);
     startRound(1);
   }
 
@@ -764,10 +915,10 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
         <StatChip label="Kolo" value={round} />
-        <StatChip label="Slova" value={sequence.length} />
-        <StatChip label="Skóre" value={score} />
+        <StatChip label="Sekvence" value={sequence.length} />
+        <StatChip label="Slova" value={wordsTotal} />
         <StatChip label="Čas" value={fmtTimeCenti(elapsedMs)} />
-        {bestRef.current > 0 && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}><BestBadge label="Nejlepší" value={`kolo ${bestRef.current}`} /></div>}
+        {bestRef.current > 0 && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}><BestBadge label="Rekord" value={`${bestRef.current} slov`} /></div>}
       </div>
 
       {phase === 'showing' && (
@@ -775,18 +926,41 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', letterSpacing: '1px', textTransform: 'uppercase' }}>
             Zapamatuj si pořadí!
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
+          {/* current word highlight + countdown bar */}
+          {showIdx >= 0 && showIdx < sequence.length && (
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{
+                display: 'inline-block', fontSize: '22px', fontWeight: '700', color: '#fff',
+                background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
+                borderRadius: '12px', padding: '10px 28px',
+                boxShadow: '0 0 24px rgba(93,76,255,0.5)',
+                animation: 'wordPop 0.25s ease',
+              }}>
+                {sequence[showIdx]}
+              </div>
+              <div style={{ marginTop: '8px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden', maxWidth: '160px', margin: '8px auto 0' }}>
+                <div style={{
+                  height: '100%', borderRadius: '2px',
+                  background: 'linear-gradient(90deg, var(--purple), #7A3FFF)',
+                  animation: `wcCountdown ${WC_WORD_SHOW_MS}ms linear`,
+                }} />
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px' }}>
+                {showIdx + 1} / {sequence.length}
+              </div>
+            </div>
+          )}
+          {/* sequence progress dots */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center', marginTop: '4px' }}>
             {sequence.map((w, i) => (
               <div key={w + i} style={{
-                padding: '8px 16px', borderRadius: '10px', fontSize: '14px', fontWeight: '600',
-                background: i === showIdx ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : i < showIdx ? 'rgba(93,76,255,0.15)' : 'rgba(255,255,255,0.04)',
-                border: i === showIdx ? 'none' : '1px solid rgba(255,255,255,0.07)',
-                color: i === showIdx ? '#fff' : i < showIdx ? 'var(--purple3)' : 'transparent',
-                boxShadow: i === showIdx ? '0 0 18px rgba(93,76,255,0.6)' : 'none',
-                transition: 'all 0.3s',
-                animation: i === showIdx ? 'wordPop 0.3s ease' : 'none',
+                padding: '5px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
+                background: i < showIdx ? 'rgba(93,76,255,0.18)' : 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.07)',
+                color: i < showIdx ? 'var(--purple3)' : 'rgba(255,255,255,0.15)',
+                transition: 'all 0.2s',
               }}>
-                {i <= showIdx ? w : '—'}
+                {i < showIdx ? w : '—'}
               </div>
             ))}
           </div>
@@ -830,9 +1004,20 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
       {phase === 'fail' && (
         <div style={{ textAlign: 'center', padding: '1rem 0' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>😅</div>
-          <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>Kolo {round}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '2px' }}>Skóre: {score} bodů</div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '14px' }}>Správné pořadí: {sequence.join(' → ')}</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
+            Zapamatoval/a jsi {finalWords} {finalWords === 1 ? 'slovo' : finalWords < 5 ? 'slova' : 'slov'}
+          </div>
+          <div style={{ fontFamily: 'monospace', fontSize: '18px', fontWeight: '600', color: 'var(--green2)', marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>
+            za {fmtTimeCenti(finalMs)}
+          </div>
+          {finalWords >= bestRef.current && finalWords > 0 && (
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFB300', marginBottom: '8px', animation: 'newRecBadge 0.5s cubic-bezier(.34,1.56,.64,1) both' }}>
+              🏆 Nový rekord!
+            </div>
+          )}
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '14px' }}>
+            Správné pořadí: {sequence.join(' → ')}
+          </div>
           <button onClick={restart} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
             Hrát znovu
           </button>
@@ -1569,6 +1754,10 @@ export default function DailyGames() {
         @keyframes modalIn {
           from { opacity: 0; transform: scale(0.9) translateY(10px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes wcCountdown {
+          from { width: 100%; }
+          to   { width: 0%; }
         }
       `}</style>
     </div>

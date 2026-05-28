@@ -85,7 +85,7 @@ export default function Topbar() {
         marginLeft: rtl ? undefined : 'auto',
         marginRight: rtl ? 'auto' : '1rem',
         background: 'rgba(255,255,255,0.04)',
-        border: '1px solid rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.07)',
         borderRadius: '50px',
         padding: '7px 18px',
         fontSize: '12px',
@@ -94,7 +94,18 @@ export default function Topbar() {
         alignItems: 'center',
         gap: '7px',
         width: '220px',
-      }}>
+        cursor: 'text',
+        transition: 'border-color 0.15s, background 0.15s',
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.14)';
+        (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.06)';
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)';
+        (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)';
+      }}
+      >
         🔍 {t.topbar.search}
       </div>
 
@@ -188,20 +199,40 @@ export default function Topbar() {
 
         {/* Theme toggle */}
         <div style={{
-          width: '30px', height: '30px', borderRadius: '50%',
+          width: '32px', height: '32px', borderRadius: '50%',
           background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.07)',
+          border: '1px solid rgba(255,255,255,0.08)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', fontSize: '14px',
-        }}>☀️</div>
+          transition: 'background 0.15s, border-color 0.15s, transform 0.2s',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.08)';
+          (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.08)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)';
+          (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
+        }}
+        >☀️</div>
 
         {/* Avatar */}
         <div style={{
-          width: '30px', height: '30px', borderRadius: '50%',
+          width: '32px', height: '32px', borderRadius: '50%',
           background: 'linear-gradient(135deg, var(--purple), var(--purple2))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', fontSize: '11px', fontWeight: '600', color: '#fff',
-        }}>D</div>
+          transition: 'transform 0.2s, box-shadow 0.2s',
+        }}
+        onMouseEnter={e => {
+          (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.08)';
+          (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 14px rgba(93,76,255,0.5)';
+        }}
+        onMouseLeave={e => {
+          (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
+          (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
+        }}
+        >D</div>
       </div>
     </header>
   );

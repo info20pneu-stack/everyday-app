@@ -29,10 +29,11 @@ function MobileDashboard() {
     <div style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: '10px',
+      gap: '12px',
       padding: '4px 0',
+      animation: 'pageFadeIn 0.4s ease both',
     }}>
-      {TILES.map(tile => (
+      {TILES.map((tile, i) => (
         <Link
           key={tile.href}
           href={tile.href}
@@ -44,27 +45,20 @@ function MobileDashboard() {
             justifyContent: 'center',
             gap: '8px',
             background: 'rgba(15,20,40,0.92)',
-            border: '1px solid rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.06)',
             borderRadius: 'var(--card-radius)',
-            padding: '18px 8px',
+            padding: '20px 8px',
             textDecoration: 'none',
-            transition: 'background 0.15s, border-color 0.15s, transform 0.28s ease, box-shadow 0.28s ease',
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(93,76,255,0.15)';
-            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(93,76,255,0.4)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLAnchorElement).style.background = 'rgba(15,20,40,0.92)';
-            (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.07)';
+            boxShadow: 'var(--card-shadow)',
+            animation: `widgetIn 0.4s ease ${0.03 + i * 0.025}s both`,
           }}
         >
-          <span style={{ fontSize: '28px', lineHeight: 1 }}>{tile.icon}</span>
+          <span style={{ fontSize: '30px', lineHeight: 1 }}>{tile.icon}</span>
           <span style={{
             fontSize: '11px',
             color: 'var(--text2)',
             textAlign: 'center',
-            lineHeight: 1.3,
+            lineHeight: 1.35,
             fontFamily: 'Poppins, sans-serif',
           }}>
             {tile.label}
