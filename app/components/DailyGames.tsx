@@ -292,7 +292,7 @@ interface ModalProps {
 }
 
 function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLeaderboard }: ModalProps) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [nick,       setNick]       = useState(() => lsGet<string>('lb_nick', ''));
   const [country,    setCountry]    = useState(() => lsGet<string>('lb_country', ''));
   const [city,       setCity]       = useState(() => lsGet<string>('lb_city', ''));
@@ -328,10 +328,10 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
         setMyRank(data.rank as number);
         setPhase('confirm');
       } else {
-        setSubmitErr((data.error as string) || 'Chyba při odesílání');
+        setSubmitErr((data.error as string) || t.games.submitError);
       }
     } catch {
-      setSubmitErr('Chyba připojení');
+      setSubmitErr(t.games.connectionError);
     } finally {
       setSubmitting(false);
     }
@@ -354,7 +354,12 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
     color: '#fff', fontSize: '14px', padding: '10px 12px', outline: 'none',
     boxSizing: 'border-box',
   };
-  const gameLabel = { sliding: '🧩 Puzzle', memory: '🃏 Pexeso', flagquiz: '🌍 Vlajky', wordchain: '📝 Řetěz' };
+  const gameLabel: Record<GameId, string> = {
+    sliding: `🧩 ${t.games.sliding}`,
+    memory: `🃏 ${t.games.memory}`,
+    flagquiz: `🌍 ${t.games.flagquiz}`,
+    wordchain: `📝 ${t.games.wordchain}`,
+  };
 
   return (
     <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -362,7 +367,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>
           <div style={{ fontSize: '28px', marginBottom: '4px' }}>🏆</div>
           <div style={{ fontFamily: 'Poppins', fontSize: '17px', fontWeight: '700', color: '#fff' }}>
-            {gameLabel[game]} dokončeno!
+            {gameLabel[game]} {t.games.completed}
           </div>
         </div>
 
@@ -371,10 +376,10 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
           {game === 'wordchain' && score !== undefined ? (
             <>
               <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
-                Zapamatoval/a jsi {score} {score === 1 ? 'slovo' : score < 5 ? 'slova' : 'slov'}
+                {t.games.youRemembered} {score} {wPlural(score, t.games)}
               </div>
               <div style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px', fontVariantNumeric: 'tabular-nums' }}>
-                za {fmtTimePrecise4(timeMs)}
+                {t.games.inTime} {fmtTimePrecise4(timeMs)}
               </div>
             </>
           ) : (
@@ -384,11 +389,11 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
               </div>
               {score !== undefined && (
                 <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
-                  Skóre: {score}{moves !== undefined ? ` · ${moves} tahů` : ''}
+                  {t.games.score}: {score}{moves !== undefined ? ` · ${moves} ${t.games.moves}` : ''}
                 </div>
               )}
               {score === undefined && moves !== undefined && (
-                <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} tahů</div>
+                <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} {t.games.moves}</div>
               )}
             </>
           )}
@@ -398,12 +403,12 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               <input
-                type="text" placeholder="Nick / přezdívka" value={nick} maxLength={30}
+                type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={30}
                 onChange={e => setNick(e.target.value.slice(0, 30))}
                 style={inputSt}
               />
               <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...inputSt, cursor: 'pointer' }}>
-                <option value="">🌍 Vyber zemi…</option>
+                <option value="">{t.games.countryPlaceholder}</option>
                 {WORLD_COUNTRIES.map(code => (
                   <option key={code} value={code}>
                     {flagEmoji(code)} {getCountryName(code, lang)}
@@ -411,7 +416,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
                 ))}
               </select>
               <input
-                type="text" placeholder="Město (volitelné)" value={city} maxLength={60}
+                type="text" placeholder={t.games.cityPlaceholder} value={city} maxLength={60}
                 onChange={e => setCity(e.target.value.slice(0, 60))}
                 style={inputSt}
               />
@@ -428,14 +433,14 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
                   opacity: nick.trim() && !submitting ? 1 : 0.5,
                 }}
               >
-                {submitting ? '…' : '🏅 Přidat do žebříčku'}
+                {submitting ? '…' : t.games.submitToLb}
               </button>
               <button onClick={onClose} style={{
                 flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600',
                 padding: '11px', cursor: 'pointer',
               }}>
-                Přeskočit
+                {t.games.skip}
               </button>
             </div>
           </>
@@ -444,11 +449,11 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
             <div style={{ textAlign: 'center', marginBottom: '18px' }}>
               <div style={{ fontSize: '36px', marginBottom: '8px' }}>✅</div>
               <div style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: 'var(--green2)' }}>
-                Přidáno do žebříčku!
+                {t.games.addedToLb}
               </div>
               {myRank && (
                 <div style={{ fontSize: '14px', color: 'var(--text2)', marginTop: '6px' }}>
-                  Jsi <span style={{ color: '#FFB300', fontWeight: '700' }}>#{myRank}</span> v globálním žebříčku
+                  {t.games.rankIs} <span style={{ color: '#FFB300', fontWeight: '700' }}>#{myRank}</span> {t.games.rankGlobal}
                 </div>
               )}
             </div>
@@ -458,14 +463,14 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
                 borderRadius: '10px', color: '#FFB300', fontSize: '14px', fontWeight: '600',
                 padding: '11px', cursor: 'pointer',
               }}>
-                🏆 Zobrazit žebříček
+                {t.games.showLeaderboard}
               </button>
               <button onClick={onClose} style={{
                 flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600',
                 padding: '11px', cursor: 'pointer',
               }}>
-                Zavřít
+                {t.games.close}
               </button>
             </div>
           </>
@@ -477,15 +482,13 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
 
 /* ═══════════════════════ GLOBAL LEADERBOARD ═══════════════════════ */
 
-const PERIOD_OPTS = [
-  { v: 'all',   label: 'All-time' },
-  { v: 'month', label: 'Měsíc' },
-  { v: 'week',  label: 'Týden' },
-  { v: 'today', label: 'Dnes' },
-];
+// wPlural: pick correct plural form for word count
+function wPlural(n: number, g: { wordsOne: string; wordsFew: string; wordsMany: string }) {
+  return n === 1 ? g.wordsOne : n < 5 ? g.wordsFew : g.wordsMany;
+}
 
 function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [game,    setGame]    = useState<GameId>(initialGame);
   const [period,  setPeriod]  = useState('all');
   const [country, setCountry] = useState('');
@@ -516,7 +519,18 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     setCountry(''); setCity('');
   }, [game, period]);
 
-  const gameLabel: Record<GameId, string> = { sliding: '🧩 Puzzle', memory: '🃏 Pexeso', flagquiz: '🌍 Vlajky', wordchain: '📝 Řetěz' };
+  const glGameLabel: Record<GameId, string> = {
+    sliding: `🧩 ${t.games.sliding}`,
+    memory: `🃏 ${t.games.memory}`,
+    flagquiz: `🌍 ${t.games.flagquiz}`,
+    wordchain: `📝 ${t.games.wordchain}`,
+  };
+  const periodOpts = [
+    { v: 'all',   label: t.games.allTime },
+    { v: 'month', label: t.games.month },
+    { v: 'week',  label: t.games.week },
+    { v: 'today', label: t.games.today },
+  ];
 
   return (
     <div style={{ marginTop: '14px' }}>
@@ -528,13 +542,13 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
             fontSize: '11px', fontWeight: '600',
             background: g === game ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
             color: g === game ? '#fff' : 'var(--text3)',
-          }}>{gameLabel[g]}</button>
+          }}>{glGameLabel[g]}</button>
         ))}
       </div>
 
       {/* Period selector */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
-        {PERIOD_OPTS.map(p => (
+        {periodOpts.map(p => (
           <button key={p.v} onClick={() => setPeriod(p.v)} style={{
             flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '11px', fontWeight: '600',
@@ -552,7 +566,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
           border: country ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
           borderRadius: '8px', color: '#fff', fontSize: '11px', padding: '5px 8px', outline: 'none',
         }}>
-          <option value="">🌍 Všechny země ({entries.length})</option>
+          <option value="">🌍 {t.games.allCountries} ({entries.length})</option>
           {countries.map(c => (
             <option key={c} value={c}>
               {flagEmoji(c)} {getCountryName(c, lang)} ({entries.filter(e => e.country === c).length})
@@ -565,7 +579,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
             border: city ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
             borderRadius: '8px', color: '#fff', fontSize: '11px', padding: '5px 8px', outline: 'none',
           }}>
-            <option value="">Všechna města</option>
+            <option value="">{t.games.allCities}</option>
             {cities.map(ct => <option key={ct} value={ct}>{ct}</option>)}
           </select>
         )}
@@ -579,14 +593,14 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
 
       {/* Header */}
       <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-        {country ? `${flagEmoji(country)} ${getCountryName(country, lang)}${city ? ' · ' + city : ''} — ${filtered.length} hráčů` : `🌍 Globální žebříček — Top 100`}
+        {country ? `${flagEmoji(country)} ${getCountryName(country, lang)}${city ? ' · ' + city : ''} — ${filtered.length} ${t.games.players}` : `🌍 ${t.games.globalTop100}`}
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--text3)' }}>Načítám…</div>
+        <div style={{ textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--text3)' }}>{t.games.loading}</div>
       ) : filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '20px', fontSize: '12px', color: 'var(--text3)' }}>
-          {entries.length === 0 ? 'Zatím žádné záznamy. Buď první!' : 'Žádní hráči z této oblasti.'}
+          {entries.length === 0 ? t.games.noRecords : t.games.noPlayersArea}
         </div>
       ) : (
         <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -638,7 +652,7 @@ type DiffKey = keyof typeof DIFFS;
 type MemCard = { id: number; pairId: number; code: string };
 
 function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number, diff: string) => void }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [diff, setDiff]       = useState<DiffKey>('4×4');
   const [cards, setCards]     = useState<MemCard[]>([]);
   const [flipped, setFlipped] = useState<number[]>([]);
@@ -725,13 +739,13 @@ function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number
       </div>
 
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-        <StatChip label="Tahy" value={moves} />
-        <StatChip label="Čas" value={fmtTimeCenti(elapsedMs)} />
-        <StatChip label="Páry" value={`${matched.size / 2}/${DIFFS[diff].pairs}`} />
+        <StatChip label={t.games.moves} value={moves} />
+        <StatChip label={t.games.time} value={fmtTimeCenti(elapsedMs)} />
+        <StatChip label={t.games.pairs} value={`${matched.size / 2}/${DIFFS[diff].pairs}`} />
         <button onClick={() => initGame(diff)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '0 12px', cursor: 'pointer' }}>↺</button>
       </div>
 
-      {best[diff] && <div style={{ marginBottom: '10px' }}><BestBadge label={diff} value={`${best[diff]} tahů`} /></div>}
+      {best[diff] && <div style={{ marginBottom: '10px' }}><BestBadge label={diff} value={`${best[diff]} ${t.games.moves}`} /></div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: '4px' }}>
         {cards.map(card => {
@@ -780,10 +794,10 @@ function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number
       {over && (
         <div style={{ marginTop: '14px', background: 'linear-gradient(135deg, rgba(93,76,255,0.15), rgba(59,130,246,0.1))', border: '1px solid rgba(93,76,255,0.35)', borderRadius: '12px', padding: '16px', textAlign: 'center' }}>
           <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
-          <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff' }}>Splněno!</div>
-          <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} tahů · {fmtTimePrecise4(finalMs)}</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff' }}>{t.games.completed}</div>
+          <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} {t.games.moves} · {fmtTimePrecise4(finalMs)}</div>
           <button onClick={() => initGame(diff)} style={{ marginTop: '12px', background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
-            Hrát znovu
+            {t.games.playAgain}
           </button>
         </div>
       )}
@@ -798,7 +812,7 @@ type WCPhase = 'showing' | 'recall' | 'success' | 'fail';
 const WC_WORD_SHOW_MS = 1500;
 
 function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number) => void }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const [round, setRound]         = useState(1);
   const [sequence, setSequence]   = useState<string[]>([]);
   const [display, setDisplay]     = useState<string[]>([]);
@@ -914,17 +928,17 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
   return (
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-        <StatChip label="Kolo" value={round} />
-        <StatChip label="Sekvence" value={sequence.length} />
-        <StatChip label="Slova" value={wordsTotal} />
-        <StatChip label="Čas" value={fmtTimeCenti(elapsedMs)} />
-        {bestRef.current > 0 && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}><BestBadge label="Rekord" value={`${bestRef.current} slov`} /></div>}
+        <StatChip label={t.games.round} value={round} />
+        <StatChip label={t.games.sequence} value={sequence.length} />
+        <StatChip label={t.games.words} value={wordsTotal} />
+        <StatChip label={t.games.time} value={fmtTimeCenti(elapsedMs)} />
+        {bestRef.current > 0 && <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}><BestBadge label={t.games.record} value={`${bestRef.current} ${t.games.wordsMany}`} /></div>}
       </div>
 
       {phase === 'showing' && (
         <div style={{ textAlign: 'center', marginBottom: '14px' }}>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Zapamatuj si pořadí!
+            {t.games.memorizeOrder}
           </div>
           {/* current word highlight + countdown bar */}
           {showIdx >= 0 && showIdx < sequence.length && (
@@ -970,7 +984,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
       {(phase === 'recall' || phase === 'success') && (
         <div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', textAlign: 'center', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            {phase === 'success' ? '✅ Správně! Připravuji další…' : `Klikni ve správném pořadí (${clicked.length + 1}/${sequence.length})`}
+            {phase === 'success' ? t.games.correctNext : `${t.games.clickInOrder} (${clicked.length + 1}/${sequence.length})`}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
             {display.map((w, i) => {
@@ -1005,21 +1019,21 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
         <div style={{ textAlign: 'center', padding: '1rem 0' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>😅</div>
           <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>
-            Zapamatoval/a jsi {finalWords} {finalWords === 1 ? 'slovo' : finalWords < 5 ? 'slova' : 'slov'}
+            {t.games.youRemembered} {finalWords} {wPlural(finalWords, t.games)}
           </div>
           <div style={{ fontFamily: 'monospace', fontSize: '18px', fontWeight: '600', color: 'var(--green2)', marginBottom: '4px', fontVariantNumeric: 'tabular-nums' }}>
-            za {fmtTimeCenti(finalMs)}
+            {t.games.inTime} {fmtTimeCenti(finalMs)}
           </div>
           {finalWords >= bestRef.current && finalWords > 0 && (
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFB300', marginBottom: '8px', animation: 'newRecBadge 0.5s cubic-bezier(.34,1.56,.64,1) both' }}>
-              🏆 Nový rekord!
+              {t.games.newRecord}
             </div>
           )}
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '14px' }}>
-            Správné pořadí: {sequence.join(' → ')}
+            {t.games.correctOrder} {sequence.join(' → ')}
           </div>
           <button onClick={restart} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
-            Hrát znovu
+            {t.games.playAgain}
           </button>
         </div>
       )}
@@ -1037,12 +1051,6 @@ type FQRecord  = { score: number; time: number; date: number; diff: FQDiff; vari
 
 const TOTAL_Q = 10;
 const SHARE_URL = 'everyday-app.vercel.app';
-
-const FQ_DIFFS: { key: FQDiff; label: string; pool: Country[] }[] = [
-  { key: 'easy',   label: '🟢 Lehká',   pool: POOL_EASY   },
-  { key: 'normal', label: '🟡 Střední', pool: POOL_NORMAL },
-  { key: 'hard',   label: '🔴 Těžká',   pool: POOL_HARD   },
-];
 
 const CONFETTI_COLORS = ['#5D4CFF','#FFB300','#4ade80','#f87171','#60a5fa','#e879f9','#fb923c'];
 
@@ -1101,7 +1109,12 @@ function optionColors(
 }
 
 function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, diff: string) => void }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
+  const fqDiffs: { key: FQDiff; label: string; pool: Country[] }[] = [
+    { key: 'easy',   label: t.games.easy,   pool: POOL_EASY   },
+    { key: 'normal', label: t.games.medium, pool: POOL_NORMAL },
+    { key: 'hard',   label: t.games.hard,   pool: POOL_HARD   },
+  ];
   const [diff,        setDiff]        = useState<FQDiff>('normal');
   const [variant,     setVariant]     = useState<FQVariant>('A');
   const [questions,   setQuestions]   = useState<Question[]>([]);
@@ -1130,7 +1143,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
   function init(d: FQDiff = diff, v: FQVariant = variant) {
     cancelAnimationFrame(rafRef.current);
     startTimeRef.current = null;
-    const cfg = FQ_DIFFS.find(x => x.key === d)!;
+    const cfg = fqDiffs.find(x => x.key === d)!;
     setQuestions(buildQuestions(dateSeed() + Math.floor(Math.random() * 1000), cfg.pool));
     setCurrent(0); setScore(0); setSelected(null); setState('playing');
     setStreak(0); setMaxStreak(0);
@@ -1189,8 +1202,8 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
   }
 
   async function handleShare() {
-    const diffLabel = FQ_DIFFS.find(d => d.key === diff)?.label ?? diff;
-    const text = `🌍 Flag Quiz (${diffLabel}): ${score}/${TOTAL_Q} za ${fmtTimePrecise4(finalMs)}!${isNewRecord ? ' 🏆 Nový rekord!' : ''} Dokážeš mě porazit? ${SHARE_URL}`;
+    const diffLabel = fqDiffs.find(fd => fd.key === diff)?.label ?? diff;
+    const text = `🌍 Flag Quiz (${diffLabel}): ${score}/${TOTAL_Q} ${t.games.inTime} ${fmtTimePrecise4(finalMs)}!${isNewRecord ? ` 🏆 ${t.games.newRecord}` : ''} ${SHARE_URL}`;
     if (typeof navigator !== 'undefined' && navigator.share) {
       try { await navigator.share({ text }); return; } catch { /* cancelled */ }
     }
@@ -1208,8 +1221,8 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
       {/* ── Variant toggle ── */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
         {([
-          { v: 'A' as FQVariant, label: '🚩 Vlajka → Název' },
-          { v: 'B' as FQVariant, label: '🔤 Název → Vlajka' },
+          { v: 'A' as FQVariant, label: t.games.flagToName },
+          { v: 'B' as FQVariant, label: t.games.nameToFlag },
         ]).map(({ v, label }) => (
           <button key={v} onClick={() => handleVariant(v)} style={{
             flex: 1, padding: '7px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
@@ -1223,7 +1236,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
 
       {/* ── Difficulty selector ── */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
-        {FQ_DIFFS.map(d => (
+        {fqDiffs.map(d => (
           <button key={d.key} onClick={() => handleDiff(d.key)} style={{
             flex: 1, padding: '6px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '11px', fontWeight: '600',
@@ -1239,7 +1252,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
           {/* Progress + live timer */}
           <div style={{ marginBottom: '14px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text3)', marginBottom: '5px' }}>
-              <span>Otázka {current + 1} / {TOTAL_Q}</span>
+              <span>{t.games.question} {current + 1} / {TOTAL_Q}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {streak >= 2 && <span style={{ animation: 'firePulse 1s infinite', display: 'inline-block' }}>🔥 {streak}</span>}
                 <span>✅ {score}</span>
@@ -1266,7 +1279,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
                   {flagEmoji(q.correct.code)}
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
-                  Které zemi patří tato vlajka?
+                  {t.games.whichCountryFlag}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -1306,7 +1319,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
                   </div>
                 </div>
                 <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
-                  Která vlajka patří tomuto státu?
+                  {t.games.whichFlagCountry}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -1367,21 +1380,21 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
                 color: '#FFB300', animation: 'newRecBadge 0.5s cubic-bezier(.34,1.56,.64,1) 0.1s both',
                 letterSpacing: '0.5px',
               }}>
-                🏆 NOVÝ REKORD!
+                🏆 {t.games.newRecord}
               </div>
             )}
           </div>
 
           {/* Reaction text */}
           <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '14px' }}>
-            {score === 10 ? '🏆 Perfektní skóre!' : score >= 8 ? '🌟 Výborně!' : score >= 6 ? '👍 Dobře!' : score >= 4 ? '📚 Trénuj dál' : '🌍 Zeměpis není snadný'}
+            {score === 10 ? t.games.perfect : score >= 8 ? t.games.excellent : score >= 6 ? t.games.good : score >= 4 ? t.games.keepPracticing : t.games.geographyHard}
           </div>
 
           {/* Stat chips */}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '14px' }}>
-            <StatChip label="Správně" value={score} />
-            <StatChip label="Špatně"  value={TOTAL_Q - score} />
-            {maxStreak >= 2 && <StatChip label="Max série" value={`${maxStreak} 🔥`} />}
+            <StatChip label={t.games.correct} value={score} />
+            <StatChip label={t.games.wrong}   value={TOTAL_Q - score} />
+            {maxStreak >= 2 && <StatChip label={t.games.maxStreak} value={`${maxStreak} 🔥`} />}
           </div>
 
           {/* Action buttons */}
@@ -1391,7 +1404,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
               border: 'none', borderRadius: '10px', color: '#fff',
               fontSize: '13px', fontWeight: '600', padding: '10px 22px', cursor: 'pointer',
             }}>
-              ↺ Hrát znovu
+              ↺ {t.games.playAgain}
             </button>
             <button onClick={handleShare} style={{
               background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.07)',
@@ -1400,14 +1413,14 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
               fontSize: '13px', fontWeight: '600', padding: '10px 22px', cursor: 'pointer',
               transition: 'all 0.2s',
             }}>
-              {copied ? '✓ Zkopírováno!' : '↗ Sdílet výsledek'}
+              {copied ? t.games.copied : t.games.shareResult}
             </button>
           </div>
 
           {/* Local top 5 */}
           {top5.length > 0 && (
             <div style={{ textAlign: 'left', marginTop: '4px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>🏅 Moje top 5</div>
+              <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{t.games.myTop5}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {top5.map((rec, i) => {
                   const diffEmoji = rec.diff === 'easy' ? '🟢' : rec.diff === 'normal' ? '🟡' : '🔴';
@@ -1416,7 +1429,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
                       <span style={{ fontSize: '13px', width: '20px', flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
                       <span style={{ fontSize: '13px', fontWeight: '700', color: '#fff', minWidth: '32px' }}>{rec.score}/{TOTAL_Q}</span>
                       <span style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'monospace' }}>{fmtTimeSecs(rec.time)}</span>
-                      <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>{new Date(rec.date).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' })}</span>
+                      <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>{new Date(rec.date).toLocaleDateString(lang, { day: 'numeric', month: 'short' })}</span>
                       <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px', color: 'var(--text3)' }}>{diffEmoji}{rec.variant}</span>
                     </div>
                   );
@@ -1462,6 +1475,7 @@ function spGenerate(): number[] {
 }
 
 function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: number) => void }) {
+  const { t } = useLang();
   const [tiles, setTiles]         = useState<number[]>(() => spGenerate());
   const [phase, setPhase]         = useState<'idle' | 'playing' | 'solved'>('idle');
   const [moves, setMoves]         = useState(0);
@@ -1535,7 +1549,7 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
     <div>
       {/* Stats row */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center' }}>
-        <StatChip label="Tahy" value={moves} />
+        <StatChip label={t.games.moves} value={moves} />
         <div style={{
           flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
           padding: '5px 12px', textAlign: 'center',
@@ -1547,7 +1561,7 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
           }}>
             {fmtTimeCenti(elapsedMs)}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Čas</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.games.time}</div>
         </div>
         <button onClick={reset} style={{
           background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
@@ -1558,13 +1572,13 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
 
       {bestMs !== null && phase !== 'solved' && (
         <div style={{ marginBottom: '10px' }}>
-          <BestBadge label="Nejlepší čas" value={fmtTimePrecise4(bestMs!)} />
+          <BestBadge label={t.games.bestTime} value={fmtTimePrecise4(bestMs!)} />
         </div>
       )}
 
       {phase === 'idle' && (
         <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', marginBottom: '8px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-          Klikni na dlaždici pro start ↓
+          {t.games.clickToStart}
         </div>
       )}
 
@@ -1618,17 +1632,17 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
         }}>
           <div style={{ fontSize: '26px', marginBottom: '6px' }}>🎉</div>
           <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
-            Vyřešeno!
+            {t.games.solved}
           </div>
           <div style={{ fontFamily: 'monospace', fontSize: '24px', fontWeight: '700', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', marginBottom: '2px' }}>
             {fmtTimePrecise4(finalMs)}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: isNewBest ? '4px' : '12px' }}>
-            {moves} tahů
+            {moves} {t.games.moves}
           </div>
           {isNewBest && (
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFB300', marginBottom: '12px', animation: 'newRecBadge 0.5s cubic-bezier(.34,1.56,.64,1) both' }}>
-              🏆 Nový rekord!
+              🏆 {t.games.newRecord}
             </div>
           )}
 
@@ -1637,7 +1651,7 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
             border: 'none', borderRadius: '9px', color: '#fff',
             fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer',
           }}>
-            ↺ Hrát znovu
+            ↺ {t.games.playAgain}
           </button>
         </div>
       )}
@@ -1648,16 +1662,17 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
 type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding';
-const TABS: { id: TabId; label: string; emoji: string }[] = [
-  { id: 'memory',    label: 'Pexeso',  emoji: '🃏' },
-  { id: 'wordchain', label: 'Řetěz',   emoji: '📝' },
-  { id: 'flagquiz',  label: 'Vlajky',  emoji: '🌍' },
-  { id: 'sliding',   label: 'Puzzle',  emoji: '🧩' },
-];
 
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string } | null;
 
 export default function DailyGames() {
+  const { t } = useLang();
+  const tabs: { id: TabId; label: string; emoji: string }[] = [
+    { id: 'memory',    label: t.games.memory,    emoji: '🃏' },
+    { id: 'wordchain', label: t.games.wordchain,  emoji: '📝' },
+    { id: 'flagquiz',  label: t.games.flagquiz,   emoji: '🌍' },
+    { id: 'sliding',   label: t.games.sliding,    emoji: '🧩' },
+  ];
   const [tab,         setTab]         = useState<TabId>('memory');
   const [modal,       setModal]       = useState<ModalState>(null);
   const [showLB,      setShowLB]      = useState(false);
@@ -1676,26 +1691,26 @@ export default function DailyGames() {
     <div className="card" style={CARD_BG}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', margin: 0 }}>
-          🎮 Denní hry
+          🎮 {t.games.title}
         </h2>
         <button onClick={() => { setShowLB(s => !s); if (!showLB) setLbGame(tab as GameId); }} style={{
           background: showLB ? 'rgba(255,179,0,0.12)' : 'rgba(255,255,255,0.06)',
           border: showLB ? '1px solid rgba(255,179,0,0.3)' : '1px solid rgba(255,255,255,0.1)',
           borderRadius: '8px', color: showLB ? '#FFB300' : 'var(--text3)',
           fontSize: '12px', fontWeight: '600', padding: '5px 12px', cursor: 'pointer',
-        }}>🏆 Žebříček</button>
+        }}>🏆 {t.games.leaderboard}</button>
       </div>
 
       <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
+        {tabs.map(tb => (
+          <button key={tb.id} onClick={() => setTab(tb.id)} style={{
             flex: 1, padding: '8px 4px', borderRadius: '9px', border: 'none', cursor: 'pointer',
             fontWeight: '600', fontSize: '12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-            background: t.id === tab ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
-            color: t.id === tab ? '#fff' : 'var(--text2)',
+            background: tb.id === tab ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
+            color: tb.id === tab ? '#fff' : 'var(--text2)',
           }}>
-            <span>{t.emoji}</span><span>{t.label}</span>
+            <span>{tb.emoji}</span><span>{tb.label}</span>
           </button>
         ))}
       </div>
