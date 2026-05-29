@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import HumanBenchmark from './HumanBenchmark';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -2488,92 +2489,20 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
 type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
-
+type CategoryId = 'daily' | 'speed' | 'hb';
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string } | null;
 
-export default function DailyGames() {
-  const { t } = useLang();
-  const tabs: { id: TabId; label: string; emoji: string }[] = [
-    { id: 'memory',    label: t.games.memory,     emoji: '🃏' },
-    { id: 'wordchain', label: t.games.wordchain,   emoji: '📝' },
-    { id: 'flagquiz',  label: t.games.flagquiz,    emoji: '🌍' },
-    { id: 'sliding',   label: t.games.sliding,     emoji: '🧩' },
-    { id: 'mathrush',  label: t.games.mathrush,    emoji: '🔢' },
-    { id: 'reflex',    label: t.games.reflex,      emoji: '⏱' },
-    { id: 'reaction',  label: t.games.reaction,    emoji: '⚡' },
-    { id: 'stack',     label: t.games.stackGame,   emoji: '🏗' },
-    { id: 'felixjump', label: t.games.felixJump,   emoji: '🏃' },
-  ];
-  const [tab,         setTab]         = useState<TabId>('memory');
-  const [modal,       setModal]       = useState<ModalState>(null);
-  const [showLB,      setShowLB]      = useState(false);
-  const [lbGame,      setLbGame]      = useState<GameId>('sliding');
+interface CategoryDef {
+  id: CategoryId; icon: string; name: string; desc: string;
+  color: string; glow: string; games: string[]; firstTab: TabId;
+}
 
-  function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string }) {
-    setModal({ game, timeMs, ...extra });
-  }
+const DAILY_TABS: TabId[] = ['memory', 'wordchain', 'flagquiz', 'sliding'];
+const SPEED_TABS: TabId[] = ['mathrush', 'reflex', 'reaction', 'stack', 'felixjump'];
 
-  function handleShowLeaderboard() {
-    if (modal) setLbGame(modal.game);
-    setShowLB(true);
-  }
-
+function DGStyles() {
   return (
-    <div className="card" style={CARD_BG}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', margin: 0 }}>
-          🎮 {t.games.title}
-        </h2>
-        <button onClick={() => { setShowLB(s => !s); if (!showLB) setLbGame(tab as GameId); }} style={{
-          background: showLB ? 'rgba(255,179,0,0.12)' : 'rgba(255,255,255,0.06)',
-          border: showLB ? '1px solid rgba(255,179,0,0.3)' : '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px', color: showLB ? '#FFB300' : 'var(--text3)',
-          fontSize: '12px', fontWeight: '600', padding: '5px 12px', cursor: 'pointer',
-        }}>🏆 {t.games.leaderboard}</button>
-      </div>
-
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
-        {tabs.map(tb => (
-          <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-            flexShrink: 0, padding: '7px 10px', borderRadius: '9px', border: 'none', cursor: 'pointer',
-            fontWeight: '600', fontSize: '11px',
-            display: 'flex', alignItems: 'center', gap: '4px',
-            background: tb.id === tab ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
-            color: tb.id === tab ? '#fff' : 'var(--text2)',
-            whiteSpace: 'nowrap',
-          }}>
-            <span>{tb.emoji}</span><span>{tb.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {tab === 'memory'    && <MemoryGame    onComplete={(ms, mv, df) => openModal('memory',    ms, { moves: mv, diff: df })} />}
-      {tab === 'wordchain' && <WordChain     onComplete={(ms, sc)     => openModal('wordchain', ms, { score: sc })} />}
-      {tab === 'flagquiz'  && <FlagQuiz      onComplete={(ms, sc, df) => openModal('flagquiz',  ms, { score: sc, diff: df })} />}
-      {tab === 'sliding'   && <SlidingPuzzle onComplete={(ms, mv)     => openModal('sliding',   ms, { moves: mv })} />}
-      {tab === 'mathrush'  && <MathRush      onComplete={(ms, sc, df) => openModal('mathrush',  ms, { score: sc, diff: df })} />}
-      {tab === 'reflex'    && <ReflexTimer   onComplete={(ms)         => openModal('reflex',    ms)} />}
-      {tab === 'reaction'  && <ReactionClick onComplete={(ms)         => openModal('reaction',  ms)} />}
-      {tab === 'stack'     && <StackGame     onComplete={(ms, sc)     => openModal('stack',     ms, { score: sc })} />}
-      {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
-
-      {showLB && (
-        <GlobalLeaderboard initialGame={lbGame} />
-      )}
-
-      {modal && (
-        <LeaderboardModal
-          game={modal.game}
-          timeMs={modal.timeMs}
-          score={modal.score}
-          moves={modal.moves}
-          diff={modal.diff}
-          onClose={() => setModal(null)}
-          onShowLeaderboard={handleShowLeaderboard}
-        />
-      )}
-
-      <style>{`
+    <style>{`
         @keyframes shake {
           0%,100% { transform: translateX(0); }
           20%      { transform: translateX(-7px); }
@@ -2625,7 +2554,229 @@ export default function DailyGames() {
           70%  { transform: scale(1.15); }
           100% { transform: scale(1);   opacity: 1; }
         }
+        @keyframes dgCatIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
       `}</style>
+  );
+}
+
+export default function DailyGames() {
+  const { t } = useLang();
+
+  const CATEGORIES: CategoryDef[] = [
+    {
+      id: 'daily', icon: '🎯', name: 'Daily Challenge',
+      desc: 'Classic memory & logic games',
+      color: '#7C3AED', glow: 'rgba(124,58,237,0.35)',
+      games: [t.games.memory, t.games.wordchain, t.games.flagquiz, t.games.sliding],
+      firstTab: 'memory',
+    },
+    {
+      id: 'speed', icon: '⚡', name: 'Speed Games',
+      desc: 'Test your reflexes & reaction',
+      color: '#EA580C', glow: 'rgba(234,88,12,0.35)',
+      games: [t.games.mathrush, t.games.reflex, t.games.reaction, t.games.stackGame, t.games.felixJump],
+      firstTab: 'mathrush',
+    },
+    {
+      id: 'hb', icon: '🧠', name: 'Human Benchmark',
+      desc: 'Measure your cognitive abilities',
+      color: '#2563EB', glow: 'rgba(37,99,235,0.35)',
+      games: ['Reaction Time', 'Number Memory', 'Visual Memory', 'Verbal Memory', 'Sequence Memory', 'Aim Trainer', 'Mental Math'],
+      firstTab: 'memory', // unused for hb
+    },
+  ];
+
+  const allTabs: { id: TabId; label: string; emoji: string }[] = [
+    { id: 'memory',    label: t.games.memory,     emoji: '🃏' },
+    { id: 'wordchain', label: t.games.wordchain,   emoji: '📝' },
+    { id: 'flagquiz',  label: t.games.flagquiz,    emoji: '🌍' },
+    { id: 'sliding',   label: t.games.sliding,     emoji: '🧩' },
+    { id: 'mathrush',  label: t.games.mathrush,    emoji: '🔢' },
+    { id: 'reflex',    label: t.games.reflex,      emoji: '⏱' },
+    { id: 'reaction',  label: t.games.reaction,    emoji: '⚡' },
+    { id: 'stack',     label: t.games.stackGame,   emoji: '🏗' },
+    { id: 'felixjump', label: t.games.felixJump,   emoji: '🏃' },
+  ];
+
+  const [category, setCategory] = useState<CategoryId | null>(null);
+  const [tab,       setTab]      = useState<TabId>('memory');
+  const [modal,     setModal]    = useState<ModalState>(null);
+  const [showLB,    setShowLB]   = useState(false);
+  const [lbGame,    setLbGame]   = useState<GameId>('memory');
+  const [catHover,  setCatHover] = useState<CategoryId | null>(null);
+
+  function selectCategory(cat: CategoryId) {
+    setCategory(cat);
+    setShowLB(false);
+    setModal(null);
+    if (cat === 'daily') { setTab('memory');    setLbGame('memory'); }
+    if (cat === 'speed') { setTab('mathrush');  setLbGame('mathrush'); }
+  }
+
+  function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string }) {
+    setModal({ game, timeMs, ...extra });
+  }
+
+  function handleShowLeaderboard() {
+    if (modal) setLbGame(modal.game);
+    setShowLB(true);
+  }
+
+  const catDef = category ? CATEGORIES.find(c => c.id === category)! : null;
+  const activeTabs = category === 'daily' ? DAILY_TABS : SPEED_TABS;
+  const activeTabDefs = allTabs.filter(tb => activeTabs.includes(tb.id));
+
+  /* ── CATEGORY SELECTION ── */
+  if (!category) {
+    return (
+      <div className="card" style={CARD_BG}>
+        <div style={{ marginBottom: '18px' }}>
+          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', margin: 0 }}>🎮 {t.games.title}</h2>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '3px' }}>Choose a category</div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {CATEGORIES.map((cat, idx) => (
+            <button
+              key={cat.id}
+              onClick={() => selectCategory(cat.id)}
+              onMouseEnter={() => setCatHover(cat.id)}
+              onMouseLeave={() => setCatHover(null)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '14px',
+                padding: '14px 16px', borderRadius: '14px', border: 'none', cursor: 'pointer',
+                background: catHover === cat.id ? `linear-gradient(135deg,${cat.color}1a,${cat.color}0d)` : 'rgba(255,255,255,0.03)',
+                outline: catHover === cat.id ? `1px solid ${cat.color}77` : '1px solid rgba(255,255,255,0.07)',
+                boxShadow: catHover === cat.id ? `0 4px 24px ${cat.glow}` : 'none',
+                transform: catHover === cat.id ? 'translateY(-2px)' : 'translateY(0)',
+                transition: 'all 0.18s cubic-bezier(.4,0,.2,1)',
+                textAlign: 'left',
+                animation: `dgCatIn 0.3s ease ${idx * 0.07}s both`,
+              }}
+            >
+              {/* Icon badge */}
+              <div style={{
+                width: '52px', height: '52px', flexShrink: 0, borderRadius: '13px',
+                background: `linear-gradient(135deg,${cat.color}33,${cat.color}18)`,
+                border: `1px solid ${cat.color}44`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '26px',
+                boxShadow: catHover === cat.id ? `0 0 18px ${cat.color}44` : 'none',
+                transition: 'box-shadow 0.18s',
+              }}>
+                {cat.icon}
+              </div>
+
+              {/* Text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>
+                  {cat.name}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '7px' }}>{cat.desc}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+                  {cat.games.map(g => (
+                    <span key={g} style={{
+                      fontSize: '9px', fontWeight: '600', padding: '2px 6px', borderRadius: '4px',
+                      background: `${cat.color}18`, color: `${cat.color}dd`,
+                      border: `1px solid ${cat.color}22`,
+                    }}>{g}</span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Arrow */}
+              <span style={{
+                fontSize: '18px', color: catHover === cat.id ? cat.color : 'rgba(255,255,255,0.18)',
+                transition: 'color 0.18s, transform 0.18s',
+                transform: catHover === cat.id ? 'translateX(3px)' : 'translateX(0)',
+                display: 'inline-block',
+              }}>›</span>
+            </button>
+          ))}
+        </div>
+        <DGStyles />
+      </div>
+    );
+  }
+
+  /* ── HUMAN BENCHMARK ── */
+  if (category === 'hb') {
+    return (
+      <div className="card" style={CARD_BG}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+          <button onClick={() => setCategory(null)} style={{
+            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer',
+          }}>← Back</button>
+          <span style={{ fontSize: '18px' }}>🧠</span>
+          <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '700', color: '#2563EB' }}>Human Benchmark</span>
+        </div>
+        <HumanBenchmark embedded />
+        <DGStyles />
+      </div>
+    );
+  }
+
+  /* ── DAILY CHALLENGE / SPEED GAMES ── */
+  return (
+    <div className="card" style={CARD_BG}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <button onClick={() => setCategory(null)} style={{
+          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer', flexShrink: 0,
+        }}>← Back</button>
+        <span style={{ fontSize: '18px' }}>{catDef!.icon}</span>
+        <span style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '700', color: catDef!.color, flex: 1 }}>{catDef!.name}</span>
+        <button onClick={() => { setShowLB(s => !s); if (!showLB) setLbGame(tab as GameId); }} style={{
+          background: showLB ? 'rgba(255,179,0,0.12)' : 'rgba(255,255,255,0.06)',
+          border: showLB ? '1px solid rgba(255,179,0,0.3)' : '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '8px', color: showLB ? '#FFB300' : 'var(--text3)',
+          fontSize: '12px', fontWeight: '600', padding: '5px 10px', cursor: 'pointer', flexShrink: 0,
+        }}>🏆 {t.games.leaderboard}</button>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '5px', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
+        {activeTabDefs.map(tb => (
+          <button key={tb.id} onClick={() => setTab(tb.id)} style={{
+            flexShrink: 0, padding: '7px 11px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+            fontWeight: '600', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px',
+            background: tb.id === tab ? `linear-gradient(135deg,${catDef!.color},${catDef!.color}aa)` : 'rgba(255,255,255,0.05)',
+            color: tb.id === tab ? '#fff' : 'var(--text2)',
+            whiteSpace: 'nowrap',
+            boxShadow: tb.id === tab ? `0 0 14px ${catDef!.color}44` : 'none',
+          }}>
+            <span>{tb.emoji}</span><span>{tb.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Games */}
+      {tab === 'memory'    && <MemoryGame    onComplete={(ms, mv, df) => openModal('memory',    ms, { moves: mv, diff: df })} />}
+      {tab === 'wordchain' && <WordChain     onComplete={(ms, sc)     => openModal('wordchain', ms, { score: sc })} />}
+      {tab === 'flagquiz'  && <FlagQuiz      onComplete={(ms, sc, df) => openModal('flagquiz',  ms, { score: sc, diff: df })} />}
+      {tab === 'sliding'   && <SlidingPuzzle onComplete={(ms, mv)     => openModal('sliding',   ms, { moves: mv })} />}
+      {tab === 'mathrush'  && <MathRush      onComplete={(ms, sc, df) => openModal('mathrush',  ms, { score: sc, diff: df })} />}
+      {tab === 'reflex'    && <ReflexTimer   onComplete={(ms)         => openModal('reflex',    ms)} />}
+      {tab === 'reaction'  && <ReactionClick onComplete={(ms)         => openModal('reaction',  ms)} />}
+      {tab === 'stack'     && <StackGame     onComplete={(ms, sc)     => openModal('stack',     ms, { score: sc })} />}
+      {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
+
+      {showLB && <GlobalLeaderboard initialGame={lbGame} />}
+
+      {modal && (
+        <LeaderboardModal
+          game={modal.game} timeMs={modal.timeMs} score={modal.score} moves={modal.moves} diff={modal.diff}
+          onClose={() => setModal(null)}
+          onShowLeaderboard={handleShowLeaderboard}
+        />
+      )}
+
+      <DGStyles />
     </div>
   );
 }

@@ -427,7 +427,7 @@ function ReactionTimeTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
       </div>
 
       {state === 'result' && results.length < RT_ROUNDS && (
-        <button onClick={() => { setRound(r => r + 1); startWait(); }} style={{ width: '100%', marginTop: '10px', padding: '11px', borderRadius: '9px', border: 'none', background: `rgba(74,222,128,0.15)`, border2: `1px solid rgba(74,222,128,0.3)`, color: '#4ade80', fontSize: '14px', fontWeight: '700', cursor: 'pointer' } as React.CSSProperties}>
+        <button onClick={() => { setRound(r => r + 1); startWait(); }} style={{ width: '100%', marginTop: '10px', padding: '11px', borderRadius: '9px', border: '1px solid rgba(74,222,128,0.3)', background: 'rgba(74,222,128,0.15)', color: '#4ade80', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
           Next round ({round}/{RT_ROUNDS}) →
         </button>
       )}
@@ -930,7 +930,7 @@ function AimTrainerTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
         )}
       </div>
 
-      {done && <button onClick={reset} style={{ marginTop: '10px', width: '100%', padding: '10px', borderRadius: '9px', border: 'none', background: `rgba(248,113,113,0.15)`, border2: `1px solid rgba(248,113,113,0.3)`, color, fontSize: '13px', fontWeight: '700', cursor: 'pointer' } as React.CSSProperties}>↺ Try again</button>}
+      {done && <button onClick={reset} style={{ marginTop: '10px', width: '100%', padding: '10px', borderRadius: '9px', border: '1px solid rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.15)', color, fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>↺ Try again</button>}
       <button onClick={onBack} style={{ marginTop: '10px', display: 'block', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
     </div>
   );
@@ -1112,7 +1112,7 @@ const TEST_NAMES: Record<TestId, string> = {
   verbalmem: 'Verbal Memory', seqmem: 'Sequence Memory', aimtrainer: 'Aim Trainer', mentalmath: 'Mental Math',
 };
 
-export default function HumanBenchmark() {
+export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
   const [active, setActive] = useState<TestId | null>(null);
   const [bests, setBests] = useState<Record<string, number | null>>({});
 
@@ -1122,7 +1122,7 @@ export default function HumanBenchmark() {
     setBests(b);
   }, [active]);
 
-  const CARD_BG_STYLE: React.CSSProperties = {
+  const CARD_BG_STYLE: React.CSSProperties = embedded ? {} : {
     background: 'rgba(8,12,36,0.96)',
     border: '1px solid rgba(93,76,255,0.15)',
     borderRadius: '16px',
