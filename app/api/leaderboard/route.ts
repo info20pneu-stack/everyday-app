@@ -2,7 +2,8 @@ import { redis } from '../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 
-export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
+export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump'
+  | 'hb_reaction' | 'hb_numbermem' | 'hb_visualmem' | 'hb_verbalmem' | 'hb_seqmem' | 'hb_aimtrainer' | 'hb_mentalmath';
 
 export interface LBEntry {
   id: string;
@@ -17,16 +18,19 @@ export interface LBEntry {
   date: number;
 }
 
-const VALID_GAMES: GameId[] = ['sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump'];
+const VALID_GAMES: GameId[] = [
+  'sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump',
+  'hb_reaction', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_aimtrainer', 'hb_mentalmath',
+];
 const MAX_ENTRIES = 1000;
 
 // Score-based games rank by highest score then fastest time.
 // We encode as: (-score * 1e6 + timeMs) so ascending sort = best first.
+const SCORE_BASED: GameId[] = ['flagquiz', 'wordchain', 'mathrush', 'stack', 'felixjump', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_mentalmath'];
+
 function toSortScore(game: GameId, timeMs: number, score?: number): number {
-  if (game === 'flagquiz' || game === 'wordchain' || game === 'mathrush' || game === 'stack' || game === 'felixjump') {
-    return -(score ?? 0) * 1e6 + timeMs;
-  }
-  return timeMs; // reflex, reaction, sliding, memory — lower timeMs = better
+  if (SCORE_BASED.includes(game)) return -(score ?? 0) * 1e6 + timeMs;
+  return timeMs; // time-based: lower = better
 }
 
 function lbKey(game: GameId) { return `lb2:${game}`; }

@@ -377,8 +377,32 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
         </div>
 
         {/* Result display */}
-        <div style={{ textAlign: 'center', marginBottom: '16px', padding: '12px', background: 'rgba(93,76,255,0.1)', borderRadius: '12px', border: '1px solid rgba(93,76,255,0.25)' }}>
-          {game === 'wordchain' && score !== undefined ? (
+        <div style={{ textAlign: 'center', marginBottom: '16px', padding: '14px 12px', background: 'rgba(93,76,255,0.1)', borderRadius: '12px', border: '1px solid rgba(93,76,255,0.25)' }}>
+          {game === 'mathrush' && score !== undefined ? (
+            <>
+              <div style={{ fontFamily: 'Poppins', fontSize: '60px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{score}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
+                {t.games.correct} · 60s{diff ? ` · ${diff}` : ''}
+              </div>
+            </>
+          ) : game === 'reflex' ? (
+            <>
+              <div style={{ fontFamily: 'Poppins', fontSize: '44px', fontWeight: '900', color: timeMs < 100 ? 'var(--green2)' : timeMs < 300 ? '#FFB300' : '#EF4444', lineHeight: 1 }}>±{timeMs}ms</div>
+              <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>{t.games.avgDev}</div>
+            </>
+          ) : game === 'reaction' ? (
+            <>
+              <div style={{ fontFamily: 'Poppins', fontSize: '44px', fontWeight: '900', color: timeMs < 200 ? 'var(--green2)' : timeMs < 350 ? '#FFB300' : '#EF4444', lineHeight: 1 }}>{timeMs}ms</div>
+              <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>{t.games.avgReact}</div>
+            </>
+          ) : game === 'stack' || game === 'felixjump' ? (
+            <>
+              <div style={{ fontFamily: 'Poppins', fontSize: '60px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{score ?? 0}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
+                {game === 'stack' ? t.games.blocks : t.games.distance}
+              </div>
+            </>
+          ) : game === 'wordchain' && score !== undefined ? (
             <>
               <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>
                 {t.games.youRemembered} {score} {wPlural(score, t.games)}
@@ -632,12 +656,25 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               {e.city && !city && (
                 <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0, maxWidth: '54px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.city}</span>
               )}
-              {(e.score !== undefined) && (
+              {/* Score badge — for score-based games */}
+              {(game === 'mathrush' || game === 'stack' || game === 'felixjump') && e.score !== undefined && (
+                <span style={{ fontSize: '13px', color: 'var(--purple3)', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score}</span>
+              )}
+              {(game === 'flagquiz' || game === 'wordchain') && e.score !== undefined && (
                 <span style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: '700', flexShrink: 0 }}>{e.score}b</span>
               )}
-              <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                {fmtTimePrecise4(e.timeMs)}
-              </span>
+              {/* Time metric — formatted per game type */}
+              {game === 'reflex' && (
+                <span style={{ fontFamily: 'monospace', fontSize: '12px', color: e.timeMs < 100 ? 'var(--green2)' : e.timeMs < 300 ? '#FFB300' : '#EF4444', flexShrink: 0 }}>±{e.timeMs}ms</span>
+              )}
+              {game === 'reaction' && (
+                <span style={{ fontFamily: 'monospace', fontSize: '12px', color: e.timeMs < 200 ? 'var(--green2)' : e.timeMs < 350 ? '#FFB300' : '#EF4444', flexShrink: 0 }}>{e.timeMs}ms</span>
+              )}
+              {game !== 'reflex' && game !== 'reaction' && game !== 'stack' && game !== 'felixjump' && (
+                <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                  {fmtTimePrecise4(e.timeMs)}
+                </span>
+              )}
               {e.moves !== undefined && (
                 <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0 }}>{e.moves}t</span>
               )}
@@ -1734,13 +1771,14 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
   const [finalScore, setFinalScore] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cdRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startMsRef = useRef(0);
+  const scoreRef = useRef(0); // reliable ref — avoids stale closure in setInterval
 
   useEffect(() => () => { clearInterval(timerRef.current!); clearInterval(cdRef.current!); }, []);
 
   function startGame(d: MathDiff = diff) {
     clearInterval(timerRef.current!); clearInterval(cdRef.current!);
-    setDiff(d); setScore(0); setStreak(0); setTimeLeft(60); setFlash(null);
+    scoreRef.current = 0;
+    setDiff(d); setScore(0); setStreak(0); setTimeLeft(60); setFlash(null); setFinalScore(0);
     setProblem(genProblem(d));
     setCountdown(3); setPhase('countdown');
     cdRef.current = setInterval(() => {
@@ -1748,13 +1786,14 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
         if (c <= 1) {
           clearInterval(cdRef.current!);
           setPhase('playing');
-          startMsRef.current = Date.now();
           timerRef.current = setInterval(() => {
             setTimeLeft(tl => {
               if (tl <= 1) {
                 clearInterval(timerRef.current!);
+                const finalSc = scoreRef.current;
+                setFinalScore(finalSc);
                 setPhase('done');
-                setFinalScore(sc => { setTimeout(() => onComplete(60000, sc, d), 300); return sc; });
+                setTimeout(() => onComplete(60000, finalSc, d), 300);
                 return 0;
               }
               return tl - 1;
@@ -1772,7 +1811,8 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
     if (choice === problem.answer) {
       playTone(880, 0.08, 'sine', 0.1);
       setFlash('correct');
-      setScore(s => { const ns = s + 1; setFinalScore(ns); return ns; });
+      scoreRef.current += 1;
+      setScore(scoreRef.current);
       setStreak(s => s + 1);
     } else {
       playTone(220, 0.15, 'sawtooth', 0.08);
@@ -1855,11 +1895,12 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
       )}
 
       {phase === 'done' && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
-          <div style={{ fontFamily: 'Poppins', fontSize: '64px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{finalScore}</div>
-          <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '20px' }}>{t.games.correct} answers</div>
-          <button onClick={() => { setPhase('idle'); }} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+        <div style={{ textAlign: 'center', padding: '12px 0' }}>
+          <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '72px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{finalScore}</div>
+          <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '6px' }}>{t.games.correct} · 60s</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '16px' }}>Leaderboard modal loading…</div>
+          <button onClick={() => setPhase('idle')} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
         </div>
       )}
     </div>

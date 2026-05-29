@@ -16,6 +16,7 @@ import Rankings from './Rankings';
 import Crypto from './Crypto';
 import DailyBoost from './DailyBoost';
 import DailyGames from './DailyGames';
+import HumanBenchmark from './HumanBenchmark';
 import Markets from './Markets';
 import IPAddress from './IPAddress';
 import SpeedTest from './SpeedTest';
@@ -69,6 +70,7 @@ function MainContent() {
       {/* Row 6 */}
       <LazyWidget height={380}><SunriseSunset /></LazyWidget>
       <LazyWidget height={360}><BMI /></LazyWidget>
+      <LazyWidget height={560}><HumanBenchmark /></LazyWidget>
     </div>
   );
 }
