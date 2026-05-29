@@ -2555,8 +2555,8 @@ function DGStyles() {
           100% { transform: scale(1);   opacity: 1; }
         }
         @keyframes dgCatIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(16px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
       `}</style>
   );
@@ -2633,12 +2633,12 @@ export default function DailyGames() {
   if (!category) {
     return (
       <div className="card" style={CARD_BG}>
-        <div style={{ marginBottom: '18px' }}>
+        <div style={{ marginBottom: '22px' }}>
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', margin: 0 }}>🎮 {t.games.title}</h2>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '3px' }}>Choose a category</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>Choose a category to start playing</div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {CATEGORIES.map((cat, idx) => (
             <button
               key={cat.id}
@@ -2646,54 +2646,92 @@ export default function DailyGames() {
               onMouseEnter={() => setCatHover(cat.id)}
               onMouseLeave={() => setCatHover(null)}
               style={{
-                display: 'flex', alignItems: 'center', gap: '14px',
-                padding: '14px 16px', borderRadius: '14px', border: 'none', cursor: 'pointer',
-                background: catHover === cat.id ? `linear-gradient(135deg,${cat.color}1a,${cat.color}0d)` : 'rgba(255,255,255,0.03)',
-                outline: catHover === cat.id ? `1px solid ${cat.color}77` : '1px solid rgba(255,255,255,0.07)',
-                boxShadow: catHover === cat.id ? `0 4px 24px ${cat.glow}` : 'none',
-                transform: catHover === cat.id ? 'translateY(-2px)' : 'translateY(0)',
-                transition: 'all 0.18s cubic-bezier(.4,0,.2,1)',
+                display: 'block', width: '100%',
+                padding: '0', borderRadius: '18px', border: 'none', cursor: 'pointer',
+                background: catHover === cat.id
+                  ? `linear-gradient(145deg,${cat.color}22 0%,${cat.color}0c 60%,rgba(255,255,255,0.02) 100%)`
+                  : 'rgba(255,255,255,0.035)',
+                outline: catHover === cat.id
+                  ? `1.5px solid ${cat.color}80`
+                  : '1px solid rgba(255,255,255,0.08)',
+                boxShadow: catHover === cat.id
+                  ? `0 10px 36px ${cat.glow}, inset 0 1px 0 ${cat.color}30`
+                  : '0 2px 10px rgba(0,0,0,0.25)',
+                transform: catHover === cat.id ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
+                transition: 'all 0.22s cubic-bezier(.34,1.4,.64,1)',
                 textAlign: 'left',
-                animation: `dgCatIn 0.3s ease ${idx * 0.07}s both`,
+                animation: `dgCatIn 0.38s ease ${idx * 0.09}s both`,
+                overflow: 'hidden',
+                position: 'relative',
               }}
             >
-              {/* Icon badge */}
+              {/* Colored top accent bar */}
               <div style={{
-                width: '52px', height: '52px', flexShrink: 0, borderRadius: '13px',
-                background: `linear-gradient(135deg,${cat.color}33,${cat.color}18)`,
-                border: `1px solid ${cat.color}44`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '26px',
-                boxShadow: catHover === cat.id ? `0 0 18px ${cat.color}44` : 'none',
-                transition: 'box-shadow 0.18s',
-              }}>
-                {cat.icon}
-              </div>
+                height: '3px', width: '100%',
+                background: `linear-gradient(90deg,${cat.color},${cat.color}44)`,
+                opacity: catHover === cat.id ? 1 : 0.45,
+                transition: 'opacity 0.22s',
+              }} />
 
-              {/* Text */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>
-                  {cat.name}
+              <div style={{ padding: '18px 18px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Top row: icon + name/desc + arrow */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  {/* Icon badge */}
+                  <div style={{
+                    width: '66px', height: '66px', flexShrink: 0, borderRadius: '17px',
+                    background: `linear-gradient(145deg,${cat.color}40,${cat.color}18)`,
+                    border: `1.5px solid ${cat.color}55`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '32px',
+                    boxShadow: catHover === cat.id ? `0 0 28px ${cat.color}55, 0 0 8px ${cat.color}30` : `0 0 0px transparent`,
+                    transition: 'box-shadow 0.22s',
+                  }}>
+                    {cat.icon}
+                  </div>
+
+                  {/* Name + description */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontFamily: 'Poppins', fontSize: '16px', fontWeight: '800',
+                      color: catHover === cat.id ? cat.color : '#fff',
+                      transition: 'color 0.22s',
+                      marginBottom: '5px', letterSpacing: '-0.2px',
+                    }}>
+                      {cat.name}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5 }}>
+                      {cat.desc}
+                    </div>
+                  </div>
+
+                  {/* Arrow + game count */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    <span style={{
+                      fontSize: '22px',
+                      color: catHover === cat.id ? cat.color : 'rgba(255,255,255,0.2)',
+                      transition: 'color 0.22s, transform 0.22s',
+                      transform: catHover === cat.id ? 'translateX(5px)' : 'translateX(0)',
+                      display: 'inline-block', lineHeight: 1,
+                    }}>›</span>
+                    <span style={{
+                      fontSize: '9px', fontWeight: '700', color: catHover === cat.id ? `${cat.color}cc` : 'var(--text3)',
+                      transition: 'color 0.22s', letterSpacing: '0.3px',
+                    }}>{cat.games.length} games</span>
+                  </div>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '7px' }}>{cat.desc}</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
+
+                {/* Game tags */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingLeft: '82px' }}>
                   {cat.games.map(g => (
                     <span key={g} style={{
-                      fontSize: '9px', fontWeight: '600', padding: '2px 6px', borderRadius: '4px',
-                      background: `${cat.color}18`, color: `${cat.color}dd`,
-                      border: `1px solid ${cat.color}22`,
+                      fontSize: '9px', fontWeight: '600', padding: '3px 8px', borderRadius: '6px',
+                      background: `${cat.color}16`, color: `${cat.color}cc`,
+                      border: `1px solid ${cat.color}2a`,
+                      letterSpacing: '0.2px',
                     }}>{g}</span>
                   ))}
                 </div>
               </div>
-
-              {/* Arrow */}
-              <span style={{
-                fontSize: '18px', color: catHover === cat.id ? cat.color : 'rgba(255,255,255,0.18)',
-                transition: 'color 0.18s, transform 0.18s',
-                transform: catHover === cat.id ? 'translateX(3px)' : 'translateX(0)',
-                display: 'inline-block',
-              }}>›</span>
             </button>
           ))}
         </div>
@@ -2706,13 +2744,20 @@ export default function DailyGames() {
   if (category === 'hb') {
     return (
       <div className="card" style={CARD_BG}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <button onClick={() => setCategory(null)} style={{
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer',
-          }}>← Back</button>
-          <span style={{ fontSize: '18px' }}>🧠</span>
-          <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '700', color: '#2563EB' }}>Human Benchmark</span>
+            background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)',
+            borderRadius: '9px', color: '#60a5fa', fontSize: '12px', fontWeight: '600',
+            padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+            transition: 'background 0.15s',
+          }}>‹ Back</button>
+          <div style={{
+            width: '32px', height: '32px', borderRadius: '9px',
+            background: 'linear-gradient(135deg,#2563EB33,#2563EB18)',
+            border: '1px solid #2563EB44',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px',
+          }}>🧠</div>
+          <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#60a5fa' }}>Human Benchmark</span>
         </div>
         <HumanBenchmark embedded />
         <DGStyles />
@@ -2726,16 +2771,22 @@ export default function DailyGames() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
         <button onClick={() => setCategory(null)} style={{
-          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer', flexShrink: 0,
-        }}>← Back</button>
-        <span style={{ fontSize: '18px' }}>{catDef!.icon}</span>
-        <span style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '700', color: catDef!.color, flex: 1 }}>{catDef!.name}</span>
+          background: `${catDef!.color}18`, border: `1px solid ${catDef!.color}44`,
+          borderRadius: '9px', color: catDef!.color, fontSize: '12px', fontWeight: '600',
+          padding: '6px 12px', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
+        }}>‹ Back</button>
+        <div style={{
+          width: '28px', height: '28px', borderRadius: '8px',
+          background: `linear-gradient(135deg,${catDef!.color}33,${catDef!.color}18)`,
+          border: `1px solid ${catDef!.color}44`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0,
+        }}>{catDef!.icon}</div>
+        <span style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '800', color: catDef!.color, flex: 1 }}>{catDef!.name}</span>
         <button onClick={() => { setShowLB(s => !s); if (!showLB) setLbGame(tab as GameId); }} style={{
           background: showLB ? 'rgba(255,179,0,0.12)' : 'rgba(255,255,255,0.06)',
           border: showLB ? '1px solid rgba(255,179,0,0.3)' : '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px', color: showLB ? '#FFB300' : 'var(--text3)',
-          fontSize: '12px', fontWeight: '600', padding: '5px 10px', cursor: 'pointer', flexShrink: 0,
+          borderRadius: '9px', color: showLB ? '#FFB300' : 'var(--text3)',
+          fontSize: '12px', fontWeight: '600', padding: '6px 10px', cursor: 'pointer', flexShrink: 0,
         }}>🏆 {t.games.leaderboard}</button>
       </div>
 
