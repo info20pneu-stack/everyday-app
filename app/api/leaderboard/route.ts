@@ -2,7 +2,7 @@ import { redis } from '../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 
-export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain';
+export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
 
 export interface LBEntry {
   id: string;
@@ -17,16 +17,16 @@ export interface LBEntry {
   date: number;
 }
 
-const VALID_GAMES: GameId[] = ['sliding', 'memory', 'flagquiz', 'wordchain'];
+const VALID_GAMES: GameId[] = ['sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump'];
 const MAX_ENTRIES = 1000;
 
 // Score-based games rank by highest score then fastest time.
 // We encode as: (-score * 1e6 + timeMs) so ascending sort = best first.
 function toSortScore(game: GameId, timeMs: number, score?: number): number {
-  if (game === 'flagquiz' || game === 'wordchain') {
+  if (game === 'flagquiz' || game === 'wordchain' || game === 'mathrush' || game === 'stack' || game === 'felixjump') {
     return -(score ?? 0) * 1e6 + timeMs;
   }
-  return timeMs;
+  return timeMs; // reflex, reaction, sliding, memory — lower timeMs = better
 }
 
 function lbKey(game: GameId) { return `lb2:${game}`; }
@@ -67,7 +67,8 @@ export async function GET(req: NextRequest) {
     const countries = [...new Set(entries.map(e => e.country).filter(Boolean))].sort();
 
     return NextResponse.json({ entries: filtered.slice(0, 100), countries });
-  } catch {
+  } catch (err) {
+    console.error('[leaderboard GET] Redis error:', err);
     return NextResponse.json({ entries: [], countries: [] });
   }
 }
@@ -84,11 +85,13 @@ interface PostBody {
 }
 
 export async function POST(req: NextRequest) {
+  let body: PostBody | null = null;
   try {
-    const body = await req.json() as PostBody;
+    body = await req.json() as PostBody;
     const { game, name, country, city, timeMs, score, moves, diff } = body;
 
     if (!VALID_GAMES.includes(game) || !name?.trim() || typeof timeMs !== 'number' || timeMs <= 0) {
+      console.error('[leaderboard POST] Validation failed:', { game, name, timeMs });
       return NextResponse.json({ error: 'Neplatná data' }, { status: 400 });
     }
 
@@ -99,11 +102,11 @@ export async function POST(req: NextRequest) {
     const roundMs = Math.round(timeMs * 10) / 10;
     const sortVal = toSortScore(game, roundMs, score);
 
+    console.log('[leaderboard POST] Writing entry:', { game, name: name.trim(), roundMs, sortVal, ip: ip.slice(0, 8) + '...' });
+
     interface IpRecord { member: string; sortVal: number; }
     const existing = await redis.hget<IpRecord>(ipsKey(game), ipHash);
 
-    // For score-based games, "better" means lower sortVal (higher score / faster time)
-    // For time-based games, "better" means lower sortVal (faster time)
     if (existing && sortVal >= existing.sortVal) {
       const rank = await redis.zcount(lbKey(game), '-inf', String(existing.sortVal - 0.0001));
       return NextResponse.json({ notBetter: true, rank: rank + 1 }, { status: 200 });
@@ -138,8 +141,10 @@ export async function POST(req: NextRequest) {
     await redis.zremrangebyrank(lbKey(game), MAX_ENTRIES, -1);
     await redis.hset(ipsKey(game), { [ipHash]: { member, sortVal } });
 
+    console.log('[leaderboard POST] Success, rank:', rank);
     return NextResponse.json({ success: true, entry }, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error('[leaderboard POST] Error. Body:', body, '| Error:', err);
     return NextResponse.json({ error: 'Chyba serveru' }, { status: 500 });
   }
 }

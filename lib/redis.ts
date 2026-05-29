@@ -1,5 +1,9 @@
 import { Redis } from '@upstash/redis';
 
-// Redis.fromEnv() reads UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN
-// and falls back to KV_REST_API_URL / KV_REST_API_TOKEN (Vercel KV compat).
-export const redis = Redis.fromEnv();
+const url   = process.env.UPSTASH_REDIS_REST_URL   || process.env.KV_REST_API_URL;
+const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+
+if (!url)   console.error('[redis] MISSING env: UPSTASH_REDIS_REST_URL / KV_REST_API_URL');
+if (!token) console.error('[redis] MISSING env: UPSTASH_REDIS_REST_TOKEN / KV_REST_API_TOKEN');
+
+export const redis = new Redis({ url: url!, token: token! });

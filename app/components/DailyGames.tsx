@@ -274,7 +274,7 @@ function BestBadge({ label, value }: { label: string; value: string | number }) 
 
 /* ═══════════════════════ LEADERBOARD MODAL ═══════════════════════ */
 
-type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain';
+type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
 type LBApiEntry = {
   id: string; game: GameId; name: string; country: string; city: string;
   timeMs: number; score?: number; moves?: number; diff?: string; date: number;
@@ -355,10 +355,15 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
     boxSizing: 'border-box',
   };
   const gameLabel: Record<GameId, string> = {
-    sliding: `🧩 ${t.games.sliding}`,
-    memory: `🃏 ${t.games.memory}`,
-    flagquiz: `🌍 ${t.games.flagquiz}`,
+    sliding:   `🧩 ${t.games.sliding}`,
+    memory:    `🃏 ${t.games.memory}`,
+    flagquiz:  `🌍 ${t.games.flagquiz}`,
     wordchain: `📝 ${t.games.wordchain}`,
+    mathrush:  `🔢 ${t.games.mathrush}`,
+    reflex:    `⏱ ${t.games.reflex}`,
+    reaction:  `⚡ ${t.games.reaction}`,
+    stack:     `🏗 ${t.games.stackGame}`,
+    felixjump: `🏃 ${t.games.felixJump}`,
   };
 
   return (
@@ -520,10 +525,15 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
   }, [game, period]);
 
   const glGameLabel: Record<GameId, string> = {
-    sliding: `🧩 ${t.games.sliding}`,
-    memory: `🃏 ${t.games.memory}`,
-    flagquiz: `🌍 ${t.games.flagquiz}`,
+    sliding:   `🧩 ${t.games.sliding}`,
+    memory:    `🃏 ${t.games.memory}`,
+    flagquiz:  `🌍 ${t.games.flagquiz}`,
     wordchain: `📝 ${t.games.wordchain}`,
+    mathrush:  `🔢 ${t.games.mathrush}`,
+    reflex:    `⏱ ${t.games.reflex}`,
+    reaction:  `⚡ ${t.games.reaction}`,
+    stack:     `🏗 ${t.games.stackGame}`,
+    felixjump: `🏃 ${t.games.felixJump}`,
   };
   const periodOpts = [
     { v: 'all',   label: t.games.allTime },
@@ -535,11 +545,11 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
   return (
     <div style={{ marginTop: '14px' }}>
       {/* Game selector */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
-        {(['sliding','memory','flagquiz','wordchain'] as GameId[]).map(g => (
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
+        {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','stack','felixjump'] as GameId[]).map(g => (
           <button key={g} onClick={() => setGame(g)} style={{
-            flex: 1, padding: '6px 2px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '11px', fontWeight: '600',
+            padding: '5px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+            fontSize: '10px', fontWeight: '600', whiteSpace: 'nowrap',
             background: g === game ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
             color: g === game ? '#fff' : 'var(--text3)',
           }}>{glGameLabel[g]}</button>
@@ -1659,19 +1669,799 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
   );
 }
 
+/* ═══════════════════════ AUDIO ═══════════════════════ */
+
+function playTone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.12) {
+  if (typeof window === 'undefined') return;
+  try {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq; osc.type = type;
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+    osc.onended = () => ctx.close();
+  } catch { /* silent fail */ }
+}
+
+/* ═══════════════════════ MATH RUSH ═══════════════════════ */
+
+type MathDiff = 'easy' | 'medium' | 'hard';
+type MathPhase = 'idle' | 'countdown' | 'playing' | 'done';
+
+function genProblem(diff: MathDiff): { expr: string; answer: number; choices: number[] } {
+  let a: number, b: number, answer: number, expr: string;
+  if (diff === 'easy') {
+    const op = Math.random() < 0.5 ? '+' : '-';
+    a = Math.floor(Math.random() * 20) + 1;
+    b = Math.floor(Math.random() * 20) + 1;
+    if (op === '-') { if (a < b) [a, b] = [b, a]; }
+    answer = op === '+' ? a + b : a - b;
+    expr = `${a} ${op} ${b}`;
+  } else if (diff === 'medium') {
+    const r = Math.random();
+    if (r < 0.4) { a = Math.floor(Math.random() * 9) + 2; b = Math.floor(Math.random() * 9) + 2; answer = a * b; expr = `${a} × ${b}`; }
+    else if (r < 0.7) { a = Math.floor(Math.random() * 49) + 10; b = Math.floor(Math.random() * 29) + 5; answer = a + b; expr = `${a} + ${b}`; }
+    else { a = Math.floor(Math.random() * 49) + 20; b = Math.floor(Math.random() * 19) + 2; answer = a - b; expr = `${a} − ${b}`; }
+  } else {
+    const r = Math.random();
+    if (r < 0.3) { b = Math.floor(Math.random() * 9) + 2; answer = Math.floor(Math.random() * 14) + 2; a = b * answer; expr = `${a} ÷ ${b}`; }
+    else if (r < 0.6) { a = Math.floor(Math.random() * 18) + 5; b = Math.floor(Math.random() * 11) + 3; answer = a * b; expr = `${a} × ${b}`; }
+    else { a = Math.floor(Math.random() * 98) + 20; b = Math.floor(Math.random() * 79) + 10; if (Math.random() < 0.5) { answer = a + b; expr = `${a} + ${b}`; } else { if (a < b) [a, b] = [b, a]; answer = a - b; expr = `${a} − ${b}`; } }
+  }
+  const wrongs = new Set<number>();
+  while (wrongs.size < 3) {
+    const d = Math.floor(Math.random() * 7) + 1;
+    const w = Math.random() < 0.5 ? answer + d : answer - d;
+    if (w !== answer && w >= 0) wrongs.add(w);
+  }
+  const choices = [answer, ...wrongs].sort(() => Math.random() - 0.5);
+  return { expr, answer, choices };
+}
+
+function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, diff: string) => void }) {
+  const { t } = useLang();
+  const [diff, setDiff] = useState<MathDiff>('easy');
+  const [phase, setPhase] = useState<MathPhase>('idle');
+  const [countdown, setCountdown] = useState(3);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [problem, setProblem] = useState(() => genProblem('easy'));
+  const [flash, setFlash] = useState<'correct' | 'wrong' | null>(null);
+  const [finalScore, setFinalScore] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const cdRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startMsRef = useRef(0);
+
+  useEffect(() => () => { clearInterval(timerRef.current!); clearInterval(cdRef.current!); }, []);
+
+  function startGame(d: MathDiff = diff) {
+    clearInterval(timerRef.current!); clearInterval(cdRef.current!);
+    setDiff(d); setScore(0); setStreak(0); setTimeLeft(60); setFlash(null);
+    setProblem(genProblem(d));
+    setCountdown(3); setPhase('countdown');
+    cdRef.current = setInterval(() => {
+      setCountdown(c => {
+        if (c <= 1) {
+          clearInterval(cdRef.current!);
+          setPhase('playing');
+          startMsRef.current = Date.now();
+          timerRef.current = setInterval(() => {
+            setTimeLeft(tl => {
+              if (tl <= 1) {
+                clearInterval(timerRef.current!);
+                setPhase('done');
+                setFinalScore(sc => { setTimeout(() => onComplete(60000, sc, d), 300); return sc; });
+                return 0;
+              }
+              return tl - 1;
+            });
+          }, 1000);
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+  }
+
+  function handleChoice(choice: number) {
+    if (phase !== 'playing') return;
+    if (choice === problem.answer) {
+      playTone(880, 0.08, 'sine', 0.1);
+      setFlash('correct');
+      setScore(s => { const ns = s + 1; setFinalScore(ns); return ns; });
+      setStreak(s => s + 1);
+    } else {
+      playTone(220, 0.15, 'sawtooth', 0.08);
+      setFlash('wrong');
+      setStreak(0);
+    }
+    setTimeout(() => { setFlash(null); setProblem(genProblem(diff)); }, 180);
+  }
+
+  const timerPct = (timeLeft / 60) * 100;
+  const timerColor = timeLeft > 20 ? 'var(--purple)' : timeLeft > 10 ? '#FFB300' : '#EF4444';
+  const diffs: MathDiff[] = ['easy', 'medium', 'hard'];
+  const diffLabels: Record<MathDiff, string> = { easy: t.games.easy, medium: t.games.medium, hard: t.games.hard };
+
+  return (
+    <div>
+      {phase === 'idle' && (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '8px' }}>🔢</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: '#fff', marginBottom: '6px' }}>{t.games.mathrush}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>60s · {t.games.score}: max</div>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
+            {diffs.map(d => (
+              <button key={d} onClick={() => setDiff(d)} style={{
+                padding: '8px 16px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '700',
+                background: d === diff ? 'linear-gradient(135deg,var(--purple),#7A3FFF)' : 'rgba(255,255,255,0.07)',
+                color: d === diff ? '#fff' : 'var(--text3)',
+              }}>{diffLabels[d]}</button>
+            ))}
+          </div>
+          <button onClick={() => startGame(diff)} style={{
+            background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '12px',
+            color: '#fff', fontSize: '16px', fontWeight: '700', padding: '14px 36px', cursor: 'pointer',
+            boxShadow: '0 0 28px rgba(93,76,255,0.5)',
+          }}>▶ Start</button>
+        </div>
+      )}
+
+      {phase === 'countdown' && (
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <div style={{ fontFamily: 'Poppins', fontSize: '96px', fontWeight: '900', color: 'var(--purple3)', animation: 'mathCountdown 0.8s ease-out', lineHeight: 1 }}>{countdown}</div>
+        </div>
+      )}
+
+      {phase === 'playing' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+            <div style={{ flex: 1, height: '8px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${timerPct}%`, background: timerColor, borderRadius: '4px', transition: 'width 0.9s linear, background 0.3s' }} />
+            </div>
+            <div style={{ fontFamily: 'Poppins', fontSize: '22px', fontWeight: '800', color: timerColor, minWidth: '36px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{timeLeft}</div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <StatChip label={t.games.score} value={score} />
+            {streak >= 3 && <StatChip label="🔥" value={streak} />}
+          </div>
+          <div style={{
+            textAlign: 'center', marginBottom: '20px', padding: '20px',
+            background: flash === 'correct' ? 'rgba(34,197,94,0.15)' : flash === 'wrong' ? 'rgba(239,68,68,0.12)' : 'rgba(93,76,255,0.1)',
+            border: `1px solid ${flash === 'correct' ? 'rgba(34,197,94,0.4)' : flash === 'wrong' ? 'rgba(239,68,68,0.4)' : 'rgba(93,76,255,0.3)'}`,
+            borderRadius: '16px', transition: 'background 0.15s, border 0.15s',
+          }}>
+            <div style={{ fontFamily: 'Poppins', fontSize: '40px', fontWeight: '900', color: '#fff', letterSpacing: '-1px' }}>{problem.expr} =</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            {problem.choices.map(c => (
+              <button key={c} onClick={() => handleChoice(c)} style={{
+                padding: '18px', borderRadius: '12px', border: '1px solid rgba(93,76,255,0.3)',
+                background: 'rgba(93,76,255,0.12)', color: '#fff', fontSize: '24px', fontWeight: '800',
+                fontFamily: 'Poppins', cursor: 'pointer',
+                boxShadow: '0 2px 12px rgba(93,76,255,0.2)',
+                transition: 'transform 0.08s, background 0.08s',
+              }}
+              onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.95)')}
+              onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
+              >{c}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {phase === 'done' && (
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎉</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '64px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{finalScore}</div>
+          <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '20px' }}>{t.games.correct} answers</div>
+          <button onClick={() => { setPhase('idle'); }} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════ REFLEX TIMER ═══════════════════════ */
+
+const RT_TARGET = 5000;
+const RT_ROUNDS = 5;
+type RTPhase = 'idle' | 'running' | 'stopped' | 'done';
+
+function ReflexTimer({ onComplete }: { onComplete: (timeMs: number) => void }) {
+  const { t } = useLang();
+  const [phase, setPhase] = useState<RTPhase>('idle');
+  const [elapsed, setElapsed] = useState(0);
+  const [round, setRound] = useState(1);
+  const [results, setResults] = useState<number[]>([]);
+  const [lastDev, setLastDev] = useState<number | null>(null);
+  const startRef = useRef(0);
+  const rafRef = useRef(0);
+
+  function tick() { setElapsed(performance.now() - startRef.current); rafRef.current = requestAnimationFrame(tick); }
+
+  function handleStart() {
+    if (phase !== 'idle' && phase !== 'stopped') return;
+    startRef.current = performance.now();
+    setElapsed(0);
+    setPhase('running');
+    rafRef.current = requestAnimationFrame(tick);
+  }
+
+  function handleStop() {
+    if (phase !== 'running') return;
+    cancelAnimationFrame(rafRef.current);
+    const ms = performance.now() - startRef.current;
+    const dev = Math.abs(ms - RT_TARGET);
+    setElapsed(ms);
+    setLastDev(dev);
+    playTone(dev < 100 ? 1046 : dev < 300 ? 659 : 440, 0.2, 'sine', 0.12);
+    const newResults = [...results, dev];
+    setResults(newResults);
+    setPhase('stopped');
+    if (newResults.length >= RT_ROUNDS) {
+      const avg = newResults.reduce((a, b) => a + b, 0) / newResults.length;
+      setTimeout(() => { setPhase('done'); onComplete(Math.round(avg)); }, 800);
+    }
+  }
+
+  function reset() { cancelAnimationFrame(rafRef.current); setPhase('idle'); setElapsed(0); setRound(1); setResults([]); setLastDev(null); }
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+
+  function advance() { if (phase !== 'stopped' || results.length >= RT_ROUNDS) return; setRound(r => r + 1); setPhase('idle'); setElapsed(0); setLastDev(null); }
+
+  const displayMs = phase === 'running' ? elapsed : elapsed;
+  const targetStr = '5.000';
+  const devColor = lastDev === null ? '#fff' : lastDev < 100 ? 'var(--green2)' : lastDev < 300 ? '#FFB300' : '#EF4444';
+
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ marginBottom: '12px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{t.games.attempt} {Math.min(round, RT_ROUNDS)} / {RT_ROUNDS}</div>
+        <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
+          {Array.from({ length: RT_ROUNDS }, (_, i) => (
+            <div key={i} style={{ width: '28px', height: '6px', borderRadius: '3px', background: i < results.length ? 'var(--green2)' : i === results.length ? 'rgba(93,76,255,0.6)' : 'rgba(255,255,255,0.1)' }} />
+          ))}
+        </div>
+      </div>
+
+      <div style={{ marginBottom: '8px', fontSize: '12px', color: 'var(--text3)' }}>Target: <span style={{ color: '#FFB300', fontWeight: '700', fontFamily: 'monospace' }}>{targetStr}s</span></div>
+
+      <div style={{
+        fontFamily: 'Poppins', fontSize: '72px', fontWeight: '900', fontVariantNumeric: 'tabular-nums',
+        color: phase === 'running' ? 'var(--purple3)' : phase === 'stopped' ? devColor : 'rgba(255,255,255,0.3)',
+        lineHeight: 1, marginBottom: '6px', letterSpacing: '-2px',
+        textShadow: phase === 'running' ? '0 0 30px rgba(93,76,255,0.6)' : 'none',
+        transition: 'color 0.3s',
+      }}>
+        {(displayMs / 1000).toFixed(3)}
+      </div>
+
+      {phase === 'stopped' && lastDev !== null && (
+        <div style={{ marginBottom: '16px', animation: 'newRecBadge 0.4s cubic-bezier(.34,1.56,.64,1) both' }}>
+          <span style={{ fontSize: '14px', fontWeight: '700', color: devColor }}>
+            {lastDev < 50 ? '🎯 Perfect!' : lastDev < 150 ? '⚡ Great!' : lastDev < 400 ? '👍 OK' : '😅 Off'}
+          </span>
+          <span style={{ fontSize: '13px', color: 'var(--text3)', marginLeft: '8px' }}>±{lastDev.toFixed(0)}ms</span>
+        </div>
+      )}
+
+      {results.length > 0 && phase !== 'running' && (
+        <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+          {results.map((d, i) => (
+            <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontFamily: 'monospace', color: d < 100 ? 'var(--green2)' : d < 300 ? '#FFB300' : '#EF4444' }}>±{d.toFixed(0)}</div>
+          ))}
+        </div>
+      )}
+
+      {phase === 'idle' && (
+        <button onClick={handleStart} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '50%', width: '100px', height: '100px', color: '#fff', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 0 32px rgba(93,76,255,0.5)' }}>
+          {round === 1 ? '▶ Start' : '▶ Go'}
+        </button>
+      )}
+      {phase === 'running' && (
+        <button onClick={handleStop} style={{ background: 'rgba(239,68,68,0.15)', border: '2px solid rgba(239,68,68,0.6)', borderRadius: '50%', width: '100px', height: '100px', color: '#EF4444', fontSize: '13px', fontWeight: '800', cursor: 'pointer', animation: 'rtPulse 1s infinite', boxShadow: '0 0 24px rgba(239,68,68,0.3)' }}>
+          STOP
+        </button>
+      )}
+      {phase === 'stopped' && results.length < RT_ROUNDS && (
+        <button onClick={advance} style={{ background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.4)', borderRadius: '12px', color: 'var(--purple3)', fontSize: '14px', fontWeight: '700', padding: '12px 28px', cursor: 'pointer' }}>
+          Next →
+        </button>
+      )}
+      {phase === 'done' && (
+        <div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '15px', color: 'var(--text2)', marginBottom: '6px' }}>{t.games.avgDev}</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '48px', fontWeight: '900', color: 'var(--green2)', marginBottom: '16px' }}>
+            ±{(results.reduce((a, b) => a + b, 0) / results.length).toFixed(0)}ms
+          </div>
+          <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════ REACTION CLICK ═══════════════════════ */
+
+const RC_ROUNDS = 5;
+const RC_FALSE_PENALTY = 200;
+type RCPhase = 'idle' | 'waiting' | 'ready' | 'result' | 'done';
+
+function ReactionClick({ onComplete }: { onComplete: (timeMs: number) => void }) {
+  const { t } = useLang();
+  const [phase, setPhase] = useState<RCPhase>('idle');
+  const [round, setRound] = useState(1);
+  const [results, setResults] = useState<number[]>([]);
+  const [lastMs, setLastMs] = useState<number | null>(null);
+  const [falseStart, setFalseStart] = useState(false);
+  const [circleColor, setCircleColor] = useState('#5D4CFF');
+  const waitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const appearRef = useRef(0);
+
+  const COLORS = ['#5D4CFF', '#4ade80', '#f87171', '#FFB300', '#60a5fa', '#e879f9'];
+
+  function startWait() {
+    setPhase('waiting'); setFalseStart(false); setLastMs(null);
+    const delay = 1200 + Math.random() * 2800;
+    waitRef.current = setTimeout(() => {
+      setCircleColor(COLORS[Math.floor(Math.random() * COLORS.length)]);
+      setPhase('ready');
+      appearRef.current = performance.now();
+    }, delay);
+  }
+
+  function handleClick() {
+    if (phase === 'idle') return;
+    if (phase === 'waiting') {
+      clearTimeout(waitRef.current!);
+      setFalseStart(true);
+      const ms = RC_FALSE_PENALTY;
+      setLastMs(ms);
+      const nr = [...results, ms];
+      setResults(nr);
+      setPhase('result');
+      playTone(220, 0.2, 'sawtooth', 0.08);
+      if (nr.length >= RC_ROUNDS) {
+        const avg = nr.reduce((a, b) => a + b, 0) / nr.length;
+        setTimeout(() => { setPhase('done'); onComplete(Math.round(avg)); }, 600);
+      }
+      return;
+    }
+    if (phase === 'ready') {
+      const ms = Math.round(performance.now() - appearRef.current);
+      setLastMs(ms);
+      playTone(ms < 200 ? 1046 : ms < 350 ? 659 : 440, 0.15, 'sine', 0.1);
+      const nr = [...results, ms];
+      setResults(nr);
+      setPhase('result');
+      if (nr.length >= RC_ROUNDS) {
+        const avg = nr.reduce((a, b) => a + b, 0) / nr.length;
+        setTimeout(() => { setPhase('done'); onComplete(Math.round(avg)); }, 600);
+      }
+    }
+  }
+
+  function reset() { clearTimeout(waitRef.current!); setPhase('idle'); setRound(1); setResults([]); setLastMs(null); setFalseStart(false); }
+
+  function advance() { if (phase !== 'result' || results.length >= RC_ROUNDS) return; setRound(r => r + 1); startWait(); }
+
+  useEffect(() => () => clearTimeout(waitRef.current!), []);
+
+  const avgMs = results.length ? Math.round(results.reduce((a, b) => a + b, 0) / results.length) : null;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+        <StatChip label={t.games.attempt} value={`${Math.min(round, RC_ROUNDS)}/${RC_ROUNDS}`} />
+        {avgMs !== null && <StatChip label={t.games.avgReact} value={`${avgMs}ms`} />}
+      </div>
+
+      <div
+        onClick={handleClick}
+        style={{
+          position: 'relative', height: '200px', borderRadius: '16px', cursor: phase === 'idle' ? 'default' : 'pointer',
+          background: phase === 'waiting' ? 'rgba(15,20,40,0.95)' : phase === 'ready' ? `${circleColor}22` : 'rgba(15,20,40,0.6)',
+          border: phase === 'ready' ? `2px solid ${circleColor}` : '1px solid rgba(255,255,255,0.08)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px',
+          transition: 'background 0.1s, border 0.1s',
+          boxShadow: phase === 'ready' ? `0 0 40px ${circleColor}44` : 'none',
+        }}
+      >
+        {phase === 'idle' && <div style={{ fontSize: '13px', color: 'var(--text3)', textAlign: 'center' }}>Click Start, then tap when circle appears</div>}
+        {phase === 'waiting' && (
+          <>
+            <div style={{ fontSize: '32px', animation: 'rtPulse 1.2s infinite' }}>👁</div>
+            <div style={{ fontSize: '13px', color: 'var(--text3)' }}>Wait for the circle…</div>
+          </>
+        )}
+        {phase === 'ready' && (
+          <>
+            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: circleColor, boxShadow: `0 0 40px ${circleColor}`, animation: 'rcPop 0.15s cubic-bezier(.34,1.56,.64,1)' }} />
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#fff', fontFamily: 'Poppins' }}>CLICK!</div>
+          </>
+        )}
+        {phase === 'result' && (
+          <div style={{ textAlign: 'center', animation: 'newRecBadge 0.3s ease' }}>
+            {falseStart ? (
+              <><div style={{ fontSize: '24px', marginBottom: '4px' }}>⚠️</div><div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '800', color: '#EF4444' }}>False start!</div><div style={{ fontSize: '13px', color: 'var(--text3)' }}>+{RC_FALSE_PENALTY}ms penalty</div></>
+            ) : (
+              <><div style={{ fontFamily: 'Poppins', fontSize: '52px', fontWeight: '900', color: lastMs! < 200 ? 'var(--green2)' : lastMs! < 350 ? '#FFB300' : '#EF4444', lineHeight: 1 }}>{lastMs}ms</div><div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>{lastMs! < 200 ? '⚡ Lightning!' : lastMs! < 300 ? '🎯 Great!' : lastMs! < 450 ? '👍 Good' : '🐌 Slow'}</div></>
+            )}
+          </div>
+        )}
+        {phase === 'done' && <div style={{ fontSize: '13px', color: 'var(--text3)' }}>Done!</div>}
+      </div>
+
+      <div style={{ marginTop: '12px', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
+        {results.map((ms, i) => <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontFamily: 'monospace', color: ms <= RC_FALSE_PENALTY ? '#EF4444' : ms < 250 ? 'var(--green2)' : ms < 400 ? '#FFB300' : 'var(--text3)' }}>{ms}ms</div>)}
+      </div>
+
+      <div style={{ marginTop: '14px', textAlign: 'center' }}>
+        {phase === 'idle' && <button onClick={() => { setRound(1); setResults([]); startWait(); }} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>▶ Start</button>}
+        {phase === 'result' && results.length < RC_ROUNDS && <button onClick={advance} style={{ background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.4)', borderRadius: '10px', color: 'var(--purple3)', fontSize: '14px', fontWeight: '700', padding: '10px 24px', cursor: 'pointer' }}>Next →</button>}
+        {phase === 'done' && (
+          <div>
+            <div style={{ fontFamily: 'Poppins', fontSize: '13px', color: 'var(--text2)', marginBottom: '4px' }}>{t.games.avgReact}</div>
+            <div style={{ fontFamily: 'Poppins', fontSize: '42px', fontWeight: '900', color: 'var(--green2)', marginBottom: '14px' }}>{avgMs}ms</div>
+            <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════ STACK ═══════════════════════ */
+
+const STACK_W = 280;
+const STACK_BLOCK_H = 22;
+const STACK_MAX_BLOCKS = 12;
+
+interface StackBlock { left: number; width: number; }
+type StackPhase = 'idle' | 'playing' | 'done';
+
+function StackGame({ onComplete }: { onComplete: (timeMs: number, score: number) => void }) {
+  const { t } = useLang();
+  const [phase, setPhase] = useState<StackPhase>('idle');
+  const [blocks, setBlocks] = useState<StackBlock[]>([{ left: 0, width: STACK_W }]);
+  const [score, setScore] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
+  const [particles, setParticles] = useState<{ id: number; x: number; color: string }[]>([]);
+  const movingRef = useRef({ left: 0, direction: 1, speed: 2 });
+  const animRef = useRef(0);
+  const startMsRef = useRef(0);
+  const blocksRef = useRef<StackBlock[]>([{ left: 0, width: STACK_W }]);
+  const scoreRef = useRef(0);
+  const [movingLeft, setMovingLeft] = useState(0);
+  const [movingWidth, setMovingWidth] = useState(STACK_W);
+
+  function startGame() {
+    const base: StackBlock = { left: 0, width: STACK_W };
+    blocksRef.current = [base];
+    scoreRef.current = 0;
+    movingRef.current = { left: 0, direction: 1, speed: 2 };
+    setBlocks([base]); setScore(0); setFinalScore(0); setParticles([]);
+    setMovingLeft(0); setMovingWidth(STACK_W);
+    setPhase('playing');
+    startMsRef.current = Date.now();
+    function loop() {
+      const mv = movingRef.current;
+      mv.left += mv.direction * mv.speed;
+      const w = blocksRef.current[blocksRef.current.length - 1]?.width ?? STACK_W;
+      if (mv.left <= 0) { mv.left = 0; mv.direction = 1; }
+      if (mv.left + w >= STACK_W) { mv.left = STACK_W - w; mv.direction = -1; }
+      setMovingLeft(mv.left);
+      animRef.current = requestAnimationFrame(loop);
+    }
+    animRef.current = requestAnimationFrame(loop);
+  }
+
+  function drop() {
+    if (phase !== 'playing') return;
+    cancelAnimationFrame(animRef.current);
+    const top = blocksRef.current[blocksRef.current.length - 1];
+    const mLeft = movingRef.current.left;
+    const mRight = mLeft + top.width;
+    const tRight = top.left + top.width;
+    const overlapLeft = Math.max(mLeft, top.left);
+    const overlapRight = Math.min(mRight, tRight);
+    const overlapW = overlapRight - overlapLeft;
+    if (overlapW <= 2) {
+      playTone(220, 0.3, 'sawtooth', 0.1);
+      setFinalScore(scoreRef.current);
+      const elapsed = Date.now() - startMsRef.current;
+      setPhase('done');
+      onComplete(elapsed, scoreRef.current);
+      return;
+    }
+    playTone(440 + scoreRef.current * 30, 0.06, 'sine', 0.08);
+    const newBlock: StackBlock = { left: overlapLeft, width: overlapW };
+    const newBlocks = [...blocksRef.current, newBlock];
+    blocksRef.current = newBlocks;
+    scoreRef.current += 1;
+    setBlocks([...newBlocks]);
+    setScore(scoreRef.current);
+    setParticles(p => [...p, { id: Date.now(), x: overlapLeft + overlapW / 2, color: `hsl(${220 + scoreRef.current * 15},80%,65%)` }]);
+    setTimeout(() => setParticles(p => p.slice(1)), 600);
+    const newSpeed = 2 + scoreRef.current * 0.22;
+    movingRef.current = { left: overlapLeft, direction: Math.random() < 0.5 ? 1 : -1, speed: newSpeed };
+    setMovingLeft(overlapLeft); setMovingWidth(overlapW);
+    if (newBlocks.length > STACK_MAX_BLOCKS) {
+      setFinalScore(scoreRef.current);
+      setPhase('done');
+      onComplete(Date.now() - startMsRef.current, scoreRef.current);
+      return;
+    }
+    function loop() {
+      const mv = movingRef.current;
+      mv.left += mv.direction * mv.speed;
+      const w = movingRef.current.left + newBlock.width;
+      if (mv.left <= 0) { mv.left = 0; mv.direction = 1; }
+      if (mv.left + newBlock.width >= STACK_W) { mv.left = STACK_W - newBlock.width; mv.direction = -1; }
+      setMovingLeft(mv.left);
+      animRef.current = requestAnimationFrame(loop);
+    }
+    animRef.current = requestAnimationFrame(loop);
+  }
+
+  function reset() { cancelAnimationFrame(animRef.current); setPhase('idle'); setBlocks([{ left: 0, width: STACK_W }]); setScore(0); setParticles([]); blocksRef.current = [{ left: 0, width: STACK_W }]; scoreRef.current = 0; }
+
+  useEffect(() => () => cancelAnimationFrame(animRef.current), []);
+
+  const BLOCK_COLORS = ['#5D4CFF','#7A3FFF','#9333ea','#a855f7','#c084fc','#d8b4fe','#e9d5ff','#f0abfc','#f5d0fe','#fae8ff','#fdf4ff','#fff'];
+  const containerH = (STACK_MAX_BLOCKS + 2) * STACK_BLOCK_H;
+  const topIdx = blocks.length - 1;
+  const topWidth = blocks[topIdx]?.width ?? STACK_W;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+        <StatChip label={t.games.blocks} value={score} />
+        {phase === 'playing' && <div style={{ fontSize: '11px', color: 'var(--text3)', alignSelf: 'center', marginLeft: '4px' }}>Tap to drop!</div>}
+      </div>
+
+      {phase === 'idle' && (
+        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+          <div style={{ fontSize: '40px', marginBottom: '8px' }}>🏗</div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '16px', color: '#fff', fontWeight: '700', marginBottom: '6px' }}>{t.games.stackGame}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '16px' }}>Stack blocks as precisely as possible!</div>
+          <button onClick={startGame} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>▶ Start</button>
+        </div>
+      )}
+
+      {(phase === 'playing' || phase === 'done') && (
+        <div onClick={drop} style={{ position: 'relative', width: STACK_W, margin: '0 auto', height: containerH, cursor: phase === 'playing' ? 'pointer' : 'default', userSelect: 'none' }}>
+          {/* Stacked blocks */}
+          {blocks.map((b, i) => (
+            <div key={i} style={{
+              position: 'absolute', height: STACK_BLOCK_H - 2,
+              left: b.left, width: b.width,
+              bottom: i * STACK_BLOCK_H,
+              background: BLOCK_COLORS[Math.min(i, BLOCK_COLORS.length - 1)],
+              borderRadius: '4px',
+              boxShadow: i === topIdx ? '0 0 12px rgba(93,76,255,0.6)' : 'none',
+              transition: 'width 0.1s',
+            }} />
+          ))}
+          {/* Moving block */}
+          {phase === 'playing' && (
+            <div style={{
+              position: 'absolute', height: STACK_BLOCK_H - 2,
+              left: movingLeft, width: topWidth,
+              bottom: blocks.length * STACK_BLOCK_H,
+              background: BLOCK_COLORS[Math.min(blocks.length, BLOCK_COLORS.length - 1)],
+              borderRadius: '4px',
+              boxShadow: '0 0 16px rgba(93,76,255,0.8)',
+              border: '1px solid rgba(255,255,255,0.3)',
+            }} />
+          )}
+          {/* Particles */}
+          {particles.map(p => (
+            <div key={p.id} style={{ position: 'absolute', left: p.x - 4, bottom: blocks.length * STACK_BLOCK_H, width: 8, height: 8, borderRadius: '50%', background: p.color, animation: 'cflyOut 0.5s ease-out both', pointerEvents: 'none', '--tx': '0px', '--ty': '-40px' } as React.CSSProperties} />
+          ))}
+        </div>
+      )}
+
+      {phase === 'done' && (
+        <div style={{ textAlign: 'center', marginTop: '12px' }}>
+          <div style={{ fontFamily: 'Poppins', fontSize: '48px', fontWeight: '900', color: 'var(--purple3)', lineHeight: 1 }}>{finalScore}</div>
+          <div style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '14px' }}>{t.games.blocks} stacked</div>
+          <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════ FELIX JUMP ═══════════════════════ */
+
+const FJ_W = 320, FJ_H = 180;
+const FJ_GROUND = FJ_H - 36;
+const FJ_PLAYER_X = 60;
+const FJ_PLAYER_SIZE = 28;
+const FJ_GRAVITY = 0.55;
+const FJ_JUMP_VY = -11;
+
+interface FJObs { x: number; w: number; h: number; }
+type FJPhase = 'idle' | 'playing' | 'dead';
+
+function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number) => void }) {
+  const { t } = useLang();
+  const [phase, setPhase] = useState<FJPhase>('idle');
+  const [playerY, setPlayerY] = useState(FJ_GROUND);
+  const [score, setScore] = useState(0);
+  const [obstacles, setObstacles] = useState<FJObs[]>([]);
+  const [finalScore, setFinalScore] = useState(0);
+  const stateRef = useRef({
+    phase: 'idle' as FJPhase,
+    playerY: FJ_GROUND, vy: 0, jumpsLeft: 2,
+    obs: [] as FJObs[], score: 0, speed: 3,
+    nextObs: 180, startMs: 0, frame: 0,
+  });
+  const rafRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  function jump() {
+    const s = stateRef.current;
+    if (s.phase === 'idle') { startGame(); return; }
+    if (s.phase !== 'playing') return;
+    if (s.jumpsLeft > 0) {
+      playTone(s.jumpsLeft === 2 ? 440 : 330, 0.08, 'sine', 0.08);
+      s.vy = FJ_JUMP_VY;
+      s.jumpsLeft -= 1;
+    }
+  }
+
+  function startGame() {
+    const s = stateRef.current;
+    s.phase = 'playing'; s.playerY = FJ_GROUND; s.vy = 0; s.jumpsLeft = 2;
+    s.obs = []; s.score = 0; s.speed = 3; s.nextObs = 200; s.frame = 0;
+    s.startMs = Date.now();
+    setPhase('playing'); setPlayerY(FJ_GROUND); setScore(0); setObstacles([]);
+    function loop() {
+      const st = stateRef.current;
+      if (st.phase !== 'playing') return;
+      st.frame++;
+      // Physics
+      st.vy += FJ_GRAVITY;
+      st.playerY += st.vy;
+      if (st.playerY >= FJ_GROUND) { st.playerY = FJ_GROUND; st.vy = 0; st.jumpsLeft = 2; }
+      // Score
+      st.score = Math.floor((Date.now() - st.startMs) / 100);
+      st.speed = 3 + st.score * 0.018;
+      // Obstacles
+      st.obs = st.obs.map(o => ({ ...o, x: o.x - st.speed })).filter(o => o.x + o.w > -10);
+      st.nextObs -= st.speed;
+      if (st.nextObs <= 0) {
+        const h = 24 + Math.random() * 28;
+        st.obs.push({ x: FJ_W, w: 18, h });
+        st.nextObs = 120 + Math.random() * 160 - st.score * 0.3;
+        if (st.nextObs < 80) st.nextObs = 80;
+      }
+      // Collision
+      const px = FJ_PLAYER_X, py = st.playerY, ps = FJ_PLAYER_SIZE;
+      for (const o of st.obs) {
+        const oy = FJ_GROUND + FJ_PLAYER_SIZE - o.h;
+        if (px + ps - 6 > o.x + 2 && px + 6 < o.x + o.w - 2 && py + ps - 4 > oy) {
+          st.phase = 'dead';
+          playTone(200, 0.4, 'sawtooth', 0.1);
+          const elapsed = Date.now() - st.startMs;
+          setPhase('dead'); setFinalScore(st.score);
+          onComplete(elapsed, st.score);
+          return;
+        }
+      }
+      setPlayerY(st.playerY);
+      setScore(st.score);
+      setObstacles([...st.obs]);
+      rafRef.current = requestAnimationFrame(loop);
+    }
+    rafRef.current = requestAnimationFrame(loop);
+  }
+
+  function reset() { cancelAnimationFrame(rafRef.current); stateRef.current.phase = 'idle'; setPhase('idle'); setScore(0); setObstacles([]); setPlayerY(FJ_GROUND); }
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.code === 'Space') { e.preventDefault(); jump(); } }
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('keydown', onKey); cancelAnimationFrame(rafRef.current); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const pBottom = FJ_GROUND + FJ_PLAYER_SIZE - playerY;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+        <StatChip label={t.games.distance} value={score} />
+        {phase === 'playing' && <div style={{ fontSize: '11px', color: 'var(--text3)', alignSelf: 'center' }}>SPACE / tap to jump · double jump OK</div>}
+      </div>
+
+      <div
+        ref={containerRef}
+        onClick={jump}
+        style={{
+          position: 'relative', width: FJ_W, height: FJ_H, margin: '0 auto',
+          background: 'linear-gradient(180deg,#02040E 60%,#0d1025 100%)',
+          border: '1px solid rgba(93,76,255,0.3)', borderRadius: '12px', overflow: 'hidden',
+          cursor: phase === 'idle' ? 'pointer' : phase === 'playing' ? 'pointer' : 'default',
+          userSelect: 'none',
+        }}
+      >
+        {/* Stars */}
+        {[10,40,80,130,190,240,290,50,160,220].map((x, i) => (
+          <div key={i} style={{ position: 'absolute', width: 2, height: 2, borderRadius: '50%', background: 'rgba(255,255,255,0.4)', left: x, top: [12,25,8,18,30,15,22,35,10,28][i] }} />
+        ))}
+        {/* Ground line */}
+        <div style={{ position: 'absolute', bottom: FJ_H - FJ_GROUND - FJ_PLAYER_SIZE, left: 0, right: 0, height: '2px', background: 'rgba(93,76,255,0.4)' }} />
+        {/* Player */}
+        <div style={{
+          position: 'absolute',
+          left: FJ_PLAYER_X,
+          bottom: pBottom,
+          width: FJ_PLAYER_SIZE, height: FJ_PLAYER_SIZE,
+          fontSize: '20px', lineHeight: `${FJ_PLAYER_SIZE}px`, textAlign: 'center',
+          filter: phase === 'dead' ? 'grayscale(1) opacity(0.5)' : 'none',
+          transition: phase === 'dead' ? 'filter 0.3s' : 'none',
+        }}>🏃</div>
+        {/* Obstacles */}
+        {obstacles.map((o, i) => (
+          <div key={i} style={{
+            position: 'absolute', left: o.x, bottom: FJ_H - FJ_GROUND - FJ_PLAYER_SIZE,
+            width: o.w, height: o.h,
+            background: 'linear-gradient(180deg,#EF4444,#b91c1c)',
+            borderRadius: '3px 3px 0 0',
+            boxShadow: '0 0 8px rgba(239,68,68,0.5)',
+          }} />
+        ))}
+        {/* Idle overlay */}
+        {phase === 'idle' && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,4,14,0.7)' }}>
+            <div style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>{t.games.felixJump}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Tap / SPACE to start & jump</div>
+          </div>
+        )}
+        {/* Dead overlay */}
+        {phase === 'dead' && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,4,14,0.75)' }}>
+            <div style={{ fontFamily: 'Poppins', fontSize: '28px', fontWeight: '900', color: '#EF4444', marginBottom: '4px' }}>{finalScore}</div>
+            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.games.distance}</div>
+          </div>
+        )}
+      </div>
+
+      {phase === 'dead' && (
+        <div style={{ textAlign: 'center', marginTop: '12px' }}>
+          <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '10px 26px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
-type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding';
+type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
 
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string } | null;
 
 export default function DailyGames() {
   const { t } = useLang();
   const tabs: { id: TabId; label: string; emoji: string }[] = [
-    { id: 'memory',    label: t.games.memory,    emoji: '🃏' },
-    { id: 'wordchain', label: t.games.wordchain,  emoji: '📝' },
-    { id: 'flagquiz',  label: t.games.flagquiz,   emoji: '🌍' },
-    { id: 'sliding',   label: t.games.sliding,    emoji: '🧩' },
+    { id: 'memory',    label: t.games.memory,     emoji: '🃏' },
+    { id: 'wordchain', label: t.games.wordchain,   emoji: '📝' },
+    { id: 'flagquiz',  label: t.games.flagquiz,    emoji: '🌍' },
+    { id: 'sliding',   label: t.games.sliding,     emoji: '🧩' },
+    { id: 'mathrush',  label: t.games.mathrush,    emoji: '🔢' },
+    { id: 'reflex',    label: t.games.reflex,      emoji: '⏱' },
+    { id: 'reaction',  label: t.games.reaction,    emoji: '⚡' },
+    { id: 'stack',     label: t.games.stackGame,   emoji: '🏗' },
+    { id: 'felixjump', label: t.games.felixJump,   emoji: '🏃' },
   ];
   const [tab,         setTab]         = useState<TabId>('memory');
   const [modal,       setModal]       = useState<ModalState>(null);
@@ -1701,14 +2491,15 @@ export default function DailyGames() {
         }}>🏆 {t.games.leaderboard}</button>
       </div>
 
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', gap: '5px', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
         {tabs.map(tb => (
           <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-            flex: 1, padding: '8px 4px', borderRadius: '9px', border: 'none', cursor: 'pointer',
-            fontWeight: '600', fontSize: '12px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
+            flexShrink: 0, padding: '7px 10px', borderRadius: '9px', border: 'none', cursor: 'pointer',
+            fontWeight: '600', fontSize: '11px',
+            display: 'flex', alignItems: 'center', gap: '4px',
             background: tb.id === tab ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
             color: tb.id === tab ? '#fff' : 'var(--text2)',
+            whiteSpace: 'nowrap',
           }}>
             <span>{tb.emoji}</span><span>{tb.label}</span>
           </button>
@@ -1719,6 +2510,11 @@ export default function DailyGames() {
       {tab === 'wordchain' && <WordChain     onComplete={(ms, sc)     => openModal('wordchain', ms, { score: sc })} />}
       {tab === 'flagquiz'  && <FlagQuiz      onComplete={(ms, sc, df) => openModal('flagquiz',  ms, { score: sc, diff: df })} />}
       {tab === 'sliding'   && <SlidingPuzzle onComplete={(ms, mv)     => openModal('sliding',   ms, { moves: mv })} />}
+      {tab === 'mathrush'  && <MathRush      onComplete={(ms, sc, df) => openModal('mathrush',  ms, { score: sc, diff: df })} />}
+      {tab === 'reflex'    && <ReflexTimer   onComplete={(ms)         => openModal('reflex',    ms)} />}
+      {tab === 'reaction'  && <ReactionClick onComplete={(ms)         => openModal('reaction',  ms)} />}
+      {tab === 'stack'     && <StackGame     onComplete={(ms, sc)     => openModal('stack',     ms, { score: sc })} />}
+      {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
 
       {showLB && (
         <GlobalLeaderboard initialGame={lbGame} />
@@ -1773,6 +2569,20 @@ export default function DailyGames() {
         @keyframes wcCountdown {
           from { width: 100%; }
           to   { width: 0%; }
+        }
+        @keyframes mathCountdown {
+          0%   { transform: scale(1.4); opacity: 0; }
+          50%  { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1);   opacity: 0.8; }
+        }
+        @keyframes rtPulse {
+          0%,100% { transform: scale(1);   box-shadow: 0 0 24px rgba(239,68,68,0.3); }
+          50%     { transform: scale(1.05); box-shadow: 0 0 36px rgba(239,68,68,0.6); }
+        }
+        @keyframes rcPop {
+          0%   { transform: scale(0); opacity: 0; }
+          70%  { transform: scale(1.15); }
+          100% { transform: scale(1);   opacity: 1; }
         }
       `}</style>
     </div>

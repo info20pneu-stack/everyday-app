@@ -30,14 +30,16 @@ export async function GET() {
   try {
     const entries = await redis.zrange<LBEntry[]>(LB_KEY, 0, MAX_ENTRIES - 1);
     return NextResponse.json(entries ?? []);
-  } catch {
+  } catch (err) {
+    console.error('[sliding-puzzle GET] Redis error:', err);
     return NextResponse.json([]);
   }
 }
 
 export async function POST(req: NextRequest) {
+  let body: { name: string; timeMs: number; moves: number } | null = null;
   try {
-    const body = await req.json() as { name: string; timeMs: number; moves: number };
+    body = await req.json() as { name: string; timeMs: number; moves: number };
     const { name, timeMs, moves } = body;
 
     if (
@@ -45,6 +47,7 @@ export async function POST(req: NextRequest) {
       typeof timeMs !== 'number' || timeMs <= 0 ||
       typeof moves !== 'number' || moves < 1
     ) {
+      console.error('[sliding-puzzle POST] Validation failed:', body);
       return NextResponse.json({ error: 'Neplatná data' }, { status: 400 });
     }
 
@@ -106,8 +109,10 @@ export async function POST(req: NextRequest) {
     await redis.zremrangebyrank(LB_KEY, MAX_ENTRIES, -1);
     await redis.hset(IPS_KEY, { [ipHash]: { member, timeMs: roundedMs } });
 
+    console.log('[sliding-puzzle POST] Success, rank:', rank);
     return NextResponse.json({ success: true, entry }, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error('[sliding-puzzle POST] Error. Body:', body, '| Error:', err);
     return NextResponse.json({ error: 'Chyba serveru' }, { status: 500 });
   }
 }

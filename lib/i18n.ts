@@ -71,6 +71,8 @@ export type Translations = {
     allTime: string; month: string; week: string; today: string;
     allCountries: string; allCities: string; globalTop100: string;
     players: string; noRecords: string; noPlayersArea: string; loading: string;
+    mathrush: string; reflex: string; reaction: string; stackGame: string; felixJump: string;
+    timeLeft: string; attempt: string; avgDev: string; avgReact: string; blocks: string; distance: string;
   };
 };
 
@@ -146,6 +148,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Global leaderboard — Top 100', players: 'players',
       noRecords: 'No records yet. Be the first!',
       noPlayersArea: 'No players from this area.', loading: 'Loading…',
+      mathrush: 'Math Rush', reflex: 'Reflex', reaction: 'Reaction', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Time left', attempt: 'Attempt', avgDev: 'Avg deviation', avgReact: 'Avg reaction', blocks: 'Blocks', distance: 'Distance',
     },
   },
 
@@ -220,6 +224,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Globale Rangliste — Top 100', players: 'Spieler',
       noRecords: 'Noch keine Einträge. Sei der Erste!',
       noPlayersArea: 'Keine Spieler aus dieser Region.', loading: 'Lade…',
+      mathrush: 'Math Rush', reflex: 'Reflex', reaction: 'Reaktion', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Zeit übrig', attempt: 'Versuch', avgDev: 'Ø Abweichung', avgReact: 'Ø Reaktion', blocks: 'Blöcke', distance: 'Distanz',
     },
   },
 
@@ -294,6 +300,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Classifica globale — Top 100', players: 'giocatori',
       noRecords: 'Nessun record ancora. Sii il primo!',
       noPlayersArea: "Nessun giocatore da quest'area.", loading: 'Caricamento…',
+      mathrush: 'Math Rush', reflex: 'Riflessi', reaction: 'Reazione', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Tempo rimasto', attempt: 'Tentativo', avgDev: 'Dev. media', avgReact: 'React. media', blocks: 'Blocchi', distance: 'Distanza',
     },
   },
 
@@ -368,6 +376,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Classement mondial — Top 100', players: 'joueurs',
       noRecords: "Aucun record pour l'instant. Soyez le premier !",
       noPlayersArea: 'Aucun joueur de cette région.', loading: 'Chargement…',
+      mathrush: 'Math Rush', reflex: 'Réflexe', reaction: 'Réaction', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Temps restant', attempt: 'Essai', avgDev: 'Dév. moyenne', avgReact: 'Réact. moy.', blocks: 'Blocs', distance: 'Distance',
     },
   },
 
@@ -442,6 +452,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Globální žebříček — Top 100', players: 'hráčů',
       noRecords: 'Zatím žádné záznamy. Buď první!',
       noPlayersArea: 'Žádní hráči z této oblasti.', loading: 'Načítám…',
+      mathrush: 'Math Rush', reflex: 'Reflex', reaction: 'Reakce', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Zbývá času', attempt: 'Pokus', avgDev: 'Prům. odchylka', avgReact: 'Prům. reakce', blocks: 'Bloky', distance: 'Vzdálenost',
     },
   },
 
@@ -516,6 +528,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Clasificación global — Top 100', players: 'jugadores',
       noRecords: 'Sin registros aún. ¡Sé el primero!',
       noPlayersArea: 'No hay jugadores de esta área.', loading: 'Cargando…',
+      mathrush: 'Math Rush', reflex: 'Reflejos', reaction: 'Reacción', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Tiempo restante', attempt: 'Intento', avgDev: 'Dev. media', avgReact: 'Reac. media', blocks: 'Bloques', distance: 'Distancia',
     },
   },
 
@@ -590,6 +604,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Globalny ranking — Top 100', players: 'graczy',
       noRecords: 'Brak rekordów. Bądź pierwszy!',
       noPlayersArea: 'Brak graczy z tego obszaru.', loading: 'Ładowanie…',
+      mathrush: 'Math Rush', reflex: 'Refleks', reaction: 'Reakcja', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Pozostały czas', attempt: 'Próba', avgDev: 'Śr. odchylenie', avgReact: 'Śr. reakcja', blocks: 'Bloki', distance: 'Dystans',
     },
   },
 
@@ -664,6 +680,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Classificação global — Top 100', players: 'jogadores',
       noRecords: 'Sem registros ainda. Seja o primeiro!',
       noPlayersArea: 'Nenhum jogador desta área.', loading: 'A carregar…',
+      mathrush: 'Math Rush', reflex: 'Reflexo', reaction: 'Reação', stackGame: 'Stack', felixJump: 'Felix Jump',
+      timeLeft: 'Tempo restante', attempt: 'Tentativa', avgDev: 'Desv. média', avgReact: 'React. média', blocks: 'Blocos', distance: 'Distância',
     },
   },
 
@@ -738,6 +756,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'Глобальный рейтинг — Top 100', players: 'игроков',
       noRecords: 'Пока нет записей. Будь первым!',
       noPlayersArea: 'Нет игроков из этого региона.', loading: 'Загрузка…',
+      mathrush: 'Math Rush', reflex: 'Рефлекс', reaction: 'Реакция', stackGame: 'Стек', felixJump: 'Felix Jump',
+      timeLeft: 'Осталось', attempt: 'Попытка', avgDev: 'Ср. отклонение', avgReact: 'Ср. реакция', blocks: 'Блоки', distance: 'Расстояние',
     },
   },
 
@@ -812,6 +832,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: '全球排行榜 — Top 100', players: '位玩家',
       noRecords: '暂无记录，成为第一个！',
       noPlayersArea: '该地区暂无玩家。', loading: '加载中…',
+      mathrush: '数学竞速', reflex: '反应时间', reaction: '点击反应', stackGame: '堆叠', felixJump: 'Felix Jump',
+      timeLeft: '剩余时间', attempt: '尝试', avgDev: '平均偏差', avgReact: '平均反应', blocks: '方块', distance: '距离',
     },
   },
 
@@ -886,6 +908,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'グローバルランキング — Top 100', players: '人のプレイヤー',
       noRecords: 'まだ記録がありません。最初のプレイヤーになろう！',
       noPlayersArea: 'このエリアのプレイヤーはいません。', loading: '読み込み中…',
+      mathrush: '計算Rush', reflex: '反射神経', reaction: '反応クリック', stackGame: 'スタック', felixJump: 'Felix Jump',
+      timeLeft: '残り時間', attempt: '試行', avgDev: '平均偏差', avgReact: '平均反応', blocks: 'ブロック', distance: '距離',
     },
   },
 
@@ -960,6 +984,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: '글로벌 리더보드 — Top 100', players: '명의 플레이어',
       noRecords: '아직 기록이 없습니다. 첫 번째가 되세요!',
       noPlayersArea: '이 지역의 플레이어가 없습니다.', loading: '로딩 중…',
+      mathrush: '수학 러시', reflex: '반사신경', reaction: '반응 클릭', stackGame: '스택', felixJump: 'Felix Jump',
+      timeLeft: '남은 시간', attempt: '시도', avgDev: '평균 편차', avgReact: '평균 반응', blocks: '블록', distance: '거리',
     },
   },
 
@@ -1034,6 +1060,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'لوحة المتصدرين العالمية — Top 100', players: 'لاعبين',
       noRecords: 'لا توجد سجلات بعد. كن الأول!',
       noPlayersArea: 'لا يوجد لاعبون من هذه المنطقة.', loading: 'جارٍ التحميل…',
+      mathrush: 'سباق الرياضيات', reflex: 'ردود الفعل', reaction: 'الاستجابة', stackGame: 'تراكم', felixJump: 'Felix Jump',
+      timeLeft: 'الوقت المتبقي', attempt: 'محاولة', avgDev: 'متوسط الانحراف', avgReact: 'متوسط الرد', blocks: 'مكعبات', distance: 'مسافة',
     },
   },
 
@@ -1108,6 +1136,8 @@ const t: Record<Lang, Translations> = {
       globalTop100: 'वैश्विक लीडरबोर्ड — Top 100', players: 'खिलाड़ी',
       noRecords: 'अभी तक कोई रिकॉर्ड नहीं। पहले बनें!',
       noPlayersArea: 'इस क्षेत्र से कोई खिलाड़ी नहीं।', loading: 'लोड हो रहा है…',
+      mathrush: 'गणित रश', reflex: 'रिफ्लेक्स', reaction: 'रिएक्शन', stackGame: 'स्टैक', felixJump: 'Felix Jump',
+      timeLeft: 'शेष समय', attempt: 'प्रयास', avgDev: 'औसत विचलन', avgReact: 'औसत प्रतिक्रिया', blocks: 'ब्लॉक', distance: 'दूरी',
     },
   },
 };
