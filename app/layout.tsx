@@ -5,10 +5,10 @@ import Providers from "./components/Providers";
 import Analytics from "./components/Analytics";
 import StructuredData from "./components/StructuredData";
 import PageLoader from "./components/PageLoader";
-import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://everyday-app.vercel.app'),
+  metadataBase: new URL('https://www.everyday1234567.com'),
   title: "EVERY DAY | Time, Weather, Sports, Converter and More",
   description: "Everything you need every day: world clocks, weather, sports, converters, countdowns and more.",
   manifest: '/manifest.json',
@@ -48,4 +48,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-}
+}git add .

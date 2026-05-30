@@ -4,6 +4,7 @@ import Topbar from './components/Topbar';
 import BottomNav from './components/BottomNav';
 import AdBanner from './components/AdBanner';
 import MainContent from './components/MainContent';
+import WordleGames from './components/WordleGames';
 
 export const metadata: Metadata = {
   title: 'EVERY DAY | Time, Weather, Sports, Converter and More',
