@@ -33,11 +33,12 @@ const STATIC_RATES = Object.fromEntries(CURRENCIES.map(c => [c.code, c.rate]));
 type FetchState = 'loading' | 'ok' | 'error';
 type DataSource = 'live' | 'static';
 
-async function fetchRates(): Promise<Record<string, number>> {
-  const res = await fetch('https://api.frankfurter.app/latest?from=USD');
+aasync function fetchRates(): Promise<Record<string, number>> {
+  const res = await fetch('/api/currency');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
-  return { USD: 1, ...data.rates } as Record<string, number>;
+  if (data.error) throw new Error(data.error);
+  return data as Record<string, number>;
 }
 
 export default function Currency() {
