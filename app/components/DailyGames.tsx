@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
+import { TypingSpeedTest } from './TypingSpeedTest';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -275,7 +276,7 @@ function BestBadge({ label, value }: { label: string; value: string | number }) 
 
 /* ═══════════════════════ LEADERBOARD MODAL ═══════════════════════ */
 
-type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
+type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
 type LBApiEntry = {
   id: string; game: GameId; name: string; country: string; city: string;
   timeMs: number; score?: number; moves?: number; diff?: string; date: number;
@@ -365,6 +366,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
     reaction:  `⚡ ${t.games.reaction}`,
     stack:     `🏗 ${t.games.stackGame}`,
     felixjump: `🏃 ${t.games.felixJump}`,
+    typing:    '⌨️ Typing Speed',
   };
 
   return (
@@ -402,6 +404,11 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
               <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
                 {game === 'stack' ? t.games.blocks : t.games.distance}
               </div>
+            </>
+          ) : game === 'typing' && score !== undefined ? (
+            <>
+              <div style={{ fontFamily: 'Poppins', fontSize: '60px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{score}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>WPM{diff ? ` · ${diff}` : ''}</div>
             </>
           ) : game === 'wordchain' && score !== undefined ? (
             <>
@@ -520,6 +527,8 @@ function wPlural(n: number, g: { wordsOne: string; wordsFew: string; wordsMany: 
 function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
   const { lang, t } = useLang();
   const [game,    setGame]    = useState<GameId>(initialGame);
+
+  useEffect(() => { setGame(initialGame); }, [initialGame]);
   const [period,  setPeriod]  = useState('all');
   const [country, setCountry] = useState('');
   const [city,    setCity]    = useState('');
@@ -559,6 +568,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     reaction:  `⚡ ${t.games.reaction}`,
     stack:     `🏗 ${t.games.stackGame}`,
     felixjump: `🏃 ${t.games.felixJump}`,
+    typing:    '⌨️ Typing',
   };
   const periodOpts = [
     { v: 'all',   label: t.games.allTime },
@@ -571,7 +581,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     <div style={{ marginTop: '14px' }}>
       {/* Game selector */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','stack','felixjump'] as GameId[]).map(g => (
+        {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','stack','felixjump','typing'] as GameId[]).map(g => (
           <button key={g} onClick={() => setGame(g)} style={{
             padding: '5px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '10px', fontWeight: '600', whiteSpace: 'nowrap',
@@ -661,6 +671,9 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               {(game === 'mathrush' || game === 'stack' || game === 'felixjump') && e.score !== undefined && (
                 <span style={{ fontSize: '13px', color: 'var(--purple3)', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score}</span>
               )}
+              {game === 'typing' && e.score !== undefined && (
+                <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score}wpm</span>
+              )}
               {(game === 'flagquiz' || game === 'wordchain') && e.score !== undefined && (
                 <span style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: '700', flexShrink: 0 }}>{e.score}b</span>
               )}
@@ -671,7 +684,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               {game === 'reaction' && (
                 <span style={{ fontFamily: 'monospace', fontSize: '12px', color: e.timeMs < 200 ? 'var(--green2)' : e.timeMs < 350 ? '#FFB300' : '#EF4444', flexShrink: 0 }}>{e.timeMs}ms</span>
               )}
-              {game !== 'reflex' && game !== 'reaction' && game !== 'stack' && game !== 'felixjump' && (
+              {game !== 'reflex' && game !== 'reaction' && game !== 'stack' && game !== 'felixjump' && game !== 'typing' && (
                 <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                   {fmtTimePrecise4(e.timeMs)}
                 </span>
@@ -2488,7 +2501,7 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
 
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
-type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump';
+type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
 type CategoryId = 'daily' | 'speed' | 'hb';
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string } | null;
 
@@ -2498,7 +2511,7 @@ interface CategoryDef {
 }
 
 const DAILY_TABS: TabId[] = ['memory', 'wordchain', 'flagquiz', 'sliding'];
-const SPEED_TABS: TabId[] = ['mathrush', 'reflex', 'reaction', 'stack', 'felixjump'];
+const SPEED_TABS: TabId[] = ['mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing'];
 
 function DGStyles() {
   return (
@@ -2577,7 +2590,7 @@ export default function DailyGames() {
       id: 'speed', icon: '⚡', name: 'Speed Games',
       desc: 'Test your reflexes & reaction',
       color: '#EA580C', glow: 'rgba(234,88,12,0.35)',
-      games: [t.games.mathrush, t.games.reflex, t.games.reaction, t.games.stackGame, t.games.felixJump],
+      games: [t.games.mathrush, t.games.reflex, t.games.reaction, t.games.stackGame, t.games.felixJump, 'TYPING SPEED'],
       firstTab: 'mathrush',
     },
     {
@@ -2590,40 +2603,35 @@ export default function DailyGames() {
   ];
 
   const allTabs: { id: TabId; label: string; emoji: string }[] = [
-    { id: 'memory',    label: t.games.memory,     emoji: '🃏' },
-    { id: 'wordchain', label: t.games.wordchain,   emoji: '📝' },
-    { id: 'flagquiz',  label: t.games.flagquiz,    emoji: '🌍' },
-    { id: 'sliding',   label: t.games.sliding,     emoji: '🧩' },
-    { id: 'mathrush',  label: t.games.mathrush,    emoji: '🔢' },
-    { id: 'reflex',    label: t.games.reflex,      emoji: '⏱' },
-    { id: 'reaction',  label: t.games.reaction,    emoji: '⚡' },
-    { id: 'stack',     label: t.games.stackGame,   emoji: '🏗' },
-    { id: 'felixjump', label: t.games.felixJump,   emoji: '🏃' },
+    { id: 'memory',    label: t.games.memory.toUpperCase(),     emoji: '🃏' },
+    { id: 'wordchain', label: t.games.wordchain.toUpperCase(),  emoji: '📝' },
+    { id: 'flagquiz',  label: t.games.flagquiz.toUpperCase(),   emoji: '🌍' },
+    { id: 'sliding',   label: t.games.sliding.toUpperCase(),    emoji: '🧩' },
+    { id: 'mathrush',  label: t.games.mathrush.toUpperCase(),   emoji: '🔢' },
+    { id: 'reflex',    label: t.games.reflex.toUpperCase(),     emoji: '⏱' },
+    { id: 'reaction',  label: t.games.reaction.toUpperCase(),   emoji: '⚡' },
+    { id: 'stack',     label: t.games.stackGame.toUpperCase(),  emoji: '🏗' },
+    { id: 'felixjump', label: t.games.felixJump.toUpperCase(),  emoji: '🏃' },
+    { id: 'typing',    label: 'TYPING SPEED',                   emoji: '⌨️' },
   ];
 
   const [category, setCategory] = useState<CategoryId | null>(null);
   const [tab,       setTab]      = useState<TabId>('memory');
   const [modal,     setModal]    = useState<ModalState>(null);
-  const [showLB,    setShowLB]   = useState(false);
-  const [lbGame,    setLbGame]   = useState<GameId>('memory');
   const [catHover,  setCatHover] = useState<CategoryId | null>(null);
 
   function selectCategory(cat: CategoryId) {
     setCategory(cat);
-    setShowLB(false);
     setModal(null);
-    if (cat === 'daily') { setTab('memory');    setLbGame('memory'); }
-    if (cat === 'speed') { setTab('mathrush');  setLbGame('mathrush'); }
+    if (cat === 'daily') setTab('memory');
+    if (cat === 'speed') setTab('mathrush');
   }
 
   function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string }) {
     setModal({ game, timeMs, ...extra });
   }
 
-  function handleShowLeaderboard() {
-    if (modal) setLbGame(modal.game);
-    setShowLB(true);
-  }
+  function handleShowLeaderboard() { /* leaderboard always visible */ }
 
   const catDef = category ? CATEGORIES.find(c => c.id === category)! : null;
   const activeTabs = category === 'daily' ? DAILY_TABS : SPEED_TABS;
@@ -2782,12 +2790,6 @@ export default function DailyGames() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0,
         }}>{catDef!.icon}</div>
         <span style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '800', color: catDef!.color, flex: 1 }}>{catDef!.name}</span>
-        <button onClick={() => { setShowLB(s => !s); if (!showLB) setLbGame(tab as GameId); }} style={{
-          background: showLB ? 'rgba(255,179,0,0.12)' : 'rgba(255,255,255,0.06)',
-          border: showLB ? '1px solid rgba(255,179,0,0.3)' : '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '9px', color: showLB ? '#FFB300' : 'var(--text3)',
-          fontSize: '12px', fontWeight: '600', padding: '6px 10px', cursor: 'pointer', flexShrink: 0,
-        }}>🏆 {t.games.leaderboard}</button>
       </div>
 
       {/* Tab bar */}
@@ -2816,8 +2818,15 @@ export default function DailyGames() {
       {tab === 'reaction'  && <ReactionClick onComplete={(ms)         => openModal('reaction',  ms)} />}
       {tab === 'stack'     && <StackGame     onComplete={(ms, sc)     => openModal('stack',     ms, { score: sc })} />}
       {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
+      {tab === 'typing'    && <TypingSpeedTest onComplete={(ms, sc, df) => openModal('typing',    ms, { score: sc, diff: df })} />}
 
-      {showLB && <GlobalLeaderboard initialGame={lbGame} />}
+      {/* Leaderboard — always visible below active game */}
+      <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ fontSize: '11px', color: 'var(--amber)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
+          🏆 {t.games.leaderboard}
+        </div>
+        <GlobalLeaderboard initialGame={tab as GameId} />
+      </div>
 
       {modal && (
         <LeaderboardModal

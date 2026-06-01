@@ -104,9 +104,18 @@ function getZodiac(month: number, day: number) {
   return ZODIAC[0];
 }
 
+const MONTH_NAMES = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+];
+
+const DAYS   = Array.from({ length: 31 }, (_, i) => i + 1);
+const YEARS  = Array.from({ length: 126 }, (_, i) => 2025 - i); // 2025..1900
+
 export default function AgeCalculator() {
-  const defaultBirth = '1990-01-01';
-  const [birthVal, setBirthVal] = useState(defaultBirth);
+  const [birthDay,   setBirthDay]   = useState(1);
+  const [birthMonth, setBirthMonth] = useState(1);   // 1 = January
+  const [birthYear,  setBirthYear]  = useState(2000);
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -114,21 +123,26 @@ export default function AgeCalculator() {
     return () => clearInterval(id);
   }, []);
 
-  const birth = new Date(birthVal);
-  const valid = !isNaN(birth.getTime()) && birth < now;
-  const age = valid ? calcAge(birth, now) : null;
-  const zodiac = valid ? getZodiac(birth.getMonth() + 1, birth.getDate()) : null;
+  const birth = new Date(birthYear, birthMonth - 1, birthDay);
+  // Guard against day overflow (e.g. Feb 30 rolls to Mar)
+  const valid = !isNaN(birth.getTime()) &&
+    birth < now &&
+    birth.getDate() === birthDay &&
+    birth.getMonth() === birthMonth - 1;
 
-  const inputStyle: React.CSSProperties = {
+  const age    = valid ? calcAge(birth, now) : null;
+  const zodiac = valid ? getZodiac(birthMonth, birthDay) : null;
+
+  const selectStyle: React.CSSProperties = {
     background: 'rgba(255,255,255,0.06)',
     border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '8px',
     color: '#fff',
-    padding: '6px 10px',
+    padding: '6px 8px',
     fontSize: '13px',
     outline: 'none',
-    colorScheme: 'dark',
-    width: '100%',
+    cursor: 'pointer',
+    flex: 1,
   };
 
   return (
@@ -143,16 +157,28 @@ export default function AgeCalculator() {
         🎂 Kalkulačka věku
       </h2>
 
-      {/* Birth date input */}
+      {/* Birth date — three selects */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>Datum narození</div>
-        <input
-          type="date"
-          value={birthVal}
-          max={toLocalDate(now)}
-          onChange={e => setBirthVal(e.target.value)}
-          style={inputStyle}
-        />
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>Datum narození</div>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          {/* Day */}
+          <select value={birthDay} onChange={e => setBirthDay(Number(e.target.value))} style={selectStyle}>
+            {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+          {/* Month */}
+          <select value={birthMonth} onChange={e => setBirthMonth(Number(e.target.value))} style={{ ...selectStyle, flex: 2 }}>
+            {MONTH_NAMES.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+          </select>
+          {/* Year */}
+          <select value={birthYear} onChange={e => setBirthYear(Number(e.target.value))} style={{ ...selectStyle, flex: 1.2 }}>
+            {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+        {birthDay > 28 && !valid && birth.getDate() !== birthDay && (
+          <div style={{ fontSize: '11px', color: 'var(--amber)', marginTop: '4px' }}>
+            ⚠️ {MONTH_NAMES[birthMonth - 1]} nemá {birthDay} dní
+          </div>
+        )}
       </div>
 
       {!valid && (

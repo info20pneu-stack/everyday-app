@@ -2,7 +2,7 @@ import { redis } from '../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 
-export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump'
+export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing'
   | 'hb_reaction' | 'hb_numbermem' | 'hb_visualmem' | 'hb_verbalmem' | 'hb_seqmem' | 'hb_aimtrainer' | 'hb_mentalmath';
 
 export interface LBEntry {
@@ -19,14 +19,14 @@ export interface LBEntry {
 }
 
 const VALID_GAMES: GameId[] = [
-  'sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump',
+  'sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing',
   'hb_reaction', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_aimtrainer', 'hb_mentalmath',
 ];
 const MAX_ENTRIES = 1000;
 
 // Score-based games rank by highest score then fastest time.
 // We encode as: (-score * 1e6 + timeMs) so ascending sort = best first.
-const SCORE_BASED: GameId[] = ['flagquiz', 'wordchain', 'mathrush', 'stack', 'felixjump', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_mentalmath'];
+const SCORE_BASED: GameId[] = ['flagquiz', 'wordchain', 'mathrush', 'stack', 'felixjump', 'typing', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_mentalmath'];
 
 function toSortScore(game: GameId, timeMs: number, score?: number): number {
   if (SCORE_BASED.includes(game)) return -(score ?? 0) * 1e6 + timeMs;

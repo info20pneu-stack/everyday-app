@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 
 const NAV_ITEMS = [
@@ -14,9 +14,29 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const { t } = useLang();
   const [active, setActive] = useState<string>('home');
+  const touchStartX = useRef(0);
+
+  const NAV_IDS = NAV_ITEMS.map(i => i.id);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(delta) < 50) return;
+    const curr = NAV_IDS.findIndex(id => id === active);
+    if (delta < 0 && curr < NAV_IDS.length - 1) setActive(NAV_IDS[curr + 1]);
+    else if (delta > 0 && curr > 0) setActive(NAV_IDS[curr - 1]);
+  }
 
   return (
-    <nav className="bottom-nav" aria-label="Mobile navigation">
+    <nav
+      className="bottom-nav"
+      aria-label="Mobile navigation"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {NAV_ITEMS.map(item => {
         const isActive = active === item.id;
         return (
