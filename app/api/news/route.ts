@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const SOURCES: Record<string, string> = {
   bbc:        'https://feeds.bbci.co.uk/news/world/rss.xml',
-  cnn:        'https://rss.cnn.com/rss/edition.rss',
-  reuters:    'https://feeds.reuters.com/reuters/topNews',
-  ct24:       'https://ct24.ceskatelevize.cz/rss/hlavni-zpravy-ct24.php',
+  guardian:   'https://www.theguardian.com/world/rss',
+  nytimes:    'https://rss.nytimes.com/services/xml/rss/nyt/World.xml',
+  idnes:      'https://servis.idnes.cz/rss.aspx?c=zpravodaj',
   tagesschau: 'https://www.tagesschau.de/xml/rss2/',
 };
 

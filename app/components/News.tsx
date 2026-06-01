@@ -6,11 +6,11 @@ import { useState, useEffect, useCallback } from 'react';
 type Source = { id: string; name: string; flag: string; url: string; lang: string };
 
 const SOURCES: Source[] = [
-  { id: 'bbc',        name: 'BBC News',   flag: '🇬🇧', lang: 'en', url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
-  { id: 'cnn',        name: 'CNN',        flag: '🇺🇸', lang: 'en', url: 'https://rss.cnn.com/rss/edition.rss' },
-  { id: 'reuters',    name: 'Reuters',    flag: '🌐', lang: 'en', url: 'https://feeds.reuters.com/reuters/topNews' },
-  { id: 'ct24',       name: 'ČT24',       flag: '🇨🇿', lang: 'cs', url: 'https://ct24.ceskatelevize.cz/rss/hlavni-zpravy-ct24.php' },
-  { id: 'tagesschau', name: 'Tagesschau', flag: '🇩🇪', lang: 'de', url: 'https://www.tagesschau.de/xml/rss2/' },
+  { id: 'bbc',        name: 'BBC News',     flag: '🇬🇧', lang: 'en', url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+  { id: 'guardian',   name: 'The Guardian', flag: '🌐',  lang: 'en', url: 'https://www.theguardian.com/world/rss' },
+  { id: 'nytimes',    name: 'NY Times',     flag: '🇺🇸', lang: 'en', url: 'https://rss.nytimes.com/services/xml/rss/nyt/World.xml' },
+  { id: 'idnes',      name: 'iDnes',        flag: '🇨🇿', lang: 'cs', url: 'https://servis.idnes.cz/rss.aspx?c=zpravodaj' },
+  { id: 'tagesschau', name: 'Tagesschau',   flag: '🇩🇪', lang: 'de', url: 'https://www.tagesschau.de/xml/rss2/' },
 ];
 
 
