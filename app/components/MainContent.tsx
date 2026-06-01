@@ -19,6 +19,7 @@ import DailyGames from './DailyGames';
 import HumanBenchmark from './HumanBenchmark';
 import Markets from './Markets';
 import News from './News';
+import CelebrityBirthdays from './CelebrityBirthdays';
 import IPAddress from './IPAddress';
 import SpeedTest from './SpeedTest';
 import PasswordGenerator from './PasswordGenerator';
@@ -75,6 +76,7 @@ function MainContent() {
 
       {/* Row 7 */}
       <LazyWidget height={520}><News /></LazyWidget>
+      <LazyWidget height={480}><CelebrityBirthdays /></LazyWidget>
     </div>
   );
 }

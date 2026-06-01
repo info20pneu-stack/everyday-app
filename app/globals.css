@@ -346,6 +346,74 @@ a:focus-visible {
 }
 
 /* ─────────────────────────────────────────
+   Themes — Light, Windows XP, 98, 7
+───────────────────────────────────────── */
+
+[data-theme="light"] {
+  --bg1: #f0f2f5;
+  --bg2: #ffffff;
+  --bg3: #e8eaed;
+  --sidebar: #f8f9fa;
+  --text1: #111827;
+  --text2: #374151;
+  --text3: #6b7280;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.06);
+  --card-shadow-hover: 0 8px 32px rgba(93,76,255,0.18), 0 0 0 1px rgba(93,76,255,0.14);
+}
+[data-theme="light"] body { background: var(--bg1); color: var(--text1); }
+
+[data-theme="xp"] {
+  --bg1: #3a6ea5;
+  --bg2: #ece9d8;
+  --bg3: #d4d0c8;
+  --sidebar: #d4d0c8;
+  --purple: #0a246a;
+  --purple2: #1e45a8;
+  --purple3: #4a7fc1;
+  --text1: #000000;
+  --text2: #333333;
+  --text3: #666666;
+  --card-radius: 4px;
+  --card-shadow: 2px 2px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.8);
+  --card-shadow-hover: 3px 3px 0 rgba(0,0,0,0.4);
+}
+[data-theme="xp"] body { background: var(--bg1); font-family: Tahoma, Arial, sans-serif !important; color: var(--text1); }
+[data-theme="xp"] h1, [data-theme="xp"] h2, [data-theme="xp"] h3 { font-family: Tahoma, Arial, sans-serif !important; }
+
+[data-theme="win98"] {
+  --bg1: #008080;
+  --bg2: #c0c0c0;
+  --bg3: #d4d0c8;
+  --sidebar: #c0c0c0;
+  --purple: #000080;
+  --purple2: #0000aa;
+  --purple3: #3366cc;
+  --text1: #000000;
+  --text2: #222222;
+  --text3: #555555;
+  --card-radius: 2px;
+  --card-shadow: 2px 2px 0 #000, inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+  --card-shadow-hover: 2px 2px 0 #000, inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+[data-theme="win98"] body { background: var(--bg1); font-family: 'MS Sans Serif', Tahoma, Arial, sans-serif !important; color: var(--text1); }
+[data-theme="win98"] h1, [data-theme="win98"] h2, [data-theme="win98"] h3 { font-family: Tahoma, Arial, sans-serif !important; }
+
+[data-theme="win7"] {
+  --bg1: #08090f;
+  --bg2: rgba(20,30,60,0.85);
+  --bg3: rgba(30,40,80,0.7);
+  --sidebar: rgba(15,20,40,0.9);
+  --purple: #1B6BF5;
+  --purple2: #4a9bff;
+  --purple3: #7ab8ff;
+  --card-radius: 8px;
+  --card-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.08);
+  --card-shadow-hover: 0 8px 32px rgba(27,107,245,0.25), 0 0 0 1px rgba(27,107,245,0.2);
+}
+[data-theme="win7"] body { background: var(--bg1); font-family: 'Segoe UI', system-ui, sans-serif !important; }
+[data-theme="win7"] h1, [data-theme="win7"] h2, [data-theme="win7"] h3 { font-family: 'Segoe UI', system-ui, sans-serif !important; }
+
+/* ─────────────────────────────────────────
    Utility
 ───────────────────────────────────────── */
 .hide-on-mobile {

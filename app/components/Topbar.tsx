@@ -3,11 +3,23 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import { LANGUAGES } from '../../lib/i18n';
+import { useTheme, type AppTheme } from '../../lib/ThemeContext';
+
+const THEMES: { id: AppTheme; label: string; icon: string }[] = [
+  { id: 'dark',  label: 'Dark',      icon: '🌙' },
+  { id: 'light', label: 'Light',     icon: '☀️' },
+  { id: 'xp',    label: 'Windows XP', icon: '🪟' },
+  { id: 'win98', label: 'Win 98',    icon: '💾' },
+  { id: 'win7',  label: 'Windows 7', icon: '🔷' },
+];
 
 export default function Topbar() {
   const { lang, setLang, t, rtl } = useLang();
+  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
+  const themeRef = useRef<HTMLDivElement>(null);
 
   const current = LANGUAGES.find(l => l.code === lang)!;
 
@@ -22,13 +34,14 @@ export default function Topbar() {
 
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setOpen(false);
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) setThemeOpen(false);
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  const currentTheme = THEMES.find(th => th.id === theme) ?? THEMES[0];
 
   return (
     <header style={{
@@ -197,24 +210,45 @@ export default function Topbar() {
           )}
         </div>
 
-        {/* Theme toggle */}
-        <div style={{
-          width: '32px', height: '32px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', fontSize: '14px',
-          transition: 'background 0.15s, border-color 0.15s, transform 0.2s',
-        }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.08)';
-          (e.currentTarget as HTMLDivElement).style.transform = 'scale(1.08)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)';
-          (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-        }}
-        >☀️</div>
+        {/* Theme selector */}
+        <div ref={themeRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setThemeOpen(o => !o)}
+            title="Change theme"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              background: themeOpen ? 'rgba(93,76,255,0.18)' : 'rgba(255,255,255,0.04)',
+              border: themeOpen ? '1px solid rgba(93,76,255,0.4)' : '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '8px', color: '#fff', padding: '4px 8px',
+              fontSize: '14px', cursor: 'pointer', height: '32px',
+            }}
+          >
+            <span>{currentTheme.icon}</span>
+          </button>
+          {themeOpen && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)',
+              right: rtl ? undefined : 0, left: rtl ? 0 : undefined,
+              background: '#0f1428', border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: '12px', padding: '6px', zIndex: 200,
+              width: '150px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              display: 'flex', flexDirection: 'column', gap: '2px',
+            }}>
+              {THEMES.map(th => (
+                <button key={th.id} onClick={() => { setTheme(th.id); setThemeOpen(false); }} style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  background: theme === th.id ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'transparent',
+                  border: 'none', borderRadius: '8px',
+                  color: theme === th.id ? '#fff' : 'var(--text2)',
+                  padding: '7px 10px', fontSize: '12px', cursor: 'pointer', textAlign: 'left', width: '100%',
+                }}>
+                  <span style={{ fontSize: '14px' }}>{th.icon}</span>
+                  <span>{th.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Avatar */}
         <div style={{

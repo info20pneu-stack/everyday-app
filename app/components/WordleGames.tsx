@@ -2,227 +2,373 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-const WORDS_BY_LANG: Record<string, string[]> = {
-  en: ['APPLE','BRAIN','CHAIR','DANCE','EAGLE','FLAME','GRACE','HAPPY','INPUT','JUICE','KNIFE','LEMON','MAGIC','NIGHT','OCEAN','PIANO','QUEEN','RIVER','SMILE','TIGER','ULTRA','VOICE','WATER','XENON','YOUTH','ZEBRA','BREAD','CLOUD','DREAM','EARTH','FROST','GIANT','HONEY','IMAGE','JEWEL','KINGS','LIGHT','MOUSE','NOVEL','OLIVE','PLANT','QUEST','RADIO','SNAKE','TRAIN','UPSET','VITAL','WHEAT','EXTRA','YOUNG'],
-  de: ['APFEL','BRAND','STUHL','TANZE','ADLER','FLACH','GNADE','HAPPY','INPUT','SAFT','MESSER','ZITRO','MAGIE','NACHT','OZEAN','KLAVI','QUEEN','FLUSS','SMILE','TIGER','ULTRA','STIMM','WASSE','XENON','JUGND','ZEBRA','BROOT','WOLKE','TRAUM','EERDE','FROST','RIESE','HONIG','IMAGE','JUWEL','KINGS','LICHT','MAUSE','ROMAN','OLIVE','PLANT','QUEST','RADIO','SCHLA','ZUGNG','UPSET','VITAL','WEIZE','EXTRA','YOUNG'],
-  cs: ['JABLO','MOZEK','ZIDLE','TANEC','OREL','PLAMEN','MILOST','STAST','VSTUP','STAVA','NUZ','CITRON','MAGIE','NOC','OCEAN','PIANO','QUEEN','REKA','USMEV','TYGR','ULTRA','HLAS','VODA','XENON','MLADEZ','ZEBRA','CHLEB','OBLAK','SEN','ZEME','MRAZ','OBOR','MED','OBRAZ','KLENOT','KINGS','SVETLO','MYS','ROMAN','OLIVA','ROSTL','QUEST','RADIO','HAD','VLAK','UPSET','VITAL','PSENICE','EXTRA','YOUNG'],
-  fr: ['POMME','CERVE','CHAIS','DANSE','AIGLE','FLAME','GRACE','BONHE','INPUT','JUICE','COUTR','CITRO','MAGIE','NUITE','OCEAN','PIANO','QUEEN','RIVIÈ','SOURIR','TIGRE','ULTRA','VOIX','WATER','XENON','YOUTH','ZEBRE','BREAD','NUAGE','DREAM','TERRE','FROST','GIANT','MIEL','IMAGE','BIJOU','KINGS','LUMIÈ','SOURIS','ROMAN','OLIVE','PLANT','QUEST','RADIO','SERPE','TRAIN','UPSET','VITAL','WHEAT','EXTRA','YOUNG'],
-  es: ['MANZA','CEREBR','SILLA','BAILE','AGUIL','LLAMA','GRACI','FELIZ','INPUT','JUICE','CUCHI','LIMON','MAGIA','NOCHE','OCEAN','PIANO','QUEEN','RIO','SONRI','TIGRE','ULTRA','VOICE','AGUA','XENON','YOUTH','ZEBRA','BREAD','NUBE','DREAM','TIERRA','FROST','GIANT','MIEL','IMAGE','JOYA','KINGS','LUZ','RATON','NOVEL','OLIVA','PLANT','QUEST','RADIO','VIBOR','TRAIN','UPSET','VITAL','TRIGO','EXTRA','YOUNG'],
+/* ── Word lists per category (5-letter, uppercase) ── */
+const WORDS: Record<string, string[]> = {
+  classic: ['WORLD','CRANE','FLAME','GHOST','PLANT','LIGHT','BRAIN','WATER','STONE','BREAK','CLOUD','DANCE','EARTH','FROST','GRANT','HOUSE','KNIFE','LEMON','MAGIC','NIGHT','OCEAN','PEACE','QUEEN','RIVER','SHELF','TIGER','VAULT','WITCH','YOUTH','ANGEL','BLADE','CHESS','DRIFT','EAGLE','FAITH','GLOVE','HEART','JUICE','KARMA','LASER','MAPLE','NURSE','OZONE','PIXEL','QUEST','SMOKE','TRAIN','UMBRA','VERSE','WATCH'],
+  football:['BENCH','BLOCK','COACH','CROSS','DERBY','DRAFT','EXTRA','FIELD','FINAL','FLANK','GUARD','GOALS','MATCH','PITCH','SQUAD','SCORE','SHOOT','SKILL','SPORT','STEAL','TITLE','TOUCH','TRIAL','VILLA','YOUTH','TEAMS','FIRST','PRESS','CURVE','DRIVE','FLAGS','LIMIT','MOVES','RIVAL','SHOTS','TIMER','WINGS','ZONES','ARENA','CHAMP','CLUBS','FOULS','LINES','THIRD','SWEEP','SUPER','ULTRA','BREAK','AWARD','FINAL'],
+  hockey:  ['BLADE','BLOCK','CHECK','DRAFT','GOALS','GLIDE','GUARD','KINGS','MAPLE','PUCKS','SCORE','SAVES','SHOTS','SKATE','STICK','TEAMS','TITLE','WINGS','CLEAN','FIRST','SHIFT','POINT','POWER','ZONES','CROWD','RINKS','BENCH','CYCLE','ICING','LINES','MASKS','PATCH','RINGS','SLAPS','TRADE','NORTH','FINAL','RAPID','SWIPE','HOLDS','FINES','BLAZE','CREST','FORCE','GRIND','HURLS','JUMPS','KICKS','LEAPS','MOVES'],
+  car:     ['BRAKE','CABIN','CARGO','CHOKE','COUPE','CRASH','CURVE','DRIVE','DRIFT','ELITE','EXTRA','FIRST','FLARE','FORCE','GAUGE','GLIDE','GRAND','GUARD','HATCH','LIGHT','MOTOR','NITRO','PEDAL','PILOT','POWER','QUICK','RADAR','RALLY','RAPID','RACER','ROADS','SEDAN','SHIFT','SPORT','SPEED','STEER','TESLA','TITAN','TURBO','ULTRA','VALVE','VROOM','WHEEL','WIPER','WRECK','CIVIC','TRACK','GRILL','TORQS','LANES'],
+  crypto:  ['BLOCK','CHAIN','COINS','ETHER','FUNDS','HALVE','LEDGE','LIMIT','LINKS','MINER','MINTS','NODES','NONCE','PRICE','PROOF','RELAY','SHARD','SMART','STAKE','STORE','TOKEN','TRADE','TRUST','VAULT','VALID','WAVES','YIELD','BEARS','BULLS','DEBIT','FORGE','GRANT','HEDGE','PROXY','RALLY','RATES','REALM','RISKS','SEEDS','SPENT','SWEEP','TALLY','TESTS','USAGE','VALUE','WORTH','GAINS','FLOAT','BONDS','ASSET'],
+  animal:  ['BEARS','BISON','COBRA','CRANE','DINGO','EAGLE','EGRET','ELAND','FINCH','GECKO','GOOSE','HERON','HORSE','HYENA','KOALA','LEMUR','LLAMA','MACAW','MOOSE','MOUSE','OKAPI','OTTER','PANDA','QUAIL','RAVEN','ROBIN','SABLE','SHARK','SHEEP','SKUNK','SLOTH','SNAIL','SNAKE','STORK','TAPIR','TIGER','VIPER','WHALE','ZEBRA','BREAM','GUPPY','HIPPO','KRILL','NEWTS','QUOLL','WOMBAT','PLOVER','STOAT','VOLES','MOLES'],
+  plant:   ['ALDER','ALGAE','APPLE','ASPEN','ASTER','BASIL','BEECH','BIRCH','CACAO','CANNA','CEDAR','CHIVE','CLOVE','DAISY','ELDER','FERNS','HOLLY','LILAC','LOTUS','MAPLE','MYRRH','PANSY','PEACH','PEONY','POPPY','REEDS','SEDGE','SEEDS','SHRUB','SPORE','STALK','SUMAC','THYME','TULIP','VINES','VIOLA','WHEAT','YUCCA','AGAVE','BRIAR','CRESS','EMMER','ERGOT','GORSE','HEATH','OCHNA','ROOTS','SORREL','ENDIVE','FROND'],
+  city:    ['TOKYO','PARIS','CAIRO','DELHI','DUBAI','SEOUL','SOFIA','TUNIS','OSAKA','HANOI','KABUL','KYOTO','LAGOS','DAKAR','QUITO','MIAMI','MINSK','AMMAN','ASWAN','BASEL','BREST','CUSCO','DAVOS','DOVER','ESSEN','GENOA','KAZAN','KONYA','LHASA','LIEGE','MACAU','MALMO','PATAN','RONDA','SIENA','SPLIT','TARTU','TOURS','VADUZ','WUHAN','YALTA','BERNE','ACCRA','GHENT','NATAL','EVIAN','TROMS','ZARIA','NICEA','DERRY'],
 };
 
-const KEYBOARD_ROWS = [
-  ['Q','W','E','R','T','Y','U','I','O','P'],
-  ['A','S','D','F','G','H','J','K','L'],
-  ['ENTER','Z','X','C','V','B','N','M','⌫'],
+const MODES = [
+  { id: 'classic',  label: 'Classic',   emoji: '🔤', color: '#538d4e', desc: 'Common 5-letter words' },
+  { id: 'football', label: 'Football',  emoji: '⚽', color: '#2d6a4f', desc: 'Football terms & clubs' },
+  { id: 'hockey',   label: 'Hockey',    emoji: '🏒', color: '#1d3557', desc: 'Ice hockey vocabulary' },
+  { id: 'car',      label: 'Car',       emoji: '🚗', color: '#c1121f', desc: 'Automotive world' },
+  { id: 'crypto',   label: 'Crypto',    emoji: '₿',  color: '#d97706', desc: 'Blockchain & finance' },
+  { id: 'animal',   label: 'Animal',    emoji: '🦁', color: '#92400e', desc: 'Animals & wildlife' },
+  { id: 'plant',    label: 'Plant',     emoji: '🌿', color: '#166534', desc: 'Flora & botany' },
+  { id: 'city',     label: 'City',      emoji: '🌆', color: '#1e40af', desc: 'Cities of the world' },
 ];
 
-const WORD_LENGTH = 5;
-const MAX_GUESSES = 6;
+type TileState = 'correct' | 'present' | 'absent' | 'empty' | 'typed';
 
-function getDailyWord(lang: string): string {
-  const words = WORDS_BY_LANG[lang] || WORDS_BY_LANG['en'];
-  const start = new Date('2024-01-01');
-  const today = new Date();
-  const diff = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  return words[diff % words.length];
+function dateSeed(): number {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
-type LetterState = 'correct' | 'present' | 'absent' | 'empty' | 'typing';
+function getTarget(modeId: string): string {
+  const list = WORDS[modeId] ?? WORDS.classic;
+  return list[dateSeed() % list.length];
+}
 
-function evaluateGuess(guess: string, target: string): LetterState[] {
-  const result: LetterState[] = Array(WORD_LENGTH).fill('absent');
-  const targetArr = target.split('');
-  const guessArr = guess.split('');
-  const used = Array(WORD_LENGTH).fill(false);
-  for (let i = 0; i < WORD_LENGTH; i++) {
-    if (guessArr[i] === targetArr[i]) {
-      result[i] = 'correct';
-      used[i] = true;
-    }
+function evaluate(guess: string, target: string): TileState[] {
+  const result: TileState[] = Array(5).fill('absent');
+  const remaining = target.split('');
+  for (let i = 0; i < 5; i++) {
+    if (guess[i] === target[i]) { result[i] = 'correct'; remaining[i] = ''; }
   }
-  for (let i = 0; i < WORD_LENGTH; i++) {
-    if (result[i] === 'correct') continue;
-    for (let j = 0; j < WORD_LENGTH; j++) {
-      if (!used[j] && guessArr[i] === targetArr[j]) {
-        result[i] = 'present';
-        used[j] = true;
-        break;
-      }
+  for (let i = 0; i < 5; i++) {
+    if (result[i] === 'absent') {
+      const j = remaining.indexOf(guess[i]);
+      if (j !== -1) { result[i] = 'present'; remaining[j] = ''; }
     }
   }
   return result;
 }
 
-const COLORS: Record<LetterState, string> = {
-  correct: '#22C55E',
-  present: '#FFB300',
-  absent: '#3F3F46',
-  empty: 'transparent',
-  typing: 'transparent',
-};
+function tileBg(state: TileState, modeColor: string): string {
+  if (state === 'correct') return modeColor;
+  if (state === 'present') return '#b59f3b';
+  if (state === 'absent')  return '#3a3a3c';
+  return 'transparent';
+}
 
-export default function WordleGames() {
-  const [lang] = useState('en');
-  const [target] = useState(() => getDailyWord('en'));
-  const [guesses, setGuesses] = useState<string[]>([]);
-  const [current, setCurrent] = useState('');
-  const [gameOver, setGameOver] = useState(false);
-  const [won, setWon] = useState(false);
-  const [shake, setShake] = useState(false);
-  const [revealed, setRevealed] = useState<number[]>([]);
-  const [letterStates, setLetterStates] = useState<Record<string, LetterState>>({});
-  const [message, setMessage] = useState('');
+function tileBorder(state: TileState, modeColor: string): string {
+  if (state === 'correct' || state === 'present' || state === 'absent') return 'none';
+  if (state === 'typed') return '2px solid rgba(255,255,255,0.5)';
+  return '2px solid rgba(255,255,255,0.12)';
+}
 
-  const showMessage = (msg: string) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(''), 2000);
-  };
+const KB_ROWS = [
+  ['Q','W','E','R','T','Y','U','I','O','P'],
+  ['A','S','D','F','G','H','J','K','L'],
+  ['ENTER','Z','X','C','V','B','N','M','⌫'],
+];
 
-  const submitGuess = useCallback(() => {
-    if (current.length !== WORD_LENGTH) {
-      setShake(true);
-      setTimeout(() => setShake(false), 500);
-      showMessage('Word must be 5 letters!');
-      return;
-    }
-    const newGuesses = [...guesses, current];
-    const eval_ = evaluateGuess(current, target);
-    const newLetterStates = { ...letterStates };
-    current.split('').forEach((letter, i) => {
-      const prev = newLetterStates[letter];
-      if (prev !== 'correct') newLetterStates[letter] = eval_[i];
-    });
-    setLetterStates(newLetterStates);
-    setGuesses(newGuesses);
-    setRevealed(prev => [...prev, newGuesses.length - 1]);
-    setCurrent('');
-    if (current === target) {
-      setWon(true);
-      setGameOver(true);
-      showMessage('🎉 Brilliant!');
-    } else if (newGuesses.length >= MAX_GUESSES) {
-      setGameOver(true);
-      showMessage(`The word was ${target}`);
-    }
-  }, [current, guesses, target, letterStates]);
+/* ── Confetti ── */
+const CONFETTI_COLORS = ['#22c55e','#3b82f6','#f59e0b','#ef4444','#a78bfa','#ec4899'];
+function Confetti() {
+  const pieces = Array.from({ length: 24 }, (_, i) => ({
+    x: 5 + (i % 12) * 8,
+    delay: (i % 6) * 120,
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+    size: i % 3 === 0 ? 10 : 7,
+    round: i % 2 === 0,
+  }));
+  return (
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 0, pointerEvents: 'none', overflow: 'visible', zIndex: 10 }}>
+      {pieces.map((p, i) => (
+        <div key={i} style={{
+          position: 'absolute', top: 0, left: `${p.x}%`,
+          width: p.size, height: p.size,
+          borderRadius: p.round ? '50%' : '2px',
+          background: p.color,
+          animation: `wCf 1.4s ease-in ${p.delay}ms both`,
+        }} />
+      ))}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (gameOver) return;
-      const key = e.key.toUpperCase();
-      if (key === 'ENTER') { submitGuess(); return; }
-      if (key === 'BACKSPACE') { setCurrent(p => p.slice(0, -1)); return; }
-      if (/^[A-Z]$/.test(key) && current.length < WORD_LENGTH) {
-        setCurrent(p => p + key);
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [gameOver, current, submitGuess]);
+/* ── Game component ── */
+function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) {
+  const mode = MODES.find(m => m.id === modeId)!;
+  const target = getTarget(modeId);
+  const MAX = 6;
+  const lsKey = `wordle_v2_${modeId}`;
 
-  const handleVirtualKey = (key: string) => {
-    if (gameOver) return;
-    if (key === 'ENTER') { submitGuess(); return; }
-    if (key === '⌫') { setCurrent(p => p.slice(0, -1)); return; }
-    if (current.length < WORD_LENGTH) setCurrent(p => p + key);
-  };
-
-  const shareResult = () => {
-    const emoji = guesses.map(g => evaluateGuess(g, target).map(s =>
-      s === 'correct' ? '🟩' : s === 'present' ? '🟨' : '⬜'
-    ).join('')).join('\n');
-    navigator.clipboard.writeText(`EVERY DAY Wordle\n${emoji}\neveryday1234567.com`);
-    showMessage('Copied to clipboard!');
-  };
-
-  const rows = Array(MAX_GUESSES).fill(null).map((_, ri) => {
-    const guess = guesses[ri] || '';
-    const isCurrent = ri === guesses.length;
-    const word = isCurrent ? current : guess;
-    const eval_ = ri < guesses.length ? evaluateGuess(guess, target) : null;
-    return { word, eval_, isCurrent, isRevealed: revealed.includes(ri) };
+  const [guesses,   setGuesses]   = useState<string[]>([]);
+  const [evals,     setEvals]     = useState<TileState[][]>([]);
+  const [current,   setCurrent]   = useState('');
+  const [revealed,  setRevealed]  = useState<Set<string>>(new Set()); // "row-col"
+  const [animating, setAnimating] = useState(false);
+  const [phase,     setPhase]     = useState<'playing'|'won'|'lost'>('playing');
+  const [shake,     setShake]     = useState(false);
+  const [message,   setMessage]   = useState('');
+  const [copied,    setCopied]    = useState(false);
+  const [streak,    setStreak]    = useState<{ cur: number; best: number; lastDate: number }>(() => {
+    try { return JSON.parse(localStorage.getItem(lsKey) || '{"cur":0,"best":0,"lastDate":0}'); } catch { return { cur: 0, best: 0, lastDate: 0 }; }
   });
 
+  // Key colors derived from completed rows
+  const keyColors: Record<string, TileState> = {};
+  evals.forEach((row, ri) => {
+    row.forEach((s, ci) => {
+      const k = guesses[ri]?.[ci];
+      if (!k) return;
+      const prev = keyColors[k];
+      if (!prev || (s === 'correct') || (s === 'present' && prev === 'absent')) keyColors[k] = s;
+    });
+  });
+
+  function showMsg(msg: string, ms = 2000) {
+    setMessage(msg);
+    setTimeout(() => setMessage(''), ms);
+  }
+
+  const submit = useCallback(() => {
+    if (animating || phase !== 'playing') return;
+    if (current.length < 5) {
+      setShake(true); setTimeout(() => setShake(false), 500);
+      showMsg('Not enough letters'); return;
+    }
+    const guess = current.toUpperCase();
+    const ev = evaluate(guess, target);
+    const rowIdx = guesses.length;
+    setGuesses(g => [...g, guess]);
+    setEvals(e => [...e, ev]);
+    setCurrent('');
+    setAnimating(true);
+
+    // Reveal tiles one by one
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        setRevealed(r => new Set([...r, `${rowIdx}-${i}`]));
+      }, i * 300 + 250);
+    }
+
+    setTimeout(() => {
+      setAnimating(false);
+      if (ev.every(s => s === 'correct')) {
+        setPhase('won');
+        const msgs = ['🧠 Genius!','✨ Magnificent!','🌟 Impressive!','🎉 Splendid!','👏 Great!','😅 Phew!'];
+        showMsg(msgs[rowIdx] ?? '🎉', 3000);
+        const today = dateSeed();
+        const newCur = streak.lastDate === today - 1 ? streak.cur + 1 : 1;
+        const s = { cur: newCur, best: Math.max(streak.best, newCur), lastDate: today };
+        setStreak(s);
+        try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
+      } else if (rowIdx + 1 >= MAX) {
+        setPhase('lost');
+        showMsg(target, 5000);
+        const s = { ...streak, cur: 0 };
+        setStreak(s);
+        try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
+      }
+    }, 5 * 300 + 400);
+  }, [animating, current, guesses, target, phase, streak, lsKey]);
+
+  const handleKey = useCallback((k: string) => {
+    if (phase !== 'playing' || animating) return;
+    if (k === '⌫' || k === 'BACKSPACE') { setCurrent(c => c.slice(0, -1)); return; }
+    if (k === 'ENTER') { submit(); return; }
+    if (/^[A-Z]$/.test(k) && current.length < 5) setCurrent(c => c + k);
+  }, [phase, animating, current, submit]);
+
+  useEffect(() => {
+    const fn = (e: KeyboardEvent) => handleKey(e.key.toUpperCase());
+    window.addEventListener('keydown', fn);
+    return () => window.removeEventListener('keydown', fn);
+  }, [handleKey]);
+
+  function buildGrid(): string {
+    return evals.map(row =>
+      row.map(s => s === 'correct' ? '🟩' : s === 'present' ? '🟨' : '⬛').join('')
+    ).join('\n');
+  }
+
+  async function share() {
+    const text = `${mode.emoji} EVERY DAY Wordle – ${mode.label}\n${evals.length}/${MAX}\n\n${buildGrid()}\neveryday1234567.com`;
+    try { await navigator.clipboard.writeText(text); } catch {}
+    setCopied(true); setTimeout(() => setCopied(false), 2200);
+  }
+
   return (
-    <div style={{ background: 'rgba(15,20,40,0.92)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '1.5rem', boxShadow: '0 0 30px rgba(93,76,255,0.10)', maxWidth: '500px', margin: '0 auto' }}>
-      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontFamily: 'Poppins', fontSize: '22px', color: '#fff', letterSpacing: '3px' }}>WORDLE</h2>
-        <p style={{ fontSize: '12px', color: '#71717A' }}>Guess the 5-letter word in 6 tries</p>
+    <div>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+        <button onClick={onBack} style={{
+          background: `${mode.color}22`, border: `1px solid ${mode.color}55`,
+          borderRadius: '8px', color: mode.color, fontSize: '12px', fontWeight: '600',
+          padding: '5px 11px', cursor: 'pointer',
+        }}>‹ Back</button>
+        <span style={{ fontSize: '18px' }}>{mode.emoji}</span>
+        <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#fff', flex: 1 }}>
+          {mode.label} Wordle
+        </span>
+        <div style={{ display: 'flex', gap: '8px', fontSize: '11px' }}>
+          <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px 7px', color: '#FFB300' }}>🔥 {streak.cur}</span>
+          <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px 7px', color: 'var(--text3)' }}>🏆 {streak.best}</span>
+        </div>
       </div>
 
+      {/* Toast */}
       {message && (
-        <div style={{ background: '#fff', color: '#000', borderRadius: '8px', padding: '8px 16px', textAlign: 'center', fontSize: '13px', fontWeight: '500', marginBottom: '1rem' }}>
-          {message}
-        </div>
+        <div style={{
+          textAlign: 'center', marginBottom: '8px',
+          background: 'rgba(255,255,255,0.92)', color: '#111',
+          borderRadius: '8px', padding: '7px 16px',
+          fontWeight: '700', fontSize: '13px',
+          animation: 'wToast 0.18s ease',
+        }}>{message}</div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '1.5rem', alignItems: 'center' }}>
-        {rows.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: '6px', animation: row.isCurrent && shake ? 'shake 0.5s' : undefined }}>
-            {Array(WORD_LENGTH).fill(null).map((_, ci) => {
-              const letter = row.word[ci] || '';
-              const state: LetterState = row.eval_ ? row.eval_[ci] : (letter ? 'typing' : 'empty');
-              return (
-                <div key={ci} style={{
-                  width: '52px', height: '52px',
-                  border: `2px solid ${state === 'empty' ? '#3F3F46' : state === 'typing' ? '#A1A1AA' : COLORS[state]}`,
-                  borderRadius: '4px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '20px', fontWeight: '700', color: '#fff',
-                  background: state === 'empty' || state === 'typing' ? 'transparent' : COLORS[state],
-                  transition: 'all 0.3s',
-                  fontFamily: 'Poppins',
-                }}>
-                  {letter}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+      {/* Grid */}
+      <div style={{ position: 'relative' }}>
+        {phase === 'won' && <Confetti />}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '14px' }}>
+          {Array.from({ length: MAX }, (_, row) => {
+            const isCur = row === guesses.length && phase === 'playing';
+            const letters = row < guesses.length
+              ? guesses[row].split('')
+              : isCur
+                ? [...current.split(''), ...Array(5 - current.length).fill('')]
+                : Array(5).fill('');
+
+            return (
+              <div key={row} style={{
+                display: 'flex', gap: '5px',
+                animation: isCur && shake ? 'wShake 0.4s ease' : 'none',
+              }}>
+                {letters.map((ch, col) => {
+                  const isRev = revealed.has(`${row}-${col}`);
+                  const evalState: TileState | undefined = (row < guesses.length && isRev) ? evals[row]?.[col] : undefined;
+                  const state: TileState = evalState ?? (ch ? (row < guesses.length ? 'absent' : 'typed') : 'empty');
+                  const isFlipping = row < guesses.length && !isRev;
+
+                  return (
+                    <div key={col} style={{
+                      width: '52px', height: '52px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontFamily: 'Poppins', fontSize: '22px', fontWeight: '800', color: '#fff',
+                      background: tileBg(evalState ?? (state), mode.color),
+                      border: tileBorder(state, mode.color),
+                      borderRadius: '6px',
+                      animation: isFlipping
+                        ? `wFlipDown 0.25s ease-in ${col * 0.3}s both, wFlipUp 0.25s ease-out ${col * 0.3 + 0.25}s both`
+                        : (state === 'typed' && ch ? 'wPop 0.1s ease' : 'none'),
+                    }}>
+                      {ch}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginBottom: '1rem' }}>
-        {KEYBOARD_ROWS.map((row, ri) => (
+      {/* Keyboard */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px' }}>
+        {KB_ROWS.map((row, ri) => (
           <div key={ri} style={{ display: 'flex', gap: '4px' }}>
             {row.map(key => {
-              const state = letterStates[key];
-              const bg = state ? COLORS[state] : '#3F3F46';
+              const kc = keyColors[key];
+              const bg = kc === 'correct' ? mode.color : kc === 'present' ? '#b59f3b' : kc === 'absent' ? '#3a3a3c' : 'rgba(255,255,255,0.12)';
               return (
-                <button key={key} onClick={() => handleVirtualKey(key)} style={{
-                  background: bg, border: 'none', borderRadius: '6px',
-                  color: '#fff', fontWeight: '600', fontSize: key.length > 1 ? '10px' : '13px',
-                  padding: '0', cursor: 'pointer',
-                  width: key.length > 1 ? '52px' : '34px', height: '44px',
-                  transition: 'background 0.3s',
-                }}>
-                  {key}
-                </button>
+                <button key={key} onClick={() => handleKey(key)} style={{
+                  height: '44px', width: (key === 'ENTER' || key === '⌫') ? '58px' : '32px',
+                  borderRadius: '6px', border: 'none', cursor: 'pointer',
+                  background: bg, color: '#fff',
+                  fontSize: key.length > 1 ? '10px' : '13px',
+                  fontWeight: '700', fontFamily: 'Poppins',
+                }}>{key}</button>
               );
             })}
           </div>
         ))}
       </div>
 
-      {gameOver && (
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <div style={{ fontSize: '16px', color: won ? '#22C55E' : '#f05a5a', fontWeight: '600', marginBottom: '8px' }}>
-            {won ? '🎉 You won!' : `😞 The word was: ${target}`}
-          </div>
-          <button onClick={shareResult} style={{ background: 'linear-gradient(135deg, #5D4CFF, #7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', padding: '10px 24px', fontSize: '13px', fontWeight: '500', cursor: 'pointer' }}>
-            Share Result 📤
+      {/* Win/lose actions */}
+      {(phase === 'won' || phase === 'lost') && (
+        <div style={{ textAlign: 'center' }}>
+          <button onClick={share} style={{
+            background: copied ? `${mode.color}33` : 'rgba(255,255,255,0.07)',
+            border: copied ? `1px solid ${mode.color}77` : '1px solid rgba(255,255,255,0.15)',
+            borderRadius: '10px', color: copied ? mode.color : '#fff',
+            fontSize: '13px', fontWeight: '600',
+            padding: '9px 22px', cursor: 'pointer', transition: 'all 0.2s',
+          }}>
+            {copied ? '✓ Copied!' : '📋 Share Grid'}
           </button>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+            New word tomorrow{phase === 'lost' ? ` · Answer: ${target}` : ''}
+          </div>
         </div>
       )}
 
       <style>{`
-        @keyframes shake {
-          0%,100%{transform:translateX(0)}
-          20%{transform:translateX(-8px)}
-          40%{transform:translateX(8px)}
-          60%{transform:translateX(-8px)}
-          80%{transform:translateX(8px)}
-        }
+        @keyframes wFlipDown { from{transform:scaleY(1)} to{transform:scaleY(0)} }
+        @keyframes wFlipUp   { from{transform:scaleY(0)} to{transform:scaleY(1)} }
+        @keyframes wPop      { 0%,100%{transform:scale(1)} 50%{transform:scale(1.14)} }
+        @keyframes wShake    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+        @keyframes wToast    { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes wCf       { 0%{opacity:1;transform:translateY(0) rotate(0)} 100%{opacity:0;transform:translateY(380px) rotate(600deg)} }
       `}</style>
+    </div>
+  );
+}
+
+/* ── Mode picker / exported component ── */
+export default function WordleGames({ embedded = false }: { embedded?: boolean }) {
+  const [selected, setSelected] = useState<string | null>(null);
+
+  if (selected) {
+    return <WordleGame modeId={selected} onBack={() => setSelected(null)} />;
+  }
+
+  return (
+    <div>
+      {!embedded && (
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '14px' }}>
+          🟩 Wordle Games
+        </h2>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+        {MODES.map(m => (
+          <button
+            key={m.id}
+            onClick={() => setSelected(m.id)}
+            style={{
+              padding: '12px', borderRadius: '12px', border: 'none', cursor: 'pointer', textAlign: 'left',
+              background: `linear-gradient(135deg, ${m.color}22, ${m.color}0a)`,
+              outline: `1px solid ${m.color}44`,
+              transition: 'transform 0.15s, box-shadow 0.15s',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 24px ${m.color}44`;
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
+            }}
+          >
+            <div style={{ fontSize: '22px', marginBottom: '4px' }}>{m.emoji}</div>
+            <div style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>{m.label}</div>
+            <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{m.desc}</div>
+            <div style={{ fontSize: '9px', color: `${m.color}cc`, marginTop: '6px', letterSpacing: '0.5px' }}>
+              {getTarget(m.id).slice(0,1)}{'·'.repeat(3)}{getTarget(m.id).slice(-1)}
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

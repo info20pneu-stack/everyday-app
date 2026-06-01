@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
 import { TypingSpeedTest } from './TypingSpeedTest';
+import WordleGames from './WordleGames';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -2536,7 +2537,7 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
 type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
-type CategoryId = 'daily' | 'speed' | 'hb';
+type CategoryId = 'daily' | 'speed' | 'hb' | 'wordle';
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string } | null;
 
 interface CategoryDef {
@@ -2632,7 +2633,14 @@ export default function DailyGames() {
       desc: 'Measure your cognitive abilities',
       color: '#2563EB', glow: 'rgba(37,99,235,0.35)',
       games: ['Reaction Time', 'Number Memory', 'Visual Memory', 'Verbal Memory', 'Sequence Memory', 'Aim Trainer', 'Mental Math'],
-      firstTab: 'memory', // unused for hb
+      firstTab: 'memory',
+    },
+    {
+      id: 'wordle', icon: '🟩', name: 'Wordle Games',
+      desc: '8 themed daily word puzzles',
+      color: '#538d4e', glow: 'rgba(83,141,78,0.35)',
+      games: ['Classic', 'Football', 'Hockey', 'Car', 'Crypto', 'Animal', 'Plant', 'City'],
+      firstTab: 'memory',
     },
   ];
 
@@ -2777,6 +2785,25 @@ export default function DailyGames() {
             </button>
           ))}
         </div>
+        <DGStyles />
+      </div>
+    );
+  }
+
+  /* ── WORDLE GAMES ── */
+  if (category === 'wordle') {
+    return (
+      <div className="card" style={CARD_BG}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <button onClick={() => setCategory(null)} style={{
+            background: 'rgba(83,141,78,0.12)', border: '1px solid rgba(83,141,78,0.3)',
+            borderRadius: '9px', color: '#538d4e', fontSize: '12px', fontWeight: '600',
+            padding: '6px 12px', cursor: 'pointer',
+          }}>‹ Back</button>
+          <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'rgba(83,141,78,0.2)', border: '1px solid rgba(83,141,78,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px' }}>🟩</div>
+          <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#538d4e' }}>Wordle Games</span>
+        </div>
+        <WordleGames embedded />
         <DGStyles />
       </div>
     );
