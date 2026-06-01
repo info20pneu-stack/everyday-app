@@ -361,7 +361,7 @@ export default function News() {
             Nepodařilo se načíst zprávy
           </div>
           <div style={{ fontSize: '0.78rem' }}>
-            CORS proxy může být dočasně nedostupná
+            Zkontrolujte připojení nebo zkuste jiný zdroj
           </div>
           <button
             onClick={() => loadFeed(activeId, true)}

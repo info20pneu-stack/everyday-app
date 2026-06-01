@@ -18,6 +18,7 @@ import DailyBoost from './DailyBoost';
 import DailyGames from './DailyGames';
 import HumanBenchmark from './HumanBenchmark';
 import Markets from './Markets';
+import News from './News';
 import IPAddress from './IPAddress';
 import SpeedTest from './SpeedTest';
 import PasswordGenerator from './PasswordGenerator';
@@ -71,6 +72,9 @@ function MainContent() {
       <LazyWidget height={380}><SunriseSunset /></LazyWidget>
       <LazyWidget height={360}><BMI /></LazyWidget>
       <LazyWidget height={560}><HumanBenchmark /></LazyWidget>
+
+      {/* Row 7 */}
+      <LazyWidget height={520}><News /></LazyWidget>
     </div>
   );
 }
