@@ -2,7 +2,44 @@ import { NextResponse } from 'next/server';
 
 export const revalidate = 60;
 
-const SEED = {
+export interface TickerData {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePct: number;
+  currency?: string;
+  spark7d: number[];   // 7 daily points
+  hist1m:  number[];   // 30 daily points
+  hist1y:  number[];   // 52 weekly points
+}
+
+export type Tab = 'indices' | 'forex' | 'commodities';
+
+/* ── Deterministic seeded random ── */
+function makeRng(symbol: string): () => number {
+  const day = Math.floor(Date.now() / 86400000);
+  let s = symbol.split('').reduce((a, c, i) => (((a << 5) - a) + c.charCodeAt(0) * (i + 1)) | 0, 0);
+  s = Math.abs(s) + day * 7919;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) | 0;
+    return (s >>> 0) / 0xFFFFFFFF;
+  };
+}
+
+function genHistory(basePrice: number, symbol: string, points: number, volPerStep: number): number[] {
+  const rng = makeRng(symbol + points);
+  const data: number[] = [];
+  let p = basePrice * (0.82 + rng() * 0.36);
+  for (let i = 0; i < points; i++) {
+    p = Math.max(0.0001, p * (1 + (rng() - 0.48) * volPerStep));
+    data.push(p);
+  }
+  const scale = basePrice / p;
+  return data.map(v => +((v * scale)).toPrecision(6));
+}
+
+const SEED_BASE: Record<Tab, Omit<TickerData, 'spark7d' | 'hist1m' | 'hist1y'>[]> = {
   indices: [
     { symbol: 'S&P 500',   name: 'United States',  price: 5308.13,  change: 22.48,   changePct: 0.43 },
     { symbol: 'NASDAQ',    name: 'United States',  price: 16742.39, change: -38.10,  changePct: -0.23 },
@@ -35,6 +72,19 @@ const SEED = {
   ],
 };
 
+function buildTab(tab: Tab): TickerData[] {
+  return SEED_BASE[tab].map(t => ({
+    ...t,
+    spark7d: genHistory(t.price, t.symbol + '7', 7,  0.009),
+    hist1m:  genHistory(t.price, t.symbol + '30', 30, 0.012),
+    hist1y:  genHistory(t.price, t.symbol + '52', 52, 0.022),
+  }));
+}
+
 export async function GET() {
-  return NextResponse.json(SEED);
+  return NextResponse.json({
+    indices:     buildTab('indices'),
+    forex:       buildTab('forex'),
+    commodities: buildTab('commodities'),
+  });
 }

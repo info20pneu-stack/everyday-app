@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import WC2026 from './WC2026';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
 type GameStatus = 'live' | 'final' | 'upcoming' | 'postponed';
-type LeagueId = 'nhl' | 'nba' | 'nfl';
+type LeagueId = 'nhl' | 'nba' | 'nfl' | 'wc2026';
 type FetchState = 'idle' | 'loading' | 'ok' | 'error';
 
 type Team = {
@@ -77,7 +78,88 @@ const ESPN_CONFIG = {
 
 /* ═══════════════════════ MOCK STANDINGS (ESPN standings API vrací neúplná data) ═══════════════════════ */
 
-const STANDINGS: Record<LeagueId, { rows: StandingRow[]; headers: string[] }> = {
+/* ── NHL extended data ── */
+interface Scorer { rank: number; name: string; team: string; color: string; goals: number; assists: number; pts: number; }
+const NHL_EAST = [
+  { conf: 'Atlantic', headers: ['ZP','V','P','PP','B'], rows: [
+    { rank:1, abbr:'FLA', name:'Panthers',    color:'#C8102E', cols:['82','52','20','10','114'] },
+    { rank:2, abbr:'TBL', name:'Lightning',   color:'#002868', cols:['82','48','24','10','106'] },
+    { rank:3, abbr:'BOS', name:'Bruins',      color:'#FFB81C', cols:['82','48','26','8', '104'] },
+    { rank:4, abbr:'TOR', name:'Maple Leafs', color:'#003E7E', cols:['82','46','26','10','102'] },
+    { rank:5, abbr:'BUF', name:'Sabres',      color:'#002654', cols:['82','40','35','7', '87'] },
+    { rank:6, abbr:'OTT', name:'Senators',    color:'#E31837', cols:['82','36','38','8', '80'] },
+    { rank:7, abbr:'MTL', name:'Canadiens',   color:'#AF1E2D', cols:['82','30','44','8', '68'] },
+  ]},
+  { conf: 'Metropolitan', headers: ['ZP','V','P','PP','B'], rows: [
+    { rank:1, abbr:'NYR', name:'Rangers',     color:'#0038A8', cols:['82','55','19','8','118'] },
+    { rank:2, abbr:'CAR', name:'Hurricanes',  color:'#CC0000', cols:['82','52','21','9','113'] },
+    { rank:3, abbr:'PIT', name:'Penguins',    color:'#FCB514', cols:['82','42','31','9', '93'] },
+    { rank:4, abbr:'WSH', name:'Capitals',    color:'#041E42', cols:['82','40','34','8', '88'] },
+    { rank:5, abbr:'PHI', name:'Flyers',      color:'#F74902', cols:['82','38','36','8', '84'] },
+    { rank:6, abbr:'NJD', name:'Devils',      color:'#CE1126', cols:['82','35','39','8', '78'] },
+    { rank:7, abbr:'NYI', name:'Islanders',   color:'#00539B', cols:['82','32','43','7', '71'] },
+  ]},
+];
+const NHL_WEST = [
+  { conf: 'Central', headers: ['ZP','V','P','PP','B'], rows: [
+    { rank:1, abbr:'COL', name:'Avalanche',    color:'#6F263D', cols:['82','58','18','6','122'] },
+    { rank:2, abbr:'DAL', name:'Stars',        color:'#006847', cols:['82','52','22','8','112'] },
+    { rank:3, abbr:'NSH', name:'Predators',    color:'#FFB81C', cols:['82','45','28','9', '99'] },
+    { rank:4, abbr:'STL', name:'Blues',        color:'#002F87', cols:['82','42','32','8', '92'] },
+    { rank:5, abbr:'MIN', name:'Wild',         color:'#154734', cols:['82','39','35','8', '86'] },
+    { rank:6, abbr:'WPG', name:'Jets',         color:'#041E42', cols:['82','38','36','8', '84'] },
+    { rank:7, abbr:'CHI', name:'Blackhawks',   color:'#CF0A2C', cols:['82','28','48','6', '62'] },
+  ]},
+  { conf: 'Pacific', headers: ['ZP','V','P','PP','B'], rows: [
+    { rank:1, abbr:'EDM', name:'Oilers',         color:'#FF4C00', cols:['82','55','21','6','116'] },
+    { rank:2, abbr:'VGK', name:'Golden Knights', color:'#B4975A', cols:['82','50','25','7','107'] },
+    { rank:3, abbr:'VAN', name:'Canucks',        color:'#00843D', cols:['82','46','28','8','100'] },
+    { rank:4, abbr:'LAK', name:'Kings',          color:'#111111', cols:['82','44','30','8', '96'] },
+    { rank:5, abbr:'CGY', name:'Flames',         color:'#C8102E', cols:['82','39','36','7', '85'] },
+    { rank:6, abbr:'SEA', name:'Kraken',         color:'#96D8D8', cols:['82','36','40','6', '78'] },
+    { rank:7, abbr:'ANA', name:'Ducks',          color:'#F47A38', cols:['82','30','46','6', '66'] },
+  ]},
+];
+const NHL_SCORERS: Scorer[] = [
+  { rank:1, name:'Connor McDavid',   team:'EDM', color:'#FF4C00', goals:62, assists:75, pts:137 },
+  { rank:2, name:'Leon Draisaitl',   team:'EDM', color:'#FF4C00', goals:54, assists:67, pts:121 },
+  { rank:3, name:'Nathan MacKinnon', team:'COL', color:'#6F263D', goals:49, assists:70, pts:119 },
+  { rank:4, name:'Nikita Kucherov',  team:'TBL', color:'#002868', goals:42, assists:72, pts:114 },
+  { rank:5, name:'David Pastrnak',   team:'BOS', color:'#FFB81C', goals:55, assists:54, pts:109 },
+  { rank:6, name:'Artemi Panarin',   team:'NYR', color:'#0038A8', goals:35, assists:72, pts:107 },
+  { rank:7, name:'Sam Reinhart',     team:'FLA', color:'#C8102E', goals:46, assists:58, pts:104 },
+  { rank:8, name:'Mitch Marner',     team:'TOR', color:'#003E7E', goals:28, assists:75, pts:103 },
+  { rank:9, name:'Kyle Connor',      team:'WPG', color:'#041E42', goals:45, assists:57, pts:102 },
+  { rank:10,name:'Jason Robertson', team:'DAL', color:'#006847', goals:48, assists:52, pts:100 },
+];
+type NhlView = 'league' | 'conference' | 'scorers' | 'playoff';
+const NHL_PLAYOFF: { round: string; matches: Array<{t1:string;c1:string;s1:number;t2:string;c2:string;s2:number;done:boolean}> }[] = [
+  { round:'First Round', matches:[
+    {t1:'EDM',c1:'#FF4C00',s1:4,t2:'LAK',c2:'#111',s2:2,done:true},
+    {t1:'VGK',c1:'#B4975A',s1:4,t2:'VAN',c2:'#00843D',s2:3,done:true},
+    {t1:'COL',c1:'#6F263D',s1:4,t2:'DAL',c2:'#006847',s2:1,done:true},
+    {t1:'NYR',c1:'#0038A8',s1:4,t2:'WSH',c2:'#041E42',s2:2,done:true},
+    {t1:'FLA',c1:'#C8102E',s1:4,t2:'TBL',c2:'#002868',s2:3,done:true},
+    {t1:'CAR',c1:'#CC0000',s1:4,t2:'PIT',c2:'#FCB514',s2:0,done:true},
+    {t1:'BOS',c1:'#FFB81C',s1:4,t2:'TOR',c2:'#003E7E',s2:3,done:true},
+    {t1:'DAL',c1:'#006847',s1:4,t2:'NSH',c2:'#FFB81C',s2:2,done:true},
+  ]},
+  { round:'Second Round', matches:[
+    {t1:'EDM',c1:'#FF4C00',s1:4,t2:'VGK',c2:'#B4975A',s2:2,done:true},
+    {t1:'COL',c1:'#6F263D',s1:3,t2:'NYR',c2:'#0038A8',s2:4,done:true},
+    {t1:'FLA',c1:'#C8102E',s1:4,t2:'CAR',c2:'#CC0000',s2:1,done:true},
+    {t1:'BOS',c1:'#FFB81C',s1:4,t2:'DAL',c2:'#006847',s2:3,done:true},
+  ]},
+  { round:'Conference Finals', matches:[
+    {t1:'EDM',c1:'#FF4C00',s1:2,t2:'NYR',c2:'#0038A8',s2:2,done:false},
+    {t1:'FLA',c1:'#C8102E',s1:3,t2:'BOS',c2:'#FFB81C',s2:2,done:false},
+  ]},
+  { round:'Stanley Cup Final', matches:[
+    {t1:'TBD',c1:'#555',s1:0,t2:'TBD',c2:'#555',s2:0,done:false},
+  ]},
+];
+
+const STANDINGS: Partial<Record<LeagueId, { rows: StandingRow[]; headers: string[] }>> = {
   nhl: {
     headers: ['ZP', 'V', 'P', 'PP', 'B', '+/-'],
     rows: [
@@ -151,7 +233,8 @@ function formatScheduledTime(isoDate: string): string {
 }
 
 function parseGames(data: any, leagueId: LeagueId): Game[] {
-  const cfg = ESPN_CONFIG[leagueId];
+  const cfg = ESPN_CONFIG[leagueId as keyof typeof ESPN_CONFIG];
+  if (!cfg) return [];
   return (data.events ?? []).flatMap((event: any): Game[] => {
     const comp = event.competitions?.[0];
     if (!comp) return [];
@@ -173,7 +256,7 @@ function parseGames(data: any, leagueId: LeagueId): Game[] {
 }
 
 function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): GameDetail {
-  const cfg = ESPN_CONFIG[leagueId];
+  const cfg = ESPN_CONFIG[leagueId as keyof typeof ESPN_CONFIG] ?? ESPN_CONFIG.nhl;
 
   /* Period scores */
   const comp = data.header?.competitions?.[0];
@@ -500,22 +583,31 @@ const SectionLabel = memo(function SectionLabel({ label, count }: { label: strin
 
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
-const LEAGUE_IDS: LeagueId[] = ['nhl', 'nba', 'nfl'];
+const LEAGUE_IDS: LeagueId[] = ['nhl', 'nba', 'nfl', 'wc2026'];
+const LEAGUE_META: Record<LeagueId, { emoji: string; label: string }> = {
+  nhl:    { emoji: '🏒', label: 'NHL' },
+  nba:    { emoji: '🏀', label: 'NBA' },
+  nfl:    { emoji: '🏈', label: 'NFL' },
+  wc2026: { emoji: '⚽', label: 'WC 2026' },
+};
 
 export default function Sports() {
   const [leagueId, setLeagueId] = useState<LeagueId>('nhl');
   const [view, setView] = useState<'games' | 'standings'>('games');
+  const [nhlView, setNhlView] = useState<NhlView>('league');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [leagueCache, setLeagueCache] = useState<Record<LeagueId, LeagueCache>>({
+  const [leagueCache, setLeagueCache] = useState<Record<string, LeagueCache>>({
     nhl: { games: [], state: 'idle' },
     nba: { games: [], state: 'idle' },
     nfl: { games: [], state: 'idle' },
+    wc2026: { games: [], state: 'idle' },
   });
 
   const [detailCache, setDetailCache] = useState<Record<string, DetailCache>>({});
 
   const fetchLeague = useCallback(async (id: LeagueId) => {
+    if (id === 'wc2026') return; // static data, no API call
     setLeagueCache(prev => ({ ...prev, [id]: { ...prev[id], state: 'loading' } }));
     try {
       const res = await fetch(`/api/sports/${id}`);
@@ -605,20 +697,25 @@ export default function Sports() {
       </div>
 
       {/* League tabs */}
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+      <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {LEAGUE_IDS.map(id => (
-          <button key={id} onClick={() => switchLeague(id)} style={tabBtn(id === leagueId)}>
-            <span>{ESPN_CONFIG[id].emoji}</span>
-            <span>{ESPN_CONFIG[id].label}</span>
+          <button key={id} onClick={() => switchLeague(id)} style={{ ...tabBtn(id === leagueId), fontSize: '11px', flex: 'none', padding: '6px 10px' }}>
+            <span>{LEAGUE_META[id].emoji}</span>
+            <span>{LEAGUE_META[id].label}</span>
           </button>
         ))}
       </div>
 
-      {/* View toggle */}
+      {/* WC 2026 */}
+      {leagueId === 'wc2026' && <WC2026 />}
+
+      {/* View toggle (non-WC) */}
+      {leagueId !== 'wc2026' && (
       <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '3px', marginBottom: '1rem', gap: '2px' }}>
         <button onClick={() => setView('games')} style={viewBtn(view === 'games')}>📅 Zápasy</button>
         <button onClick={() => setView('standings')} style={viewBtn(view === 'standings')}>📊 Tabulka</button>
       </div>
+      )}
 
       {/* Loading skeleton */}
       {view === 'games' && state === 'loading' && (
@@ -703,11 +800,94 @@ export default function Sports() {
       )}
 
       {/* Standings */}
-      {view === 'standings' && (
+      {view === 'standings' && leagueId !== 'wc2026' && (
         <>
-          <StandingsTable rows={STANDINGS[leagueId].rows} headers={STANDINGS[leagueId].headers} />
+          {/* NHL extra tabs */}
+          {leagueId === 'nhl' && (
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap' }}>
+              {([
+                { id: 'league' as NhlView,     label: '📊 Liga' },
+                { id: 'conference' as NhlView, label: '🗺️ Konference' },
+                { id: 'scorers' as NhlView,    label: '⛸️ Bodování' },
+                { id: 'playoff' as NhlView,    label: '🏆 Playoff' },
+              ]).map(v => (
+                <button key={v.id} onClick={() => setNhlView(v.id)} style={{
+                  padding: '5px 10px', borderRadius: '7px', border: 'none', cursor: 'pointer',
+                  fontSize: '11px', fontWeight: nhlView === v.id ? '700' : '400',
+                  background: nhlView === v.id ? 'rgba(255,179,0,0.15)' : 'rgba(255,255,255,0.05)',
+                  color: nhlView === v.id ? '#FFB300' : 'var(--text3)',
+                  outline: nhlView === v.id ? '1px solid rgba(255,179,0,0.35)' : 'none',
+                }}>{v.label}</button>
+              ))}
+            </div>
+          )}
+
+          {/* NHL Conference */}
+          {leagueId === 'nhl' && nhlView === 'conference' && (
+            <>
+              {[...NHL_EAST, ...NHL_WEST].map((conf, ci) => (
+                <div key={conf.conf} style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: ci < 2 ? '#60a5fa' : '#f59e0b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
+                    {ci < 2 ? '🔵 Eastern' : '🟠 Western'} — {conf.conf}
+                  </div>
+                  <StandingsTable rows={conf.rows} headers={conf.headers} />
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* NHL Scorers */}
+          {leagueId === 'nhl' && nhlView === 'scorers' && (
+            <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '3px 8px', fontSize: '9px', color: 'var(--text3)', marginBottom: '3px' }}>
+                <div>#</div><div>Hráč</div><div style={{textAlign:'center'}}>G</div><div style={{textAlign:'center'}}>A</div><div style={{textAlign:'center', fontWeight:'700'}}>Pts</div>
+              </div>
+              {NHL_SCORERS.map(s => (
+                <div key={s.name} style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '5px 8px', borderRadius: '7px', background: s.rank <= 3 ? 'rgba(255,179,0,0.05)' : 'rgba(255,255,255,0.02)', alignItems: 'center', marginBottom: '2px' }}>
+                  <div style={{ fontSize: '11px', color: s.rank <= 3 ? '#FFB300' : 'var(--text3)', fontWeight: '600' }}>{s.rank}</div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                    <div style={{ fontSize: '9px', color: s.color, fontWeight: '700' }}>{s.team}</div>
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text2)' }}>{s.goals}</div>
+                  <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text2)' }}>{s.assists}</div>
+                  <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '700', color: '#fff' }}>{s.pts}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* NHL Playoff */}
+          {leagueId === 'nhl' && nhlView === 'playoff' && (
+            <div>
+              {NHL_PLAYOFF.map(round => (
+                <div key={round.round} style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{round.round}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    {round.matches.map((m, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <span style={{ fontSize: '8px', fontWeight: '700', color: m.c1, background: `${m.c1}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t1}</span>
+                        {m.done ? (
+                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#fff', fontFamily: 'Poppins', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{m.s1} – {m.s2}</span>
+                        ) : (
+                          <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0 }}>vs</span>
+                        )}
+                        <span style={{ fontSize: '8px', fontWeight: '700', color: m.c2, background: `${m.c2}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t2}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Regular standings (league view) */}
+          {(leagueId !== 'nhl' || nhlView === 'league') && STANDINGS[leagueId] && (
+            <StandingsTable rows={STANDINGS[leagueId]!.rows} headers={STANDINGS[leagueId]!.headers} />
+          )}
+
           <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            Tabulka: statická data (ESPN standings API nepodporuje CORS)
+            Tabulka: statická data · sezóna 2024-25
           </div>
         </>
       )}

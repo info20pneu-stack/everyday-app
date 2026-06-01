@@ -120,6 +120,14 @@ a:focus-visible {
 .widget-grid > *:nth-child(n+12) { animation: widgetIn 0.45s ease 0.40s both; }
 
 /* ─────────────────────────────────────────
+   Widget titles — ALL CAPS consistently
+───────────────────────────────────────── */
+.card h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* ─────────────────────────────────────────
    Card — hover lift effect
    Only on devices that support hover (not touch)
 ───────────────────────────────────────── */
