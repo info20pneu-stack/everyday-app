@@ -515,17 +515,11 @@ export default function Sports() {
 
   const [detailCache, setDetailCache] = useState<Record<string, DetailCache>>({});
 
-  // Fetch scoreboard for a league (with backup ESPN subdomain)
   const fetchLeague = useCallback(async (id: LeagueId) => {
     setLeagueCache(prev => ({ ...prev, [id]: { ...prev[id], state: 'loading' } }));
-    const primaryUrl = ESPN_CONFIG[id].scoreboardUrl;
-    const backupUrl = primaryUrl.replace('site.api.espn.com', 'site.web.api.espn.com');
     try {
-      let res = await fetch(primaryUrl);
-      if (!res.ok) {
-        res = await fetch(backupUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      }
+      const res = await fetch(`/api/sports/${id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const games = parseGames(data, id);
       setLeagueCache(prev => ({ ...prev, [id]: { games, state: 'ok' } }));
@@ -534,12 +528,10 @@ export default function Sports() {
     }
   }, []);
 
-  // Fetch game detail
   const fetchDetail = useCallback(async (game: Game, lid: LeagueId) => {
     setDetailCache(prev => ({ ...prev, [game.id]: { detail: null, state: 'loading' } }));
     try {
-      const url = `${ESPN_CONFIG[lid].summaryUrl}?event=${game.id}`;
-      const res = await fetch(url);
+      const res = await fetch(`/api/sports/${lid}?event=${game.id}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const detail = parseDetail(data, game.home, game.away, lid);

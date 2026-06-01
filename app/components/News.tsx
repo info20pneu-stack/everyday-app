@@ -13,7 +13,6 @@ const SOURCES: Source[] = [
   { id: 'tagesschau', name: 'Tagesschau', flag: '🇩🇪', lang: 'de', url: 'https://www.tagesschau.de/xml/rss2/' },
 ];
 
-const PROXY = 'https://api.allorigins.win/get?url=';
 
 /* ─── Types ─── */
 type Article = {
@@ -228,7 +227,7 @@ export default function News() {
 
     setState('loading');
     try {
-      const res = await fetch(`${PROXY}${encodeURIComponent(source.url)}`, { cache: 'no-store' });
+      const res = await fetch(`/api/news?source=${sourceId}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const parsed = parseRss(data.contents as string);

@@ -33,8 +33,8 @@ const STATIC_RATES = Object.fromEntries(CURRENCIES.map(c => [c.code, c.rate]));
 type FetchState = 'loading' | 'ok' | 'error';
 type DataSource = 'live' | 'static';
 
-aasync function fetchRates(): Promise<Record<string, number>> {
-  const res = await fetch('/api/currency');
+async function fetchRates(): Promise<Record<string, number>> {
+  const res = await fetch('/api/rates');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
