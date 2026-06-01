@@ -15,6 +15,7 @@ export interface LBEntry {
   score?: number;
   moves?: number;
   diff?: string;
+  device?: 'mobile' | 'desktop';
   date: number;
 }
 
@@ -86,13 +87,14 @@ interface PostBody {
   score?: number;
   moves?: number;
   diff?: string;
+  device?: 'mobile' | 'desktop';
 }
 
 export async function POST(req: NextRequest) {
   let body: PostBody | null = null;
   try {
     body = await req.json() as PostBody;
-    const { game, name, country, city, timeMs, score, moves, diff } = body;
+    const { game, name, country, city, timeMs, score, moves, diff, device } = body;
 
     if (!VALID_GAMES.includes(game) || !name?.trim() || typeof timeMs !== 'number' || timeMs <= 0) {
       console.error('[leaderboard POST] Validation failed:', { game, name, timeMs });
@@ -137,6 +139,7 @@ export async function POST(req: NextRequest) {
       score,
       moves,
       diff,
+      device: device === 'mobile' ? 'mobile' : 'desktop',
       date: Date.now(),
     };
     const member = JSON.stringify(entry);

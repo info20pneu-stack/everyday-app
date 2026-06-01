@@ -279,8 +279,14 @@ function BestBadge({ label, value }: { label: string; value: string | number }) 
 type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
 type LBApiEntry = {
   id: string; game: GameId; name: string; country: string; city: string;
-  timeMs: number; score?: number; moves?: number; diff?: string; date: number;
+  timeMs: number; score?: number; moves?: number; diff?: string;
+  device?: 'mobile' | 'desktop'; date: number;
 };
+
+function detectDevice(): 'mobile' | 'desktop' {
+  if (typeof navigator === 'undefined') return 'desktop';
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+}
 type LBApiResponse = { entries: LBApiEntry[]; countries: string[] };
 
 interface ModalProps {
@@ -302,6 +308,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
   const [submitErr,  setSubmitErr]  = useState('');
   const [phase,      setPhase]      = useState<'form' | 'confirm'>('form');
   const [myRank,     setMyRank]     = useState<number | null>(null);
+  const device = useMemo(() => detectDevice(), []);
 
   async function handleSubmit() {
     if (!nick.trim() || submitting) return;
@@ -314,7 +321,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
       const res = await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff }),
+        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff, device }),
       });
       const data = await res.json() as Record<string, unknown>;
       if (res.status === 201) {
@@ -528,13 +535,14 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
   const { lang, t } = useLang();
   const [game,    setGame]    = useState<GameId>(initialGame);
 
-  useEffect(() => { setGame(initialGame); }, [initialGame]);
-  const [period,  setPeriod]  = useState('all');
-  const [country, setCountry] = useState('');
-  const [city,    setCity]    = useState('');
-  const [entries, setEntries] = useState<LBApiEntry[]>([]);
-  const [countries, setCountries] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  useEffect(() => { setGame(initialGame); setDeviceFilter('all'); }, [initialGame]);
+  const [period,       setPeriod]      = useState('all');
+  const [country,      setCountry]     = useState('');
+  const [city,         setCity]        = useState('');
+  const [entries,      setEntries]     = useState<LBApiEntry[]>([]);
+  const [countries,    setCountries]   = useState<string[]>([]);
+  const [loading,      setLoading]     = useState(false);
+  const [deviceFilter, setDeviceFilter] = useState<'all' | 'mobile' | 'desktop'>('all');
 
   const cities = useMemo(() =>
     country ? [...new Set(entries.filter(e => e.country === country).map(e => e.city).filter(Boolean))].sort() : [],
@@ -544,8 +552,10 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     let r = entries;
     if (country) r = r.filter(e => e.country === country);
     if (city)    r = r.filter(e => e.city === city);
+    if (game === 'typing' && deviceFilter !== 'all')
+      r = r.filter(e => (e.device ?? 'desktop') === deviceFilter);
     return r;
-  }, [entries, country, city]);
+  }, [entries, country, city, game, deviceFilter]);
 
   useEffect(() => {
     setLoading(true);
@@ -603,6 +613,25 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
           }}>{p.label}</button>
         ))}
       </div>
+
+      {/* Device filter — typing only */}
+      {game === 'typing' && (
+        <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
+          {([
+            { v: 'all'     as const, label: '🌍 All' },
+            { v: 'desktop' as const, label: '🖥️ Desktop' },
+            { v: 'mobile'  as const, label: '📱 Mobile' },
+          ]).map(({ v, label }) => (
+            <button key={v} onClick={() => setDeviceFilter(v)} style={{
+              flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
+              fontSize: '11px', fontWeight: '600',
+              background: v === deviceFilter ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
+              color: v === deviceFilter ? 'var(--purple3)' : 'var(--text3)',
+              outline: v === deviceFilter ? '1px solid rgba(93,76,255,0.4)' : 'none',
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
 
       {/* Country/city filters */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -673,6 +702,11 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               )}
               {game === 'typing' && e.score !== undefined && (
                 <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score}wpm</span>
+              )}
+              {game === 'typing' && (
+                <span style={{ fontSize: '12px', flexShrink: 0 }} title={e.device === 'mobile' ? 'Mobile' : 'Desktop'}>
+                  {e.device === 'mobile' ? '📱' : '🖥️'}
+                </span>
               )}
               {(game === 'flagquiz' || game === 'wordchain') && e.score !== undefined && (
                 <span style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: '700', flexShrink: 0 }}>{e.score}b</span>
