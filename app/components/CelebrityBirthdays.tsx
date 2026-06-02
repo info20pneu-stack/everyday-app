@@ -27,11 +27,11 @@ function matchesLocale(celeb: BirthdayCeleb, cc: string): boolean {
 }
 
 const CATEGORY_META: Record<Category | 'all', { label: string; emoji: string; color: string }> = {
-  all:   { label: 'Vše',       emoji: '🌟', color: '#8475FF' },
+  all:   { label: 'All',       emoji: '🌟', color: '#8475FF' },
   film:  { label: 'Film & TV', emoji: '🎬', color: '#EF4444' },
-  music: { label: 'Hudba',     emoji: '🎵', color: '#F59E0B' },
+  music: { label: 'Music',     emoji: '🎵', color: '#F59E0B' },
   sport: { label: 'Sport',     emoji: '⚽', color: '#22C55E' },
-  other: { label: 'Ostatní',   emoji: '🌍', color: '#60A5FA' },
+  other: { label: 'Other',     emoji: '🌍', color: '#60A5FA' },
 };
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -59,7 +59,7 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
   const meta = CATEGORY_META[celeb.category];
   const [copied, setCopied] = useState(false);
 
-  const shareText = `🎂 Dnes slaví narozeniny: ${celeb.name} (${celeb.age} let)!\n${celeb.profession}${celeb.country ? ` ${celeb.countryFlag} ${celeb.country}` : ''}\n\n${celeb.description.slice(0, 100)}...\n\n${celeb.url}`;
+  const shareText = `🎂 Birthday today: ${celeb.name} (${celeb.age})!\n${celeb.profession}${celeb.country ? ` ${celeb.countryFlag} ${celeb.country}` : ''}\n\n${celeb.description.slice(0, 100)}...\n\n${celeb.url}`;
 
   async function copyText() {
     try { await navigator.clipboard.writeText(shareText); } catch {}
@@ -99,12 +99,12 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'Poppins', fontSize: '17px', fontWeight: '800', color: '#fff', lineHeight: 1.2, marginBottom: '6px' }}>{celeb.name}</div>
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '11px', fontWeight: '700', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', padding: '2px 8px', color: '#fff' }}>🎂 {celeb.age} let</span>
+              <span style={{ fontSize: '11px', fontWeight: '700', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', padding: '2px 8px', color: '#fff' }}>🎂 {celeb.age} yrs</span>
               <span style={{ fontSize: '11px', fontWeight: '600', background: `${meta.color}22`, border: `1px solid ${meta.color}44`, borderRadius: '6px', padding: '2px 8px', color: meta.color }}>{meta.emoji} {celeb.profession}</span>
             </div>
             {celeb.country && (
               <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>
-                <span style={{ marginRight: '4px' }}>{celeb.countryFlag}</span>{celeb.country} · nar. {celeb.year}
+                <span style={{ marginRight: '4px' }}>{celeb.countryFlag}</span>{celeb.country} · b. {celeb.year}
               </div>
             )}
           </div>
@@ -117,10 +117,10 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
 
         {/* Share */}
         <div style={{ marginBottom: '10px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Sdílet</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Share</div>
           <div style={{ display: 'flex', gap: '5px' }}>
             {[
-              { label: '📤 Sdílet', action: nativeShare, bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', color: '#fff' },
+              { label: '📤 Share', action: nativeShare, bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', color: '#fff' },
               { label: '𝕏 X', action: () => shareVia('twitter'), bg: 'rgba(0,0,0,0.3)', border: 'rgba(255,255,255,0.08)', color: '#fff' },
               { label: '💬 WA', action: () => shareVia('whatsapp'), bg: 'rgba(37,211,102,0.1)', border: 'rgba(37,211,102,0.25)', color: '#25D366' },
               { label: copied ? '✓ OK' : '📋 Copy', action: copyText, bg: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: copied ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)', color: copied ? 'var(--green2)' : '#fff' },
@@ -163,7 +163,7 @@ function CelebCard({ celeb, rank, onClick }: { celeb: BirthdayCeleb; rank: numbe
       </div>
       <div style={{ flexShrink: 0, textAlign: 'right' }}>
         <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--purple3)', fontFamily: 'Poppins', lineHeight: 1 }}>{celeb.age}</div>
-        <div style={{ fontSize: '9px', color: 'var(--text3)', marginTop: '1px' }}>let</div>
+        <div style={{ fontSize: '9px', color: 'var(--text3)', marginTop: '1px' }}>yrs</div>
       </div>
     </div>
   );
@@ -177,7 +177,7 @@ function EventsSection({ events, dateLabel }: { events: HistoricalEvent[]; dateL
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <div style={{ height: '1px', flex: 1, background: 'rgba(255,255,255,0.07)' }} />
         <span style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
-          📅 V tento den v historii
+          📅 On this day in history
         </span>
         <div style={{ height: '1px', flex: 1, background: 'rgba(255,255,255,0.07)' }} />
       </div>
@@ -264,7 +264,7 @@ function DatePicker({
       {/* Today */}
       {!isToday && (
         <button onClick={onReset} style={{ background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.35)', borderRadius: '6px', color: 'var(--purple3)', fontSize: '10px', fontWeight: '700', padding: '4px 8px', cursor: 'pointer', flexShrink: 0 }}>
-          Dnes
+          Today
         </button>
       )}
     </div>
@@ -325,7 +325,7 @@ export default function CelebrityBirthdays() {
           <div>
             <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', lineHeight: 1.2 }}>Celebrity Birthdays</h2>
             <div style={{ fontSize: '11px', color: isToday ? 'var(--green2)' : 'var(--text3)' }}>
-              {isToday ? '✦ Dnes' : data?.dateLabel ?? ''}
+              {isToday ? '✦ Today' : data?.dateLabel ?? ''}
             </div>
           </div>
         </div>
@@ -363,8 +363,8 @@ export default function CelebrityBirthdays() {
       {state === 'error' && (
         <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text3)' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>📡</div>
-          <div style={{ fontSize: '13px' }}>Nepodařilo se načíst data</div>
-          <button onClick={() => loadData(selMonth, selDay)} style={{ marginTop: '10px', background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)', borderRadius: '8px', color: 'var(--purple3)', fontSize: '12px', padding: '6px 14px', cursor: 'pointer' }}>↺ Zkusit znovu</button>
+          <div style={{ fontSize: '13px' }}>Failed to load data</div>
+          <button onClick={() => loadData(selMonth, selDay)} style={{ marginTop: '10px', background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)', borderRadius: '8px', color: 'var(--purple3)', fontSize: '12px', padding: '6px 14px', cursor: 'pointer' }}>↺ Try again</button>
         </div>
       )}
 
@@ -374,7 +374,7 @@ export default function CelebrityBirthdays() {
           {/* From your region */}
           {localFiltered.length > 0 && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>📍 Z vaší oblasti</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>📍 From your region</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(93,76,255,0.05)', border: '1px solid rgba(93,76,255,0.12)', borderRadius: '12px', padding: '6px' }}>
                 {localFiltered.slice(0, 5).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
               </div>
@@ -385,7 +385,7 @@ export default function CelebrityBirthdays() {
           {filtered.length > 0 ? (
             <div>
               <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-                🌍 Top {Math.min(filtered.length, 15)} · podle popularity
+                🌍 Top {Math.min(filtered.length, 15)} · by popularity
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {filtered.slice(0, 15).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
@@ -394,7 +394,7 @@ export default function CelebrityBirthdays() {
           ) : (
             <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text3)', fontSize: '13px' }}>
               <div style={{ fontSize: '24px', marginBottom: '6px' }}>{CATEGORY_META[tab].emoji}</div>
-              Žádné celebrity v této kategorii pro tento den
+              No celebrities in this category for this day
             </div>
           )}
 
@@ -402,7 +402,7 @@ export default function CelebrityBirthdays() {
           <EventsSection events={events} dateLabel={data?.dateLabel ?? ''} />
 
           <div style={{ marginTop: '10px', fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>
-            Zdroj: Wikipedia · seřazeno podle popularity
+            Source: Wikipedia · sorted by popularity
           </div>
         </>
       )}

@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
     if (!VALID_GAMES.includes(game) || !name?.trim() || typeof timeMs !== 'number' || timeMs <= 0) {
       console.error('[leaderboard POST] Validation failed:', { game, name, timeMs });
-      return NextResponse.json({ error: 'Neplatná data' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -152,6 +152,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, entry }, { status: 201 });
   } catch (err) {
     console.error('[leaderboard POST] Error. Body:', body, '| Error:', err);
-    return NextResponse.json({ error: 'Chyba serveru' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

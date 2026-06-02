@@ -178,7 +178,7 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
 
 /* ── Main component ── */
 const TAB_ICONS:  Record<Tab, string> = { indices: '📈', forex: '💱', commodities: '🏗️' };
-const TAB_LABELS: Record<Tab, string> = { indices: 'INDEXY', forex: 'FOREX', commodities: 'KOMODITY' };
+const TAB_LABELS: Record<Tab, string> = { indices: 'INDICES', forex: 'FOREX', commodities: 'COMMODITIES' };
 
 const EMPTY: Record<Tab, TickerData[]> = { indices: [], forex: [], commodities: [] };
 
@@ -229,7 +229,7 @@ export default function Markets() {
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>📊 Markets</h2>
         {updated && (
           <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
-            {updated.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {updated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
           </span>
         )}
       </div>
@@ -288,7 +288,7 @@ export default function Markets() {
       </div>
 
       <div style={{ marginTop: '.75rem', fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>
-        Simulovaná data · aktualizace každých 15 s · klikni pro detail
+        Simulated data · updates every 15 s · click for detail
       </div>
 
       {detail && <TickerDetail ticker={detail} onClose={() => setDetail(null)} />}

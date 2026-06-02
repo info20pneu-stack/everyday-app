@@ -18,12 +18,12 @@ async function fetchCity(lat: number, lon: number): Promise<string> {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
-      { headers: { 'Accept-Language': 'cs' } }
+      { headers: { 'Accept-Language': 'en' } }
     );
     const j = await r.json();
-    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || 'Moje poloha';
+    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || 'My location';
   } catch {
-    return 'Moje poloha';
+    return 'My location';
   }
 }
 
@@ -50,7 +50,7 @@ async function fetchSunData(lat: number, lon: number): Promise<SunData> {
 }
 
 function fmt(date: Date) {
-  return date.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function fmtDuration(seconds: number) {
@@ -98,7 +98,7 @@ export default function SunriseSunset() {
   function load() {
     if (!navigator.geolocation) {
       setStatus('error');
-      setError('Geolokace není v tomto prohlížeči dostupná.');
+      setError('Geolocation is not available in this browser.');
       return;
     }
     setStatus('locating');
@@ -111,12 +111,12 @@ export default function SunriseSunset() {
           setStatus('ok');
         } catch {
           setStatus('error');
-          setError('Nepodařilo se načíst data slunce.');
+          setError('Failed to load sun data.');
         }
       },
       () => {
         setStatus('error');
-        setError('Přístup k poloze byl zamítnut.');
+        setError('Location access was denied.');
       },
       { timeout: 10_000 }
     );
@@ -134,14 +134,14 @@ export default function SunriseSunset() {
     return (
       <div className="card" style={card}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
-          🌅 Slunce
+          🌅 Sun
         </h2>
         {status !== 'error' ? (
           <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text3)', fontSize: '13px' }}>
             <div style={{ fontSize: '32px', marginBottom: '1rem' }}>
               {status === 'locating' ? '📍' : '☀️'}
             </div>
-            {status === 'locating' ? 'Zjišťuji polohu…' : 'Načítám data…'}
+            {status === 'locating' ? 'Locating…' : 'Loading data…'}
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -152,7 +152,7 @@ export default function SunriseSunset() {
               border: 'none', borderRadius: '8px',
               color: '#fff', fontSize: '12px',
               padding: '7px 16px', cursor: 'pointer',
-            }}>Zkusit znovu</button>
+            }}>Try again</button>
           </div>
         )}
       </div>
@@ -211,8 +211,8 @@ export default function SunriseSunset() {
     <div style={card}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌅 Slunce</h2>
-        <button onClick={load} title="Obnovit" style={{
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌅 Sun</h2>
+        <button onClick={load} title="Refresh" style={{
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '8px', color: 'var(--text3)',
@@ -354,7 +354,7 @@ export default function SunriseSunset() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
         {/* Sunrise */}
         <div style={statBox('255,140,0')}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>🌅 Východ slunce</div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>🌅 Sunrise</div>
           <div style={{ fontSize: '19px', fontWeight: '600', color: '#FFB300', fontFamily: 'Poppins' }}>
             {fmt(sunrise)}
           </div>
@@ -362,7 +362,7 @@ export default function SunriseSunset() {
 
         {/* Sunset */}
         <div style={statBox('160,100,255')}>
-          <div style={{ fontSize: '10px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>🌇 Západ slunce</div>
+          <div style={{ fontSize: '10px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>🌇 Sunset</div>
           <div style={{ fontSize: '19px', fontWeight: '600', color: 'var(--purple3)', fontFamily: 'Poppins' }}>
             {fmt(sunset)}
           </div>
@@ -372,7 +372,7 @@ export default function SunriseSunset() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
         {/* Day length */}
         <div style={statBox()}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px' }}>⏱ Délka dne</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px' }}>⏱ Day length</div>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>{fmtDuration(dayLength)}</div>
         </div>
 
@@ -380,12 +380,12 @@ export default function SunriseSunset() {
         <div style={statBox(isGoldenHour ? '255,160,0' : undefined)}>
           <div style={{ fontSize: '10px', color: isGoldenHour ? 'rgba(255,160,0,0.8)' : 'var(--text3)', marginBottom: '3px' }}>
             {isGoldenHour
-              ? '✨ Zlatá hodinka'
+              ? '✨ Golden hour'
               : !isAboveHorizon && nowMs < sunriseMs
-                ? '🌅 Do východu'
+                ? '🌅 Until sunrise'
                 : countdownSunset
-                  ? '⏳ Do západu'
-                  : '🌙 Slunce zapadlo'}
+                  ? '⏳ Until sunset'
+                  : '🌙 Sun has set'}
           </div>
           <div style={{ fontSize: '14px', fontWeight: '500', color: isGoldenHour ? '#FFB300' : '#fff' }}>
             {isGoldenHour
@@ -401,7 +401,7 @@ export default function SunriseSunset() {
 
       {/* Golden hour info row */}
       <div style={statBox()}>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>✨ Zlatá hodinka</div>
+        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>✨ Golden hour</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#FFB300' }}>
           <span>🌄 {fmt(sunrise)} – {fmt(new Date(goldenMorningEndMs))}</span>
           <span>🌆 {fmt(new Date(goldenEveningStartMs))} – {fmt(sunset)}</span>
@@ -420,7 +420,7 @@ export default function SunriseSunset() {
           color: '#FFB300',
           textAlign: 'center',
         }}>
-          ✨ Zlatá hodinka právě probíhá! Ideální čas na fotografování.
+          ✨ Golden hour is now! Perfect time for photography.
         </div>
       )}
 

@@ -47,13 +47,13 @@ function pad(n: number) {
 }
 
 const STAT_LABELS = [
-  { key: 'years', label: 'Roky' },
-  { key: 'months', label: 'Měsíce' },
-  { key: 'weeks', label: 'Týdny' },
-  { key: 'days', label: 'Dny' },
-  { key: 'hours', label: 'Hodiny' },
-  { key: 'minutes', label: 'Minuty' },
-  { key: 'seconds', label: 'Sekundy' },
+  { key: 'years', label: 'Years' },
+  { key: 'months', label: 'Months' },
+  { key: 'weeks', label: 'Weeks' },
+  { key: 'days', label: 'Days' },
+  { key: 'hours', label: 'Hours' },
+  { key: 'minutes', label: 'Minutes' },
+  { key: 'seconds', label: 'Seconds' },
 ] as const;
 
 function toLocalInput(d: Date) {
@@ -102,13 +102,13 @@ export default function DateCounter() {
       boxShadow: 'var(--card-shadow)',
     }}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        ⏳ Datum a čas — rozdíl
+        ⏳ Date & Time Difference
       </h2>
 
       {/* Inputs */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem', marginBottom: '1rem' }}>
         <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>Od</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>From</div>
           <input
             type="datetime-local"
             value={fromVal}
@@ -117,7 +117,7 @@ export default function DateCounter() {
           />
         </div>
         <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>Do</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>To</div>
           <input
             type="datetime-local"
             value={toVal}
@@ -135,7 +135,7 @@ export default function DateCounter() {
           fontSize: '12px',
           color: diff.past ? 'var(--amber)' : 'var(--green2)',
         }}>
-          {diff.past ? '⬅ v minulosti' : '➡ v budoucnosti'}
+          {diff.past ? '⬅ in the past' : '➡ in the future'}
         </div>
       )}
 
@@ -163,7 +163,7 @@ export default function DateCounter() {
             <span style={{ color: 'var(--purple3)' }}>{pad(diff.seconds)}</span>
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
-            + {diff.years > 0 ? `${diff.years} r. ` : ''}{diff.months > 0 ? `${diff.months} m. ` : ''}{diff.days > 0 ? `${diff.days} d.` : ''}
+            + {diff.years > 0 ? `${diff.years} yr ` : ''}{diff.months > 0 ? `${diff.months} mo ` : ''}{diff.days > 0 ? `${diff.days} d` : ''}
           </div>
         </div>
       )}
@@ -208,16 +208,16 @@ export default function DateCounter() {
             gridColumn: 'span 3',
           }}>
             <div style={{ fontSize: '18px', fontWeight: '500', fontFamily: 'Poppins', color: 'var(--purple3)' }}>
-              {diff.totalDays.toLocaleString('cs-CZ')}
+              {diff.totalDays.toLocaleString('en-US')}
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>celkem dní</div>
+            <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>total days</div>
           </div>
         </div>
       )}
 
       {!valid && (
         <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          Zadej obě data
+          Enter both dates
         </div>
       )}
 
@@ -236,7 +236,7 @@ export default function DateCounter() {
           width: '100%',
         }}
       >
-        Nastav Od = nyní
+        Set From = now
       </button>
     </div>
   );

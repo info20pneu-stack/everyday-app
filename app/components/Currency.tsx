@@ -113,7 +113,7 @@ export default function Currency() {
         </h2>
         <button
           onClick={loadRates}
-          title="Obnovit kurzy"
+          title="Refresh rates"
           disabled={fetchState === 'loading'}
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer', opacity: fetchState === 'loading' ? 0.5 : 1 }}
         >↺</button>
@@ -191,13 +191,13 @@ export default function Currency() {
             {dataSource === 'live' ? (
               <span style={{ color: 'var(--green2)' }}>● Live (frankfurter.app)</span>
             ) : (
-              <span style={{ color: 'var(--amber)' }}>● Statická data (záloha)</span>
+              <span style={{ color: 'var(--amber)' }}>● Static data (backup)</span>
             )}
           </div>
 
           {fetchState === 'error' && (
             <div style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', color: 'var(--amber)', marginBottom: '1rem', textAlign: 'center' }}>
-              ⚠️ Live kurzy nedostupné · zobrazuji záložní data
+              ⚠️ Live rates unavailable · showing backup data
             </div>
           )}
 
@@ -219,7 +219,7 @@ export default function Currency() {
                       {val.toFixed(val > 100 ? 1 : 4)}
                     </div>
                     <div style={{ fontSize: '9px', color: dataSource === 'live' ? 'var(--green2)' : 'var(--text3)' }}>
-                      {dataSource === 'live' ? 'live' : 'statická'}
+                      {dataSource === 'live' ? 'live' : 'static'}
                     </div>
                   </div>
                 </div>

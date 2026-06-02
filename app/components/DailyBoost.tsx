@@ -14,36 +14,36 @@ type Activity = {
 };
 
 const BANK: Activity[] = [
-  { id: 'walk',      icon: '🚶', name: 'Procházka s rodinou', desc: 'Vyjdi na čerstvý vzduch. Tělo i mysl to ocení.', duration: 1200, durationLabel: '20 min' },
-  { id: 'squats',    icon: '🏋️', name: '30 dřepů',            desc: 'Pomalé a kontrolované. Záda rovně, kolena nad špičkami.' },
-  { id: 'plank',     icon: '🧱', name: 'Plank 30 sekund',     desc: 'Drž tělo v přímé linii. Dýchej rovnoměrně.', duration: 30, durationLabel: '30 s' },
-  { id: 'breathing', icon: '🌬️', name: 'Box breathing',       desc: '4 s nádech → 4 s hold → 4 s výdech → 4 s hold. 4× opakuj.', duration: 64, durationLabel: '4 cykly' },
-  { id: 'stretch',   icon: '🧘', name: 'Ranní strečink',      desc: 'Protáhni ramena, záda a kyčle. Jemně, bez přepínání.', duration: 300, durationLabel: '5 min' },
-  { id: 'pushups',   icon: '💪', name: '10 kliků',            desc: 'Pomalé tempo, plný rozsah. Neuhýbej boky.' },
-  { id: 'water',     icon: '💧', name: '2 sklenice vody',     desc: 'Teď hned! Hydratace zlepšuje soustředění a náladu.' },
-  { id: 'steps',     icon: '👣', name: '1 000 kroků navíc',   desc: 'Zastav se o zastávku dřív, vyber schody, projdi se po obědě.' },
-  { id: 'eyes',      icon: '👁️', name: 'Pravidlo 20-20-20',   desc: 'Podívej se 6 m daleko a drž pohled 20 sekund.', duration: 20, durationLabel: '20 s' },
-  { id: 'praise',    icon: '🌟', name: 'Pochval někoho',      desc: 'Upřímný kompliment potěší druhého a zvedne náladu tobě.' },
-  { id: 'catcow',    icon: '🐱', name: 'Kočka–kráva',         desc: 'Střídej kočku a krávu 10×. Uvolní záda a celou páteř.', duration: 120, durationLabel: '2 min' },
-  { id: 'jumps',     icon: '🤸', name: '30 jumping jacks',    desc: 'Rozhýbej celé tělo, nastartuj krevní oběh!' },
+  { id: 'walk',      icon: '🚶', name: 'Family walk',          desc: 'Step outside for fresh air. Your body and mind will thank you.', duration: 1200, durationLabel: '20 min' },
+  { id: 'squats',    icon: '🏋️', name: '30 squats',            desc: 'Slow and controlled. Back straight, knees over toes.' },
+  { id: 'plank',     icon: '🧱', name: 'Plank 30 seconds',     desc: 'Keep your body in a straight line. Breathe steadily.', duration: 30, durationLabel: '30 s' },
+  { id: 'breathing', icon: '🌬️', name: 'Box breathing',        desc: '4 s inhale → 4 s hold → 4 s exhale → 4 s hold. Repeat 4×.', duration: 64, durationLabel: '4 cycles' },
+  { id: 'stretch',   icon: '🧘', name: 'Morning stretch',      desc: 'Stretch your shoulders, back and hips. Gently, without straining.', duration: 300, durationLabel: '5 min' },
+  { id: 'pushups',   icon: '💪', name: '10 push-ups',          desc: 'Slow tempo, full range of motion. Keep your hips level.' },
+  { id: 'water',     icon: '💧', name: '2 glasses of water',   desc: 'Right now! Hydration improves focus and mood.' },
+  { id: 'steps',     icon: '👣', name: '1,000 extra steps',    desc: 'Get off one stop early, take stairs, go for a walk after lunch.' },
+  { id: 'eyes',      icon: '👁️', name: '20-20-20 rule',        desc: 'Look 6 m away and hold your gaze for 20 seconds.', duration: 20, durationLabel: '20 s' },
+  { id: 'praise',    icon: '🌟', name: 'Compliment someone',   desc: 'A sincere compliment brightens someone\'s day and yours too.' },
+  { id: 'catcow',    icon: '🐱', name: 'Cat–cow stretch',      desc: 'Alternate cat and cow 10×. Releases your back and spine.', duration: 120, durationLabel: '2 min' },
+  { id: 'jumps',     icon: '🤸', name: '30 jumping jacks',     desc: 'Get your whole body moving, boost your circulation!' },
 ];
 
 const QUOTES = [
-  { text: 'Malé kroky každý den vedou k velkým výsledkům.', author: 'Anonymní' },
-  { text: 'Nejlepší čas začít byl včera. Druhý nejlepší je teď.', author: 'Čínské přísloví' },
-  { text: 'Disciplína je most mezi cíli a jejich dosažením.', author: 'Jim Rohn' },
-  { text: 'Každý den je nová příležitost být lepší verzí sebe.', author: 'Anonymní' },
-  { text: 'Úspěch je součet malých snah opakovaných den za dnem.', author: 'Robert Collier' },
-  { text: 'Pohyb je lék. Začni hned, tělo ti poděkuje.', author: 'Hippokrates (volně)' },
-  { text: 'Nejdůležitější kroky jsou ty první — udělej je.', author: 'Anonymní' },
-  { text: 'Péče o sebe není sobectví, je to nutnost.', author: 'Audre Lorde' },
-  { text: 'Síla nevzniká z toho, co dokážeš. Vzniká z překonání toho, co si myslíš, že nedokážeš.', author: 'Rikki Rogers' },
-  { text: 'Vaším největším projektem jste vy sami.', author: 'Anonymní' },
-  { text: 'Jeden dobrý návyk nestačí, ale je to začátek.', author: 'Anonymní' },
-  { text: 'Tělo dosáhne toho, co mysl věří.', author: 'Napoleon Hill' },
-  { text: 'Nikdy nezlitujete dobrý trénink.', author: 'Anonymní' },
-  { text: 'Energie, kterou dáš svému tělu, se ti vrátí jako energie mozku.', author: 'Anonymní' },
-  { text: 'Každá minuta pohybu přidává hodiny života.', author: 'Anonymní' },
+  { text: 'Small steps every day lead to great results.', author: 'Anonymous' },
+  { text: 'The best time to start was yesterday. The second best is now.', author: 'Chinese proverb' },
+  { text: 'Discipline is the bridge between goals and accomplishment.', author: 'Jim Rohn' },
+  { text: 'Every day is a new opportunity to be a better version of yourself.', author: 'Anonymous' },
+  { text: 'Success is the sum of small efforts repeated day in and day out.', author: 'Robert Collier' },
+  { text: 'Movement is medicine. Start now, your body will thank you.', author: 'Hippocrates (adapted)' },
+  { text: 'The most important steps are the first ones — take them.', author: 'Anonymous' },
+  { text: 'Self-care is not selfishness, it is a necessity.', author: 'Audre Lorde' },
+  { text: 'Strength doesn\'t come from what you can do. It comes from overcoming what you thought you couldn\'t.', author: 'Rikki Rogers' },
+  { text: 'Your biggest project is you.', author: 'Anonymous' },
+  { text: 'One good habit is not enough, but it\'s a start.', author: 'Anonymous' },
+  { text: 'The body achieves what the mind believes.', author: 'Napoleon Hill' },
+  { text: 'You will never regret a good workout.', author: 'Anonymous' },
+  { text: 'The energy you give your body returns to you as mental energy.', author: 'Anonymous' },
+  { text: 'Every minute of movement adds hours to your life.', author: 'Anonymous' },
 ];
 
 /* ═══════════════════════ HELPERS ═══════════════════════ */
@@ -77,7 +77,7 @@ function fmtTime(s: number) {
 }
 
 function formatDate(d = new Date()) {
-  return d.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long' });
+  return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
 /* ═══════════════════════ TIMER RING ═══════════════════════ */
@@ -249,13 +249,13 @@ function ActivityCard({
             cursor: 'pointer', fontWeight: '500',
           }}
         >
-          Označit jako hotové
+          Mark as done
         </button>
       )}
 
       {done && (
         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--green2)', fontWeight: '600' }}>
-          Splněno! Skvělá práce 💚
+          Done! Great work 💚
         </div>
       )}
     </div>
@@ -275,7 +275,7 @@ function StreakBadge({ count }: { count: number }) {
     }}>
       <span style={{ fontSize: '14px' }}>{count >= 7 ? '🔥' : count >= 3 ? '⚡' : '✨'}</span>
       <span style={{ fontSize: '12px', fontWeight: '700', color: count >= 7 ? '#FF6B00' : 'var(--amber)' }}>
-        {count} {count === 1 ? 'den' : count < 5 ? 'dny' : 'dní'}
+        {count} {count === 1 ? 'day' : 'days'}
       </span>
     </div>
   );
@@ -358,7 +358,7 @@ export default function DailyBoost() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.75rem' }}>
         <div>
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '2px' }}>
-            🌅 Denní Boost
+            🌅 Daily Boost
           </h2>
           <div style={{ fontSize: '11px', color: 'var(--text3)' }}>
             {formatDate()}
@@ -370,7 +370,7 @@ export default function DailyBoost() {
       {/* Progress bar */}
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text3)', marginBottom: '5px' }}>
-          <span>Dnešní výzvy</span>
+          <span>Today's challenges</span>
           <span style={{ color: allDone ? 'var(--green2)' : '#fff', fontWeight: '600' }}>{doneCount} / 4</span>
         </div>
         <div style={{ height: '6px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
@@ -414,10 +414,10 @@ export default function DailyBoost() {
         }}>
           <div style={{ fontSize: '22px', marginBottom: '4px' }}>🎉</div>
           <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--green2)', fontFamily: 'Poppins' }}>
-            Všechny výzvy splněny!
+            All challenges completed!
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '2px' }}>
-            {streak > 1 ? `Série ${streak} dní! Výborně 🔥` : 'Skvělý start. Přijď zítra!'}
+            {streak > 1 ? `${streak}-day streak! Keep it up 🔥` : 'Great start. Come back tomorrow!'}
           </div>
         </div>
       )}
@@ -435,7 +435,7 @@ export default function DailyBoost() {
       </div>
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '1rem' }}>
-        Aktivity se mění každý den · Streak se počítá při splnění všech 4
+        Activities change daily · Streak counts when all 4 are completed
       </div>
     </div>
   );

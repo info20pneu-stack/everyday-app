@@ -4,37 +4,37 @@ import { useState, useEffect } from 'react';
 
 /* ── WMO weather code → label + emoji ── */
 const WMO: Record<number, [string, string]> = {
-  0:  ['Jasno', '☀️'],
-  1:  ['Převážně jasno', '🌤️'],
-  2:  ['Polojasno', '⛅'],
-  3:  ['Zataženo', '☁️'],
-  45: ['Mlha', '🌫️'],
-  48: ['Mrznoucí mlha', '🌫️'],
-  51: ['Mrholení', '🌦️'],
-  53: ['Mrholení', '🌦️'],
-  55: ['Silné mrholení', '🌧️'],
-  61: ['Slabý déšť', '🌧️'],
-  63: ['Déšť', '🌧️'],
-  65: ['Silný déšť', '🌧️'],
-  71: ['Slabé sněžení', '🌨️'],
-  73: ['Sněžení', '🌨️'],
-  75: ['Silné sněžení', '❄️'],
-  77: ['Sněhové krupky', '🌨️'],
-  80: ['Přeháňky', '🌦️'],
-  81: ['Silné přeháňky', '🌧️'],
-  82: ['Přívalové srážky', '⛈️'],
-  85: ['Sněhové přeháňky', '🌨️'],
-  86: ['Silné sněhové přeháňky', '🌨️'],
-  95: ['Bouřka', '⛈️'],
-  96: ['Bouřka s krupobitím', '⛈️'],
-  99: ['Silná bouřka s krupobitím', '⛈️'],
+  0:  ['Clear', '☀️'],
+  1:  ['Mainly clear', '🌤️'],
+  2:  ['Partly cloudy', '⛅'],
+  3:  ['Overcast', '☁️'],
+  45: ['Fog', '🌫️'],
+  48: ['Freezing fog', '🌫️'],
+  51: ['Light drizzle', '🌦️'],
+  53: ['Drizzle', '🌦️'],
+  55: ['Heavy drizzle', '🌧️'],
+  61: ['Light rain', '🌧️'],
+  63: ['Rain', '🌧️'],
+  65: ['Heavy rain', '🌧️'],
+  71: ['Light snow', '🌨️'],
+  73: ['Snow', '🌨️'],
+  75: ['Heavy snow', '❄️'],
+  77: ['Snow grains', '🌨️'],
+  80: ['Showers', '🌦️'],
+  81: ['Heavy showers', '🌧️'],
+  82: ['Violent showers', '⛈️'],
+  85: ['Snow showers', '🌨️'],
+  86: ['Heavy snow showers', '🌨️'],
+  95: ['Thunderstorm', '⛈️'],
+  96: ['Thunderstorm with hail', '⛈️'],
+  99: ['Heavy thunderstorm with hail', '⛈️'],
 };
 
 function wmo(code: number): [string, string] {
-  return WMO[code] ?? ['Neznámo', '🌡️'];
+  return WMO[code] ?? ['Unknown', '🌡️'];
 }
 
-const DAYS_CS = ['Ne', 'Po', 'Út', 'St', 'Čt', 'Pá', 'So'];
+const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type Current = {
   temp: number;
@@ -67,12 +67,12 @@ async function fetchCity(lat: number, lon: number): Promise<string> {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
-      { headers: { 'Accept-Language': 'cs' } }
+      { headers: { 'Accept-Language': 'en' } }
     );
     const j = await r.json();
-    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || 'Moje poloha';
+    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || 'My location';
   } catch {
-    return 'Moje poloha';
+    return 'My location';
   }
 }
 
@@ -175,10 +175,10 @@ async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
 }
 
 function uvLabel(uv: number) {
-  if (uv <= 2) return { label: 'Nízký', color: 'var(--green2)' };
-  if (uv <= 5) return { label: 'Střední', color: 'var(--amber)' };
-  if (uv <= 7) return { label: 'Vysoký', color: '#FF8C00' };
-  return { label: 'Extrémní', color: '#FF4444' };
+  if (uv <= 2) return { label: 'Low', color: 'var(--green2)' };
+  if (uv <= 5) return { label: 'Moderate', color: 'var(--amber)' };
+  if (uv <= 7) return { label: 'High', color: '#FF8C00' };
+  return { label: 'Extreme', color: '#FF4444' };
 }
 
 const statBox: React.CSSProperties = {
@@ -197,7 +197,7 @@ export default function Weather() {
   function load() {
     if (!navigator.geolocation) {
       setStatus('error');
-      setError('Geolokace není v tomto prohlížeči dostupná.');
+      setError('Geolocation is not available in this browser.');
       return;
     }
     setStatus('locating');
@@ -219,13 +219,13 @@ export default function Weather() {
             setStatus('ok');
           } catch {
             setStatus('error');
-            setError('Nepodařilo se načíst data počasí.');
+            setError('Failed to load weather data.');
           }
         }
       },
       () => {
         setStatus('error');
-        setError('Přístup k poloze byl zamítnut.');
+        setError('Location access was denied.');
       },
       { timeout: 10_000 }
     );
@@ -246,9 +246,9 @@ export default function Weather() {
     return (
       <div className="card" style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Počasí</h2>
+          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
           <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
-            {status === 'locating' ? '📍 Zjišťuji polohu…' : '🌐 Načítám…'}
+            {status === 'locating' ? '📍 Locating…' : '🌐 Loading…'}
           </span>
         </div>
         <div style={{ height: '110px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', marginBottom: '.75rem' }} />
@@ -271,7 +271,7 @@ export default function Weather() {
     return (
       <div className="card" style={card}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
-          🌤️ Počasí
+          🌤️ Weather
         </h2>
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '32px', marginBottom: '.75rem' }}>⚠️</div>
@@ -288,7 +288,7 @@ export default function Weather() {
               cursor: 'pointer',
             }}
           >
-            Zkusit znovu
+            Try again
           </button>
         </div>
       </div>
@@ -304,10 +304,10 @@ export default function Weather() {
     <div style={card}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Počasí</h2>
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
         <button
           onClick={load}
-          title="Obnovit"
+          title="Refresh"
           style={{
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.08)',
@@ -338,7 +338,7 @@ export default function Weather() {
               {current.temp}°
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>{desc}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Pocitově {current.feels}°C</div>
+            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Feels like {current.feels}°C</div>
           </div>
         </div>
       </div>
@@ -346,15 +346,15 @@ export default function Weather() {
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>💧 Vlhkost</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>💧 Humidity</div>
           <div style={{ fontSize: '18px', fontWeight: '500', color: 'var(--blue2)' }}>{current.humidity}%</div>
         </div>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>💨 Vítr</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>💨 Wind</div>
           <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.wind} <span style={{ fontSize: '11px' }}>km/h</span></div>
         </div>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>🔭 Tlak</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>🔭 Pressure</div>
           <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.pressure} <span style={{ fontSize: '11px' }}>hPa</span></div>
         </div>
         <div style={statBox}>
@@ -368,7 +368,7 @@ export default function Weather() {
 
       {/* 5-day forecast */}
       <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-        5denní předpověď
+        5-day forecast
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
         {forecast.map((day, i) => {
@@ -386,7 +386,7 @@ export default function Weather() {
               padding: '6px 10px',
             }}>
               <div style={{ width: '26px', fontSize: '11px', color: isToday ? 'var(--purple3)' : 'var(--text2)', fontWeight: isToday ? '600' : '400' }}>
-                {isToday ? 'Dnes' : DAYS_CS[d.getDay()]}
+                {isToday ? 'Today' : DAYS_EN[d.getDay()]}
               </div>
               <div style={{ fontSize: '18px', width: '24px', textAlign: 'center' }}>{dayEmoji}</div>
               <div style={{ flex: 1, fontSize: '11px', color: 'var(--text3)' }}>
@@ -402,7 +402,7 @@ export default function Weather() {
       </div>
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        Zdroj: {source === 'open-meteo' ? 'Open-Meteo' : 'WeatherAPI (záloha)'} · Nominatim OSM
+        Source: {source === 'open-meteo' ? 'Open-Meteo' : 'WeatherAPI (backup)'} · Nominatim OSM
       </div>
       <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
     </div>

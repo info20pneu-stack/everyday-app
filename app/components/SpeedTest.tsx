@@ -127,11 +127,11 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
         <>
           <text x={CX} y={CY + 28} textAnchor="middle"
             fill="rgba(93,76,255,0.9)" fontSize="18" fontWeight="600">
-            ↑ Odesílání
+            ↑ Upload
           </text>
           <text x={CX} y={CY + 50} textAnchor="middle"
             fill="rgba(255,255,255,0.25)" fontSize="10">
-            měření...
+            measuring...
           </text>
         </>
       )}
@@ -239,16 +239,16 @@ export default function SpeedTest() {
 
       setPhase('done');
     } catch (e) {
-      setErrMsg('Nelze se připojit k testovacímu serveru. Může jít o CORS nebo výpadek spojení.');
+      setErrMsg('Cannot connect to test server. Possible CORS restriction or connection failure.');
       setPhase('error');
     }
   }, []);
 
   function pingQuality(ms: number) {
-    if (ms < 20) return { label: 'Výborný', color: '#22C55E' };
-    if (ms < 50) return { label: 'Dobrý', color: '#60A5FA' };
-    if (ms < 100) return { label: 'Průměrný', color: '#FFB300' };
-    return { label: 'Vysoký', color: '#FF5555' };
+    if (ms < 20) return { label: 'Excellent', color: '#22C55E' };
+    if (ms < 50) return { label: 'Good', color: '#60A5FA' };
+    if (ms < 100) return { label: 'Average', color: '#FFB300' };
+    return { label: 'High', color: '#FF5555' };
   }
 
   const stats = [
@@ -261,7 +261,7 @@ export default function SpeedTest() {
       icon: '↓', label: 'Download', value: download,
       fmt: (v: number) => v.toFixed(1), unit: 'Mbps',
       quality: download != null ? {
-        label: download > 100 ? 'Výborný' : download > 30 ? 'Dobrý' : 'Pomalý',
+        label: download > 100 ? 'Excellent' : download > 30 ? 'Good' : 'Slow',
         color: download > 100 ? '#22C55E' : download > 30 ? '#60A5FA' : '#FF5555',
       } : null,
     },
@@ -269,15 +269,15 @@ export default function SpeedTest() {
       icon: '↑', label: 'Upload', value: upload,
       fmt: (v: number) => v.toFixed(1), unit: 'Mbps',
       quality: upload != null ? {
-        label: upload > 50 ? 'Výborný' : upload > 10 ? 'Dobrý' : 'Pomalý',
+        label: upload > 50 ? 'Excellent' : upload > 10 ? 'Good' : 'Slow',
         color: upload > 50 ? '#22C55E' : upload > 10 ? '#60A5FA' : '#FF5555',
       } : null,
     },
   ];
 
   const phaseLabel: Record<Phase, string> = {
-    idle: '', ping: 'Měření latence...', download: 'Testování stahování...',
-    upload: 'Testování odesílání...', done: 'Test dokončen', error: '',
+    idle: '', ping: 'Measuring latency...', download: 'Testing download...',
+    upload: 'Testing upload...', done: 'Test complete', error: '',
   };
 
   return (
@@ -403,10 +403,10 @@ export default function SpeedTest() {
         }}
       >
         {running
-          ? '⏳ Probíhá test...'
+          ? '⏳ Running test...'
           : phase === 'done' || phase === 'error'
-            ? '🔄 Spustit znovu'
-            : '▶ Spustit Speed Test'}
+            ? '🔄 Run again'
+            : '▶ Start Speed Test'}
       </button>
 
       <style>{`

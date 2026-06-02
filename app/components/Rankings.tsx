@@ -168,10 +168,10 @@ const CARD: React.CSSProperties = {
 };
 
 const SORT_OPTS: { key: SortKey; label: string }[] = [
-  { key: 'score',    label: 'Skóre'   },
-  { key: 'price_in', label: 'Cena'    },
-  { key: 'context',  label: 'Kontext' },
-  { key: 'date',     label: 'Datum'   },
+  { key: 'score',    label: 'Score'   },
+  { key: 'price_in', label: 'Price'   },
+  { key: 'context',  label: 'Context' },
+  { key: 'date',     label: 'Date'    },
 ];
 
 /* ═══════════════════════ AI TAB ═══════════════════════ */
@@ -190,7 +190,7 @@ const AIModelsTab = memo(function AIModelsTab() {
     <div>
       {/* Sort bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text3)', marginRight: '2px' }}>Řadit:</span>
+        <span style={{ fontSize: '11px', color: 'var(--text3)', marginRight: '2px' }}>Sort:</span>
         {SORT_OPTS.map(o => (
           <button key={o.key} onClick={() => setSort(o.key)} style={{
             background: sort === o.key ? 'rgba(93,76,255,0.2)' : 'rgba(255,255,255,0.04)',
@@ -204,7 +204,7 @@ const AIModelsTab = memo(function AIModelsTab() {
       {/* Header */}
       <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 52px 80px 54px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
         <span>#</span><span>Model</span>
-        <span style={{ textAlign: 'center' }}>Skóre</span>
+        <span style={{ textAlign: 'center' }}>Score</span>
         <span style={{ textAlign: 'center' }}>Cena /1M</span>
         <span style={{ textAlign: 'center' }}>Kontext</span>
       </div>
@@ -262,7 +262,7 @@ const AIModelsTab = memo(function AIModelsTab() {
       </div>
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        Statická data · Composite score (MMLU, HumanEval, Chatbot Arena ELO)
+        Static data · Composite score (MMLU, HumanEval, Chatbot Arena ELO)
       </div>
     </div>
   );
@@ -320,17 +320,17 @@ const StocksTab = memo(function StocksTab() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
-          {source === 'alphavantage' ? 'Alpha Vantage (záloha)' : source === 'yahoo' ? 'Yahoo Finance · denní data' : 'Yahoo Finance · denní data'}
+          {source === 'alphavantage' ? 'Alpha Vantage (backup)' : 'Yahoo Finance · daily data'}
         </span>
         <button onClick={loadAll} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text3)', fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}>↺</button>
       </div>
 
       {allError && (
         <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.18)', borderRadius: '10px', padding: '10px 14px', marginBottom: '10px', fontSize: '12px', color: 'var(--text2)' }}>
-          ⚠️ Yahoo Finance blokuje přímé požadavky (CORS).
+          ⚠️ Yahoo Finance blocks direct requests (CORS).
           {!hasAlphaKey
-            ? <> Nastav <code style={{ color: 'var(--purple3)' }}>NEXT_PUBLIC_ALPHA_VANTAGE_KEY</code> pro záložní data z Alpha Vantage.</>
-            : <> Zkouším Alpha Vantage zálohu…</>}
+            ? <> Set <code style={{ color: 'var(--purple3)' }}>NEXT_PUBLIC_ALPHA_VANTAGE_KEY</code> for Alpha Vantage backup data.</>
+            : <> Trying Alpha Vantage backup…</>}
         </div>
       )}
 
@@ -338,7 +338,7 @@ const StocksTab = memo(function StocksTab() {
       <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 72px 68px 52px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
         <span>#</span><span>Akcie</span>
         <span style={{ textAlign: 'right' }}>Cena</span>
-        <span style={{ textAlign: 'right' }}>Změna</span>
+        <span style={{ textAlign: 'right' }}>Change</span>
         <span style={{ textAlign: 'right' }}>Objem</span>
       </div>
 
@@ -440,15 +440,15 @@ const MusicTab = memo(function MusicTab() {
 
       {state === 'loading' && (
         <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-          <div style={{ fontSize: '28px', marginBottom: '8px' }}>🎵</div>Načítám žebříček…
+          <div style={{ fontSize: '28px', marginBottom: '8px' }}>🎵</div>Loading chart…
         </div>
       )}
 
       {state === 'error' && (
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚠️</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Nepodařilo se načíst žebříček.</div>
-          <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>Zkusit znovu</button>
+          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Failed to load chart.</div>
+          <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>Try again</button>
         </div>
       )}
 
@@ -491,7 +491,7 @@ const MusicTab = memo(function MusicTab() {
       )}
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        Zdroj: Apple iTunes RSS · Last.fm: vyžaduje API klíč (registrace zdarma na last.fm/api)
+        Source: Apple iTunes RSS · Last.fm: requires API key (free registration at last.fm/api)
       </div>
     </div>
   );
@@ -520,7 +520,7 @@ export default function Rankings() {
   return (
     <div className="card" style={CARD}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        🏅 Žebříčky
+        🏅 Rankings
       </h2>
 
       <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem' }}>

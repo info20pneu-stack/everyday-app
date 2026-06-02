@@ -56,7 +56,7 @@ const ESPN_CONFIG = {
     summaryUrl:    'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summary',
     periodLabel: (p: number) => p <= 3 ? `${p}.` : 'PP',
     statKeys:   ['shots', 'powerPlayGoals', 'penaltyMinutes', 'hits', 'faceOffWinPercentage'],
-    statLabels: ['Střely', 'PP branky', 'PIM', 'Hity', 'Vhazování %'],
+    statLabels: ['Shots', 'PP goals', 'PIM', 'Hits', 'FO Win %'],
   },
   nba: {
     label: 'NBA', emoji: '🏀',
@@ -64,7 +64,7 @@ const ESPN_CONFIG = {
     summaryUrl:    'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary',
     periodLabel: (p: number) => p <= 4 ? `Q${p}` : 'OT',
     statKeys:   ['fieldGoalPct', 'threePointPct', 'freeThrowPct', 'totalRebounds', 'assists', 'turnovers'],
-    statLabels: ['FG%', '3P%', 'FT%', 'Doskoky', 'Asistence', 'Ztráty'],
+    statLabels: ['FG%', '3P%', 'FT%', 'Rebounds', 'Assists', 'Turnovers'],
   },
   nfl: {
     label: 'NFL', emoji: '🏈',
@@ -72,7 +72,7 @@ const ESPN_CONFIG = {
     summaryUrl:    'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary',
     periodLabel: (p: number) => p <= 4 ? `Q${p}` : 'OT',
     statKeys:   ['netPassingYards', 'rushingYards', 'turnovers', 'sacks', 'possessionTime'],
-    statLabels: ['Pass yds', 'Rush yds', 'Ztráty', 'Sacks', 'Drž. míče'],
+    statLabels: ['Pass yds', 'Rush yds', 'Turnovers', 'Sacks', 'Possession'],
   },
 } as const;
 
@@ -228,7 +228,7 @@ function parseTeam(competitor: any): Team {
 
 function formatScheduledTime(isoDate: string): string {
   try {
-    return new Date(isoDate).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+    return new Date(isoDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
   } catch { return '—'; }
 }
 
@@ -321,7 +321,7 @@ function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): Gam
     statLabels: [...cfg.statLabels],
     venue: gameInfo.venue?.fullName,
     attendance: gameInfo.attendance
-      ? Number(gameInfo.attendance).toLocaleString('cs-CZ')
+      ? Number(gameInfo.attendance).toLocaleString('en-US')
       : undefined,
   };
 }
@@ -369,7 +369,7 @@ const StatusBadge = memo(function StatusBadge({ game }: { game: Game }) {
   if (game.status === 'postponed') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '10px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Odloženo</div>
+        <div style={{ fontSize: '10px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Postponed</div>
       </div>
     );
   }
@@ -391,7 +391,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Venue */}
       {detail.venue && (
         <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', marginBottom: '10px' }}>
-          📍 {detail.venue}{detail.attendance ? ` · ${detail.attendance} diváků` : ''}
+          📍 {detail.venue}{detail.attendance ? ` · ${detail.attendance} spectators` : ''}
         </div>
       )}
 
@@ -432,7 +432,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Top performers */}
       {detail.performers.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Nejlepší hráči</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Top performers</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             {detail.performers.map((p, i) => {
               const isHome = p.team === game.home.abbr;
@@ -526,10 +526,10 @@ const GameRow = memo(function GameRow({
       {expanded && (
         <div style={{ border: '1px solid rgba(93,76,255,0.3)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0 8px 8px', background: 'rgba(93,76,255,0.04)' }}>
           {detailState === 'loading' && (
-            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text3)', fontSize: '12px' }}>Načítám detail…</div>
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text3)', fontSize: '12px' }}>Loading details…</div>
           )}
           {detailState === 'error' && (
-            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#EF4444', fontSize: '12px' }}>Nepodařilo se načíst detail zápasu.</div>
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#EF4444', fontSize: '12px' }}>Failed to load game details.</div>
           )}
           {detailState === 'ok' && detail && (
             <GameDetailPanel game={game} detail={detail} />
@@ -546,7 +546,7 @@ const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: S
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: colTemplate, gap: '4px', padding: '4px 8px', marginBottom: '2px' }}>
         <div style={{ fontSize: '10px', color: 'var(--text3)' }}>#</div>
-        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Tým</div>
+        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Team</div>
         {headers.map(h => <div key={h} style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>{h}</div>)}
       </div>
       {rows.map((row, i) => (
@@ -712,8 +712,8 @@ export default function Sports() {
       {/* View toggle (non-WC) */}
       {leagueId !== 'wc2026' && (
       <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '3px', marginBottom: '1rem', gap: '2px' }}>
-        <button onClick={() => setView('games')} style={viewBtn(view === 'games')}>📅 Zápasy</button>
-        <button onClick={() => setView('standings')} style={viewBtn(view === 'standings')}>📊 Tabulka</button>
+        <button onClick={() => setView('games')} style={viewBtn(view === 'games')}>📅 Games</button>
+        <button onClick={() => setView('standings')} style={viewBtn(view === 'standings')}>📊 Standings</button>
       </div>
       )}
 
@@ -736,9 +736,9 @@ export default function Sports() {
       {view === 'games' && state === 'error' && (
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚠️</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Nepodařilo se načíst data.</div>
+          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Failed to load data.</div>
           <button onClick={() => fetchLeague(leagueId)} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
-            Zkusit znovu
+            Try again
           </button>
         </div>
       )}
@@ -748,7 +748,7 @@ export default function Sports() {
         <>
           {live.length > 0 && (
             <>
-              <SectionLabel label="Živě" count={live.length} />
+              <SectionLabel label="Live" count={live.length} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
                 {live.map(g => (
                   <GameRow key={g.id} game={g} leagueId={leagueId}
@@ -761,7 +761,7 @@ export default function Sports() {
           )}
           {final.length > 0 && (
             <>
-              <SectionLabel label="Dnes dokončeno" count={final.length} />
+              <SectionLabel label="Today's results" count={final.length} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
                 {final.map(g => (
                   <GameRow key={g.id} game={g} leagueId={leagueId}
@@ -774,7 +774,7 @@ export default function Sports() {
           )}
           {upcoming.length > 0 && (
             <>
-              <SectionLabel label="Nadcházející" count={upcoming.length} />
+              <SectionLabel label="Upcoming" count={upcoming.length} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
                 {upcoming.map(g => (
                   <GameRow key={g.id} game={g} leagueId={leagueId}
@@ -788,12 +788,12 @@ export default function Sports() {
           {games.length === 0 && (
             <div style={{ textAlign: 'center', padding: '2.5rem 0', color: 'var(--text3)', fontSize: '13px' }}>
               <div style={{ fontSize: '28px', marginBottom: '8px' }}>🗓️</div>
-              Dnes žádné zápasy
+              No games today
             </div>
           )}
           {live.length > 0 && (
             <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-              Zdroj: ESPN API · auto-refresh každých 60 s
+              Source: ESPN API · auto-refresh every 60s
             </div>
           )}
         </>
@@ -806,9 +806,9 @@ export default function Sports() {
           {leagueId === 'nhl' && (
             <div style={{ display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap' }}>
               {([
-                { id: 'league' as NhlView,     label: '📊 Liga' },
-                { id: 'conference' as NhlView, label: '🗺️ Konference' },
-                { id: 'scorers' as NhlView,    label: '⛸️ Bodování' },
+                { id: 'league' as NhlView,     label: '📊 League' },
+                { id: 'conference' as NhlView, label: '🗺️ Conference' },
+                { id: 'scorers' as NhlView,    label: '⛸️ Scoring' },
                 { id: 'playoff' as NhlView,    label: '🏆 Playoff' },
               ]).map(v => (
                 <button key={v.id} onClick={() => setNhlView(v.id)} style={{
@@ -840,7 +840,7 @@ export default function Sports() {
           {leagueId === 'nhl' && nhlView === 'scorers' && (
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '3px 8px', fontSize: '9px', color: 'var(--text3)', marginBottom: '3px' }}>
-                <div>#</div><div>Hráč</div><div style={{textAlign:'center'}}>G</div><div style={{textAlign:'center'}}>A</div><div style={{textAlign:'center', fontWeight:'700'}}>Pts</div>
+                <div>#</div><div>Player</div><div style={{textAlign:'center'}}>G</div><div style={{textAlign:'center'}}>A</div><div style={{textAlign:'center', fontWeight:'700'}}>Pts</div>
               </div>
               {NHL_SCORERS.map(s => (
                 <div key={s.name} style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '5px 8px', borderRadius: '7px', background: s.rank <= 3 ? 'rgba(255,179,0,0.05)' : 'rgba(255,255,255,0.02)', alignItems: 'center', marginBottom: '2px' }}>
@@ -887,7 +887,7 @@ export default function Sports() {
           )}
 
           <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            Tabulka: statická data · sezóna 2024-25
+            Standings: static data · season 2024-25
           </div>
         </>
       )}

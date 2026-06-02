@@ -70,25 +70,25 @@ function calcAge(birth: Date, now: Date): Age {
 }
 
 const STATS = [
-  { key: 'totalDays', label: 'Dní' },
-  { key: 'totalHours', label: 'Hodin' },
-  { key: 'totalMinutes', label: 'Minut' },
-  { key: 'totalSeconds', label: 'Sekund' },
+  { key: 'totalDays', label: 'Days' },
+  { key: 'totalHours', label: 'Hours' },
+  { key: 'totalMinutes', label: 'Minutes' },
+  { key: 'totalSeconds', label: 'Seconds' },
 ] as const;
 
 const ZODIAC = [
-  { sign: 'Kozoroh', emoji: '♑', start: [12, 22], end: [1, 19] },
-  { sign: 'Vodnář', emoji: '♒', start: [1, 20], end: [2, 18] },
-  { sign: 'Ryby', emoji: '♓', start: [2, 19], end: [3, 20] },
-  { sign: 'Beran', emoji: '♈', start: [3, 21], end: [4, 19] },
-  { sign: 'Býk', emoji: '♉', start: [4, 20], end: [5, 20] },
-  { sign: 'Blíženci', emoji: '♊', start: [5, 21], end: [6, 20] },
-  { sign: 'Rak', emoji: '♋', start: [6, 21], end: [7, 22] },
-  { sign: 'Lev', emoji: '♌', start: [7, 23], end: [8, 22] },
-  { sign: 'Panna', emoji: '♍', start: [8, 23], end: [9, 22] },
-  { sign: 'Váhy', emoji: '♎', start: [9, 23], end: [10, 22] },
-  { sign: 'Štír', emoji: '♏', start: [10, 23], end: [11, 21] },
-  { sign: 'Střelec', emoji: '♐', start: [11, 22], end: [12, 21] },
+  { sign: 'Capricorn', emoji: '♑', start: [12, 22], end: [1, 19] },
+  { sign: 'Aquarius', emoji: '♒', start: [1, 20], end: [2, 18] },
+  { sign: 'Pisces', emoji: '♓', start: [2, 19], end: [3, 20] },
+  { sign: 'Aries', emoji: '♈', start: [3, 21], end: [4, 19] },
+  { sign: 'Taurus', emoji: '♉', start: [4, 20], end: [5, 20] },
+  { sign: 'Gemini', emoji: '♊', start: [5, 21], end: [6, 20] },
+  { sign: 'Cancer', emoji: '♋', start: [6, 21], end: [7, 22] },
+  { sign: 'Leo', emoji: '♌', start: [7, 23], end: [8, 22] },
+  { sign: 'Virgo', emoji: '♍', start: [8, 23], end: [9, 22] },
+  { sign: 'Libra', emoji: '♎', start: [9, 23], end: [10, 22] },
+  { sign: 'Scorpio', emoji: '♏', start: [10, 23], end: [11, 21] },
+  { sign: 'Sagittarius', emoji: '♐', start: [11, 22], end: [12, 21] },
 ];
 
 function getZodiac(month: number, day: number) {
@@ -154,12 +154,12 @@ export default function AgeCalculator() {
       boxShadow: 'var(--card-shadow)',
     }}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        🎂 Kalkulačka věku
+        🎂 Age Calculator
       </h2>
 
       {/* Birth date — three selects */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>Datum narození</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>Date of birth</div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {/* Day */}
           <select value={birthDay} onChange={e => setBirthDay(Number(e.target.value))} style={selectStyle}>
@@ -176,14 +176,14 @@ export default function AgeCalculator() {
         </div>
         {birthDay > 28 && !valid && birth.getDate() !== birthDay && (
           <div style={{ fontSize: '11px', color: 'var(--amber)', marginTop: '4px' }}>
-            ⚠️ {MONTH_NAMES[birthMonth - 1]} nemá {birthDay} dní
+            ⚠️ {MONTH_NAMES[birthMonth - 1]} does not have {birthDay} days
           </div>
         )}
       </div>
 
       {!valid && (
         <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          Zadej datum narození
+          Enter date of birth
         </div>
       )}
 
@@ -205,7 +205,7 @@ export default function AgeCalculator() {
               letterSpacing: '1px',
               textTransform: 'uppercase',
             }}>
-              Tvůj věk
+              Your age
             </div>
             <div style={{
               fontFamily: 'Poppins',
@@ -217,7 +217,7 @@ export default function AgeCalculator() {
               {age.years}
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
-              {age.months} měs. · {age.days} dní · {pad(age.hours)}:{pad(age.minutes)}:
+              {age.months} mo · {age.days} d · {pad(age.hours)}:{pad(age.minutes)}:
               <span style={{ color: 'var(--purple3)' }}>{pad(age.seconds)}</span>
             </div>
           </div>
@@ -239,12 +239,12 @@ export default function AgeCalculator() {
           }}>
             <div>
               <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '2px' }}>
-                Další narozeniny
+                Next birthday
               </div>
               <div style={{ fontSize: '13px', color: '#fff' }}>
                 {age.isToday
-                  ? '🎉 Dnes máš narozeniny!'
-                  : `${age.nextBirthdayDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long' })}`}
+                  ? '🎉 Happy Birthday!'
+                  : `${age.nextBirthdayDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`}
               </div>
             </div>
             {!age.isToday && (
@@ -257,7 +257,7 @@ export default function AgeCalculator() {
                 }}>
                   {age.nextBirthday}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>dní</div>
+                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>days</div>
               </div>
             )}
           </div>
@@ -277,7 +277,7 @@ export default function AgeCalculator() {
                 <span style={{ fontSize: '22px' }}>{zodiac.emoji}</span>
                 <div>
                   <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>{zodiac.sign}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Zvěrokruh</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Zodiac</div>
                 </div>
               </div>
             )}
@@ -293,9 +293,9 @@ export default function AgeCalculator() {
               <span style={{ fontSize: '22px' }}>📅</span>
               <div>
                 <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>
-                  {birth.toLocaleDateString('cs-CZ', { weekday: 'long' })}
+                  {birth.toLocaleDateString('en-US', { weekday: 'long' })}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Den narození</div>
+                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Day of birth</div>
               </div>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function AgeCalculator() {
                   fontWeight: '500',
                   color: key === 'totalSeconds' ? 'var(--purple3)' : '#fff',
                 }}>
-                  {age[key].toLocaleString('cs-CZ')}
+                  {age[key].toLocaleString('en-US')}
                 </span>
               </div>
             ))}

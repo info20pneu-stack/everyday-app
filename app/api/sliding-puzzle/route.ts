@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       typeof moves !== 'number' || moves < 1
     ) {
       console.error('[sliding-puzzle POST] Validation failed:', body);
-      return NextResponse.json({ error: 'Neplatná data' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()

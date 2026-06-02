@@ -176,19 +176,18 @@ function buildMatches(): WCMatch[] {
 const ALL_MATCHES = buildMatches();
 
 /* ── Timezone helpers ── */
-const CZECH_DAYS = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
-const CZECH_MONTHS_GEN = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+const EN_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const EN_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function formatMatchTime(utcStr: string, userTz: string): { line1: string; time: string; tzAbbr: string } {
   const date = new Date(utcStr);
-// Use Date methods in the timezone
   const inTz = new Date(date.toLocaleString('en-US', { timeZone: userTz }));
-  const czDay = CZECH_DAYS[inTz.getDay()];
-  const czMonth = CZECH_MONTHS_GEN[inTz.getMonth()];
+  const day = EN_DAYS[inTz.getDay()];
+  const month = EN_MONTHS[inTz.getMonth()];
   const dayNum = inTz.getDate();
 
-  const time = new Intl.DateTimeFormat('cs-CZ', {
-    timeZone: userTz, hour: '2-digit', minute: '2-digit',
+  const time = new Intl.DateTimeFormat('en-US', {
+    timeZone: userTz, hour: '2-digit', minute: '2-digit', hour12: false,
   }).format(date);
 
   const tzAbbr = new Intl.DateTimeFormat('en-US', {
@@ -196,7 +195,7 @@ function formatMatchTime(utcStr: string, userTz: string): { line1: string; time:
   }).formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? '';
 
   return {
-    line1: `${czDay} ${dayNum}. ${czMonth}`,
+    line1: `${day} ${dayNum} ${month}`,
     time,
     tzAbbr,
   };
@@ -339,7 +338,7 @@ function GroupTable({ letter, teams }: { letter: string; teams: WCTeam[] }) {
     <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
       <div style={{ background: 'rgba(255,255,255,0.04)', padding: '5px 10px', fontSize: '11px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px' }}>GROUP {letter}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '3px 8px', fontSize: '9px', color: 'var(--text3)' }}>
-        <div>Tým</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>V</div><div style={{textAlign:'center'}}>R</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>GD</div><div style={{textAlign:'center'}}>B</div>
+        <div>Team</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>V</div><div style={{textAlign:'center'}}>R</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>GD</div><div style={{textAlign:'center'}}>B</div>
       </div>
       {sorted.map((t, i) => (
         <div key={t.name} style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '5px 8px', borderTop: '1px solid rgba(255,255,255,0.04)', background: i < 2 ? 'rgba(34,197,94,0.05)' : 'transparent', borderLeft: i < 2 ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
@@ -442,9 +441,9 @@ export default function WC2026() {
     <div>
       {/* View toggle */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-        <button style={viewBtn('matches')} onClick={() => setView('matches')}>📅 Zápasy</button>
-        <button style={viewBtn('groups')}  onClick={() => setView('groups')}>📊 Skupiny</button>
-        <button style={viewBtn('bracket')} onClick={() => setView('bracket')}>🏆 Pavouk</button>
+        <button style={viewBtn('matches')} onClick={() => setView('matches')}>📅 Matches</button>
+        <button style={viewBtn('groups')}  onClick={() => setView('groups')}>📊 Groups</button>
+        <button style={viewBtn('bracket')} onClick={() => setView('bracket')}>🏆 Bracket</button>
       </div>
 
       {/* MATCHES view */}
@@ -456,7 +455,7 @@ export default function WC2026() {
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '5px' }}>
               {['All','A','B','C','D','E','F','G','H'].map(g => (
                 <button key={g} style={filterBtn(filterGroup === g)} onClick={() => setFilterGroup(g)}>
-                  {g === 'All' ? 'Vše' : `Skupina ${g}`}
+                  {g === 'All' ? 'All' : `Group ${g}`}
                 </button>
               ))}
             </div>
@@ -464,7 +463,7 @@ export default function WC2026() {
             <div style={{ display: 'flex', gap: '4px' }}>
               {[0,1,2,3].map(md => (
                 <button key={md} style={filterBtn(filterMD === md)} onClick={() => setFilterMD(md)}>
-                  {md === 0 ? 'Vše' : `Kolo ${md}`}
+                  {md === 0 ? 'All' : `Round ${md}`}
                 </button>
               ))}
             </div>
@@ -472,7 +471,7 @@ export default function WC2026() {
 
           {/* Timezone info */}
           <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '8px' }}>
-            🕐 Čas v tvém pásmu: <span style={{ color: 'var(--purple3)' }}>{userTz.replace('_',' ')}</span>
+            🕐 Your timezone: <span style={{ color: 'var(--purple3)' }}>{userTz.replace('_',' ')}</span>
           </div>
 
           {/* Match list grouped by date */}
@@ -480,16 +479,16 @@ export default function WC2026() {
             {Array.from(byDate.entries()).map(([dateKey, dayMatches]) => {
               const firstDate = new Date(dayMatches[0].utc);
               const inTz = new Date(firstDate.toLocaleString('en-US', { timeZone: userTz }));
-              const czDay = CZECH_DAYS[inTz.getDay()];
-              const czMonth = CZECH_MONTHS_GEN[inTz.getMonth()];
+              const czDay = EN_DAYS[inTz.getDay()];
+              const czMonth = EN_MONTHS[inTz.getMonth()];
               const dayNum = inTz.getDate();
               const todayStr = new Date().toLocaleDateString('en-US', { timeZone: userTz });
               const isToday_ = dateKey === todayStr;
               return (
                 <div key={dateKey} style={{ marginBottom: '10px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '700', color: isToday_ ? 'var(--green2)' : 'var(--text3)', marginBottom: '5px', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '9px' }}>DNES</span>}
-                    {czDay} {dayNum}. {czMonth}
+                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '9px' }}>TODAY</span>}
+                    {czDay} {dayNum} {czMonth}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {dayMatches.map(m => (
@@ -501,12 +500,12 @@ export default function WC2026() {
             })}
             {filtered.length === 0 && (
               <div style={{ textAlign:'center',padding:'2rem',color:'var(--text3)',fontSize:'13px' }}>
-                Žádné zápasy pro vybraný filtr
+                No matches for the selected filter
               </div>
             )}
           </div>
           <div style={{ fontSize:'10px',color:'var(--text3)',textAlign:'center',marginTop:'6px' }}>
-            {ALL_MATCHES.length} zápasů skupinové fáze · {ALL_MATCHES.filter(m => m.status === 'final').length} odehráno
+            {ALL_MATCHES.length} group stage matches · {ALL_MATCHES.filter(m => m.status === 'final').length} played
           </div>
         </>
       )}
@@ -522,16 +521,16 @@ export default function WC2026() {
       {view === 'bracket' && (
         <div>
           <div style={{ fontSize:'11px',color:'rgba(34,197,94,0.8)',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'8px',padding:'5px 10px',marginBottom:'10px',textAlign:'center' }}>
-            ✓ Výsledky R16 · QF nezahájen
+            ✓ R16 results in · QF not started
           </div>
-          {[{ label:'ROUND OF 16',matches:R16 },{ label:'ČTVRTFINÁLE',matches:QF },{ label:'SEMIFINÁLE',matches:SF }].map(r => (
+          {[{ label:'ROUND OF 16',matches:R16 },{ label:'QUARTER-FINALS',matches:QF },{ label:'SEMI-FINALS',matches:SF }].map(r => (
             <div key={r.label} style={{ marginBottom:'10px' }}>
               <div style={{ fontSize:'10px',color:'var(--text3)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>{r.label}</div>
               <div style={{ display:'flex',flexDirection:'column',gap:'3px' }}>{r.matches.map((m,i) => <BracketRow key={i} m={m} />)}</div>
             </div>
           ))}
           <div style={{ marginBottom:'10px' }}>
-            <div style={{ fontSize:'10px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 FINÁLE</div>
+            <div style={{ fontSize:'10px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 FINAL</div>
             <BracketRow m={FINAL} />
           </div>
         </div>

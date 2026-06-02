@@ -10,12 +10,12 @@ import type { Suggestion, SuggestionStatus } from '../api/suggestions/route';
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'; // dev key
 
 const STATUS_META: Record<SuggestionStatus, { color: string; bg: string; label: string }> = {
-  'Navrženo':  { color: '#93c5fd', bg: 'rgba(59,130,246,0.12)',  label: '💡 Navrženo'  },
-  'Zvažujeme': { color: '#fcd34d', bg: 'rgba(245,158,11,0.12)',  label: '🤔 Zvažujeme' },
-  'Plánováno': { color: '#a78bfa', bg: 'rgba(139,92,246,0.12)',  label: '📋 Plánováno' },
-  'V vývoji':  { color: '#34d399', bg: 'rgba(16,185,129,0.12)',  label: '⚙️ V vývoji'  },
-  'Hotovo':    { color: '#4ade80', bg: 'rgba(34,197,94,0.15)',   label: '✅ Hotovo'    },
-  'Zamítnuto': { color: '#f87171', bg: 'rgba(239,68,68,0.12)',   label: '❌ Zamítnuto' },
+  'Navrženo':  { color: '#93c5fd', bg: 'rgba(59,130,246,0.12)',  label: '💡 Suggested'   },
+  'Zvažujeme': { color: '#fcd34d', bg: 'rgba(245,158,11,0.12)',  label: '🤔 Considering' },
+  'Plánováno': { color: '#a78bfa', bg: 'rgba(139,92,246,0.12)',  label: '📋 Planned'     },
+  'V vývoji':  { color: '#34d399', bg: 'rgba(16,185,129,0.12)',  label: '⚙️ In progress' },
+  'Hotovo':    { color: '#4ade80', bg: 'rgba(34,197,94,0.15)',   label: '✅ Done'        },
+  'Zamítnuto': { color: '#f87171', bg: 'rgba(239,68,68,0.12)',   label: '❌ Rejected'    },
 };
 
 const LS_VOTED_KEY = 'everyday-voted';
@@ -102,7 +102,7 @@ export default function SuggestClient() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!turnstileToken) {
-      setSubmitMsg('Prosím potvrďte, že nejste robot.');
+      setSubmitMsg('Please confirm you are not a robot.');
       setSubmitStatus('error');
       return;
     }
@@ -116,18 +116,18 @@ export default function SuggestClient() {
       });
       if (!res.ok) {
         const err = await res.json() as { error: string };
-        throw new Error(err.error || 'Chyba při odesílání');
+        throw new Error(err.error || 'Submission error');
       }
       const newSuggestion = await res.json() as Suggestion;
       setSuggestions(prev => [newSuggestion, ...prev]);
       setTitle(''); setDescription(''); setEmail('');
       setTurnstileToken('');
       setSubmitStatus('success');
-      setSubmitMsg('Děkujeme! Váš návrh byl odeslán ke schválení.');
+      setSubmitMsg('Thank you! Your suggestion has been submitted for review.');
       setFormOpen(false);
     } catch (err: unknown) {
       setSubmitStatus('error');
-      setSubmitMsg(err instanceof Error ? err.message : 'Neznámá chyba');
+      setSubmitMsg(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSubmitting(false);
     }
@@ -211,7 +211,7 @@ export default function SuggestClient() {
                       💡 Suggest & Vote
                     </h1>
                     <p style={{ fontSize: '13px', color: 'var(--text3)', margin: 0 }}>
-                      Navrhni novou funkci nebo hlasuj pro existující návrhy.
+                      Suggest a new feature or vote for existing ones.
                     </p>
                   </div>
                   <button
@@ -228,7 +228,7 @@ export default function SuggestClient() {
                       flexShrink: 0,
                     }}
                   >
-                    {formOpen ? '✕ Zavřít' : '+ Nový návrh'}
+                    {formOpen ? '✕ Close' : '+ New suggestion'}
                   </button>
                 </div>
               </div>
@@ -237,18 +237,18 @@ export default function SuggestClient() {
               {formOpen && (
                 <div style={{ ...card, marginBottom: '1.25rem', animation: 'fadeIn 0.2s ease' }}>
                   <h2 style={{ fontSize: '15px', color: '#fff', marginBottom: '1rem', fontFamily: 'Poppins' }}>
-                    Nový návrh
+                    New suggestion
                   </h2>
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
                       <label style={{ fontSize: '12px', color: 'var(--text3)', display: 'block', marginBottom: '5px' }}>
-                        Název funkce *
+                        Feature title *
                       </label>
                       <input
                         type="text"
                         value={title}
                         onChange={e => setTitle(e.target.value)}
-                        placeholder="Např. Tmavý režim pro mobilní appku"
+                        placeholder="e.g. Dark mode for the mobile app"
                         maxLength={120}
                         required
                         style={inputStyle}
@@ -256,12 +256,12 @@ export default function SuggestClient() {
                     </div>
                     <div>
                       <label style={{ fontSize: '12px', color: 'var(--text3)', display: 'block', marginBottom: '5px' }}>
-                        Popis *
+                        Description *
                       </label>
                       <textarea
                         value={description}
                         onChange={e => setDescription(e.target.value)}
-                        placeholder="Popište podrobněji, co by funkce měla dělat a proč by byla užitečná..."
+                        placeholder="Describe in more detail what the feature should do and why it would be useful..."
                         maxLength={600}
                         required
                         rows={4}
@@ -273,13 +273,13 @@ export default function SuggestClient() {
                     </div>
                     <div>
                       <label style={{ fontSize: '12px', color: 'var(--text3)', display: 'block', marginBottom: '5px' }}>
-                        Email (nepovinné — pro odpověď)
+                        Email (optional — for a reply)
                       </label>
                       <input
                         type="email"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        placeholder="vas@email.cz"
+                        placeholder="you@email.com"
                         style={inputStyle}
                       />
                     </div>
@@ -322,7 +322,7 @@ export default function SuggestClient() {
                         cursor: submitting ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {submitting ? 'Odesílám...' : 'Odeslat návrh'}
+                      {submitting ? 'Submitting...' : 'Submit suggestion'}
                     </button>
                   </form>
                 </div>
@@ -347,21 +347,21 @@ export default function SuggestClient() {
               <div style={{ ...card }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <h2 style={{ fontSize: '15px', color: '#fff', fontFamily: 'Poppins' }}>
-                    Návrhy komunity
+                    Community suggestions
                   </h2>
                   <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
-                    {suggestions.length} {suggestions.length === 1 ? 'návrh' : suggestions.length < 5 ? 'návrhy' : 'návrhů'}
+                    {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
                   </span>
                 </div>
 
                 {loading ? (
                   <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem', fontSize: '13px' }}>
-                    Načítám návrhy...
+                    Loading suggestions...
                   </div>
                 ) : suggestions.length === 0 ? (
                   <div style={{ textAlign: 'center', color: 'var(--text3)', padding: '2.5rem', fontSize: '13px' }}>
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>💡</div>
-                    Zatím žádné návrhy. Buď první!
+                    No suggestions yet. Be the first!
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -438,7 +438,7 @@ export default function SuggestClient() {
                               {s.description}
                             </div>
                             <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
-                              {new Date(s.createdAt).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              {new Date(s.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                           </div>
                         </div>

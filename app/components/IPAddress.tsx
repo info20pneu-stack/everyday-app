@@ -115,7 +115,7 @@ export default function IPAddress() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <span style={{ fontSize: '1.2rem' }}>🌐</span>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>IP Adresa</span>
+          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>IP Address</span>
         </div>
         {state === 'ok' && data && (
           <div style={{
@@ -155,8 +155,8 @@ export default function IPAddress() {
           padding: '1rem 0',
         }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
-          Nepodařilo se načíst IP data.<br />
-          <span style={{ fontSize: '0.8rem' }}>Zkontrolujte připojení k internetu.</span>
+          Failed to load IP data.<br />
+          <span style={{ fontSize: '0.8rem' }}>Check your internet connection.</span>
         </div>
       )}
 
@@ -177,7 +177,7 @@ export default function IPAddress() {
               gap: '1rem',
             }}>
               <div>
-                <div style={label}>Vaše IP adresa</div>
+                <div style={label}>Your IP address</div>
                 <div style={{
                   fontFamily: 'monospace',
                   fontSize: '1.4rem',
@@ -190,7 +190,7 @@ export default function IPAddress() {
               </div>
               <button
                 onClick={copyIP}
-                title="Kopírovat"
+                title="Copy"
                 style={{
                   background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(93,76,255,0.15)',
                   border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(93,76,255,0.3)'}`,
@@ -204,27 +204,27 @@ export default function IPAddress() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {copied ? '✓ Zkopírováno' : '⎘ Kopírovat'}
+                {copied ? '✓ Copied' : '⎘ Copy'}
               </button>
             </div>
 
             {/* Location */}
-            <Row icon="📍" title="Lokace">
+            <Row icon="📍" title="Location">
               {flagEmoji(data.country_code)}{' '}
               {[data.city, data.region, data.country_name].filter(Boolean).join(', ')}
               {data.postal && (
-                <span style={{ color: 'var(--text3)', fontSize: '0.85rem' }}> · PSČ {data.postal}</span>
+                <span style={{ color: 'var(--text3)', fontSize: '0.85rem' }}> · ZIP {data.postal}</span>
               )}
             </Row>
 
             {/* ISP */}
-            <Row icon="🏢" title="Poskytovatel (ISP)">
+            <Row icon="🏢" title="Internet Provider (ISP)">
               {isp}
               <span style={{ color: 'var(--text3)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{asn}</span>
             </Row>
 
             {/* Timezone */}
-            <Row icon="🕐" title="Časové pásmo">
+            <Row icon="🕐" title="Timezone">
               {data.timezone}
               <span style={{
                 marginLeft: '0.5rem',
@@ -240,7 +240,7 @@ export default function IPAddress() {
             </Row>
 
             {/* Coordinates */}
-            <Row icon="🗺️" title="Souřadnice">
+            <Row icon="🗺️" title="Coordinates">
               <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
                 {data.latitude.toFixed(4)}° N, {data.longitude.toFixed(4)}° E
               </span>

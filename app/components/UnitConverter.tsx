@@ -7,7 +7,7 @@ type Category = { icon: string; name: string; units: Unit[] };
 
 const CATEGORIES: Category[] = [
   {
-    icon: '📏', name: 'Délka',
+    icon: '📏', name: 'Length',
     units: [
       { label: 'mm', factor: 0.001 },
       { label: 'cm', factor: 0.01 },
@@ -20,7 +20,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    icon: '⚖️', name: 'Hmotnost',
+    icon: '⚖️', name: 'Weight',
     units: [
       { label: 'mg', factor: 0.000001 },
       { label: 'g', factor: 0.001 },
@@ -32,7 +32,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    icon: '🌡️', name: 'Teplota',
+    icon: '🌡️', name: 'Temperature',
     units: [
       { label: '°C', factor: 1 },
       { label: '°F', factor: 1 },
@@ -40,7 +40,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    icon: '🧴', name: 'Objem',
+    icon: '🧴', name: 'Volume',
     units: [
       { label: 'ml', factor: 0.001 },
       { label: 'cl', factor: 0.01 },
@@ -56,7 +56,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    icon: '🚀', name: 'Rychlost',
+    icon: '🚀', name: 'Speed',
     units: [
       { label: 'm/s', factor: 1 },
       { label: 'km/h', factor: 0.27777778 },
@@ -66,7 +66,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    icon: '⬛', name: 'Plocha',
+    icon: '⬛', name: 'Area',
     units: [
       { label: 'mm²', factor: 0.000001 },
       { label: 'cm²', factor: 0.0001 },
@@ -82,7 +82,7 @@ const CATEGORIES: Category[] = [
 ];
 
 function toBase(value: number, unit: Unit, catName: string): number {
-  if (catName === 'Teplota') {
+  if (catName === 'Temperature') {
     if (unit.label === '°C') return value;
     if (unit.label === '°F') return (value - 32) * 5 / 9;
     return value - 273.15;
@@ -91,7 +91,7 @@ function toBase(value: number, unit: Unit, catName: string): number {
 }
 
 function fromBase(base: number, unit: Unit, catName: string): number {
-  if (catName === 'Teplota') {
+  if (catName === 'Temperature') {
     if (unit.label === '°C') return base;
     if (unit.label === '°F') return base * 9 / 5 + 32;
     return base + 273.15;
@@ -104,7 +104,7 @@ function fmt(n: number): string {
   const abs = Math.abs(n);
   if (abs === 0) return '0';
   if (abs >= 1e9) return n.toExponential(3);
-  if (abs >= 1000) return n.toLocaleString('cs-CZ', { maximumFractionDigits: 4 });
+  if (abs >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
   if (abs >= 1) return +n.toPrecision(7) + '';
   return +n.toPrecision(4) + '';
 }
@@ -178,7 +178,7 @@ export default function UnitConverter() {
   return (
     <div className="card" style={cardStyle}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        📐 Převodník jednotek
+        📐 Unit Converter
       </h2>
 
       {/* Category tabs */}
@@ -217,7 +217,7 @@ export default function UnitConverter() {
 
       {/* From */}
       <div style={rowStyle}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>Z</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>From</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input
             type="number"
@@ -256,7 +256,7 @@ export default function UnitConverter() {
 
       {/* To */}
       <div style={{ ...rowStyle, marginTop: '.75rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>Na</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>To</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ ...inputStyle, color: 'var(--blue2)', fontSize: '28px', display: 'flex', alignItems: 'center' }}>
             {fmt(result)}

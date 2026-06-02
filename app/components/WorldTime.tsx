@@ -442,7 +442,7 @@ export default function WorldTime() {
 
       {isMobile && !showAll && !search && continent === 'All' && filtered.length > listLimit && (
         <div style={{ marginBottom: '.5rem', fontSize: '11px', color: 'var(--text3)', textAlign: 'center' }}>
-          Zobrazeno {listLimit} z {filtered.length} měst
+          Showing {listLimit} of {filtered.length} cities
         </div>
       )}
 
@@ -461,7 +461,7 @@ export default function WorldTime() {
             fontSize: '12px', fontWeight: '600', padding: '8px', cursor: 'pointer',
           }}
         >
-          {showAll ? 'Zobrazit méně ↑' : `Zobrazit všechna města (${filtered.length}) ↓`}
+          {showAll ? 'Show less ↑' : `Show all cities (${filtered.length}) ↓`}
         </button>
       )}
     </div>

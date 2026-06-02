@@ -179,12 +179,12 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
-              { label: '24h Vysoká',  val: fmtPrice(coin.high_24h) },
-              { label: '24h Nízká',   val: fmtPrice(coin.low_24h) },
-              { label: '24h Změna',   val: fmtPrice(Math.abs(coin.price_change_24h)), color: cc },
-              { label: 'Objem 24h',   val: fmtBig(coin.total_volume) },
+              { label: '24h High',    val: fmtPrice(coin.high_24h) },
+              { label: '24h Low',     val: fmtPrice(coin.low_24h) },
+              { label: '24h Change',  val: fmtPrice(Math.abs(coin.price_change_24h)), color: cc },
+              { label: '24h Volume',  val: fmtBig(coin.total_volume) },
               { label: 'Market Cap',  val: fmtBig(coin.market_cap) },
-              { label: 'V oběhu',     val: coin.circulating_supply >= 1e6
+              { label: 'Circulating', val: coin.circulating_supply >= 1e6
                 ? (coin.circulating_supply / 1e6).toFixed(2) + 'M ' + coin.symbol.toUpperCase()
                 : coin.circulating_supply.toLocaleString('en-US') + ' ' + coin.symbol.toUpperCase() },
             ].map(({ label, val, color }) => (
@@ -198,7 +198,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
           {/* Full 7d sparkline */}
           {sp.length > 0 && (
             <div style={{ marginTop: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '8px 10px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px' }}>7denní průběh ceny</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px' }}>7-day price history</div>
               <SparklineLarge prices={sp} positive={positive} id={coin.id + '-lg'} />
             </div>
           )}
@@ -230,7 +230,7 @@ const SparklineLarge = memo(function SparklineLarge({ prices, positive, id }: { 
   const gid = `cg-lg-${id.replace(/[^a-z0-9]/gi, '')}`;
 
   // X-axis labels (7 days)
-  const dayLabels = ['7d', '6d', '5d', '4d', '3d', '2d', '1d', 'Dnes'];
+  const dayLabels = ['7d', '6d', '5d', '4d', '3d', '2d', '1d', 'Today'];
 
   return (
     <div>
@@ -343,11 +343,11 @@ export default function Crypto() {
     <div className="card" style={cardStyle}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>₿ Kryptoměny</h2>
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>₿ Crypto</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {lastUpdated && (
             <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
-              {lastUpdated.toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}
+              {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
           )}
           <button
@@ -361,7 +361,7 @@ export default function Crypto() {
       {/* Search */}
       <input
         type="text"
-        placeholder="🔍 Hledat kryptoměnu…"
+        placeholder="🔍 Search cryptocurrency…"
         value={search}
         onChange={e => setSearch(e.target.value)}
         style={{
@@ -375,8 +375,8 @@ export default function Crypto() {
       {state === 'ok' && (
         <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 80px 60px 70px 76px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
           <span style={{ textAlign: 'center' }}>#</span>
-          <span>Název</span>
-          <span style={{ textAlign: 'right' }}>Cena</span>
+          <span>Name</span>
+          <span style={{ textAlign: 'right' }}>Price</span>
           <span style={{ textAlign: 'right' }}>24h %</span>
           <span style={{ textAlign: 'right' }}>Mkt Cap</span>
           <span style={{ textAlign: 'right' }}>7d graf</span>
@@ -402,9 +402,9 @@ export default function Crypto() {
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⏳</div>
           <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '4px' }}>CoinGecko rate limit (10 req/min)</div>
-          <div style={{ color: 'var(--text3)', fontSize: '11px', marginBottom: '1rem' }}>Zkus to znovu za chvíli.</div>
+          <div style={{ color: 'var(--text3)', fontSize: '11px', marginBottom: '1rem' }}>Try again in a moment.</div>
           <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
-            Zkusit znovu
+            Try again
           </button>
         </div>
       )}
@@ -413,9 +413,9 @@ export default function Crypto() {
       {state === 'error' && (
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚠️</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Nepodařilo se načíst data.</div>
+          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Failed to load data.</div>
           <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
-            Zkusit znovu
+            Try again
           </button>
         </div>
       )}
@@ -425,7 +425,7 @@ export default function Crypto() {
         <>
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-              Žádná kryptoměna nenalezena
+              No cryptocurrency found
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -440,14 +440,14 @@ export default function Crypto() {
               ))}
               {isMobile && !search && filtered.length > listLimit && (
                 <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text3)', paddingTop: '4px' }}>
-                  + {filtered.length - listLimit} dalších · hledáním zobrazíš více
+                  + {filtered.length - listLimit} more · search to show more
                 </div>
               )}
             </div>
           )}
 
           <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            Zdroj: {source === 'coingecko' ? 'CoinGecko API' : 'CoinCap API (záloha)'} · Klikni na minci pro detail a 7d graf
+            Source: {source === 'coingecko' ? 'CoinGecko API' : 'CoinCap API (backup)'} · Click a coin for details and 7d chart
           </div>
         </>
       )}

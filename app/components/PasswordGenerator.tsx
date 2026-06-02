@@ -79,10 +79,10 @@ function calcStrength(pwd: string, opts: Options): Strength {
   if (activeSets >= 3) score++;
   if (activeSets === 4) score++;
 
-  if (score <= 2) return { label: 'Slabé',      color: '#FF5555', bars: 1, desc: 'Snadno prolomitelné' };
-  if (score <= 4) return { label: 'Průměrné',   color: '#FFB300', bars: 2, desc: 'Přijatelné pro běžné účely' };
-  if (score <= 6) return { label: 'Silné',       color: '#60A5FA', bars: 3, desc: 'Dobře chráněno' };
-  return              { label: 'Velmi silné',  color: '#22C55E', bars: 4, desc: 'Vynikající ochrana' };
+  if (score <= 2) return { label: 'Weak',        color: '#FF5555', bars: 1, desc: 'Easily cracked' };
+  if (score <= 4) return { label: 'Fair',        color: '#FFB300', bars: 2, desc: 'Acceptable for general use' };
+  if (score <= 6) return { label: 'Strong',      color: '#60A5FA', bars: 3, desc: 'Well protected' };
+  return              { label: 'Very strong',  color: '#22C55E', bars: 4, desc: 'Excellent protection' };
 }
 
 function PasswordDisplay({ pwd, onCopy, copied }: {
@@ -113,7 +113,7 @@ function PasswordDisplay({ pwd, onCopy, copied }: {
       </span>
       <button
         onClick={onCopy}
-        title="Kopírovat heslo"
+        title="Copy password"
         style={{
           flexShrink: 0,
           background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(93,76,255,0.15)',
@@ -126,7 +126,7 @@ function PasswordDisplay({ pwd, onCopy, copied }: {
           whiteSpace: 'nowrap',
         }}
       >
-        {copied ? '✓ Zkopírováno' : '⎘ Kopírovat'}
+        {copied ? '✓ Copied' : '⎘ Copy'}
       </button>
     </div>
   );
@@ -159,10 +159,10 @@ function StrengthBar({ strength }: { strength: Strength }) {
 }
 
 const TOGGLE_OPTIONS = [
-  { key: 'upper'   as keyof Options, label: 'ABC', title: 'Velká písmena',  color: '#C084FC' },
-  { key: 'lower'   as keyof Options, label: 'abc', title: 'Malá písmena',   color: '#A78BFA' },
-  { key: 'digits'  as keyof Options, label: '123', title: 'Čísla',          color: '#60A5FA' },
-  { key: 'symbols' as keyof Options, label: '!@#', title: 'Symboly',        color: '#34D399' },
+  { key: 'upper'   as keyof Options, label: 'ABC', title: 'Uppercase letters', color: '#C084FC' },
+  { key: 'lower'   as keyof Options, label: 'abc', title: 'Lowercase letters', color: '#A78BFA' },
+  { key: 'digits'  as keyof Options, label: '123', title: 'Numbers',           color: '#60A5FA' },
+  { key: 'symbols' as keyof Options, label: '!@#', title: 'Symbols',           color: '#34D399' },
 ];
 
 export default function PasswordGenerator() {
@@ -228,7 +228,7 @@ export default function PasswordGenerator() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <span style={{ fontSize: '1.2rem' }}>🔑</span>
           <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>
-            Generátor hesel
+            Password Generator
           </span>
         </div>
         <span style={{
@@ -249,7 +249,7 @@ export default function PasswordGenerator() {
       {/* Length slider */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-          <span style={{ color: 'var(--text2)', fontSize: '0.82rem' }}>Délka hesla</span>
+          <span style={{ color: 'var(--text2)', fontSize: '0.82rem' }}>Password length</span>
           <span style={{
             fontFamily: 'monospace', fontWeight: 700,
             color: 'var(--purple3)', fontSize: '1rem',
@@ -271,7 +271,7 @@ export default function PasswordGenerator() {
       {/* Character set toggles */}
       <div>
         <div style={{ color: 'var(--text2)', fontSize: '0.82rem', marginBottom: '0.6rem' }}>
-          Znakové sady
+          Character sets
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem' }}>
           {TOGGLE_OPTIONS.map(({ key, label, title, color }) => {
@@ -339,7 +339,7 @@ export default function PasswordGenerator() {
             transition: 'all 0.2s',
           }}
         >
-          {copied ? '✓ Zkopírováno' : '⎘ Kopírovat'}
+          {copied ? '✓ Copied' : '⎘ Copy'}
         </button>
       </div>
 
@@ -347,7 +347,7 @@ export default function PasswordGenerator() {
       {history.length > 0 && (
         <div>
           <div style={{ color: 'var(--text3)', fontSize: '0.72rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Poslední hesla
+            Recent passwords
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             {history.map((h, i) => (
@@ -371,7 +371,7 @@ export default function PasswordGenerator() {
                     color: 'var(--text3)', fontSize: '0.7rem', padding: '0 0 0 0.5rem',
                     flexShrink: 0,
                   }}
-                  title="Kopírovat"
+                  title="Copy"
                 >
                   ⎘
                 </button>
@@ -384,10 +384,10 @@ export default function PasswordGenerator() {
       {/* Legend */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
         {[
-          { color: '#C084FC', label: 'Velká' },
-          { color: '#A78BFA', label: 'Malá' },
-          { color: '#60A5FA', label: 'Číslice' },
-          { color: '#34D399', label: 'Symboly' },
+          { color: '#C084FC', label: 'Upper' },
+          { color: '#A78BFA', label: 'Lower' },
+          { color: '#60A5FA', label: 'Digits' },
+          { color: '#34D399', label: 'Symbols' },
         ].map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />

@@ -14,13 +14,13 @@ type Category = {
 };
 
 const CATEGORIES: Category[] = [
-  { label: 'Těžká podváha', color: '#60a5fa', bg: 'rgba(96,165,250,0.15)', min: 0, max: 16 },
-  { label: 'Podváha', color: '#93c5fd', bg: 'rgba(147,197,253,0.12)', min: 16, max: 18.5 },
-  { label: 'Normální váha', color: '#4ade80', bg: 'rgba(74,222,128,0.15)', min: 18.5, max: 25 },
-  { label: 'Nadváha', color: '#facc15', bg: 'rgba(250,204,21,0.15)', min: 25, max: 30 },
-  { label: 'Obezita I.', color: '#fb923c', bg: 'rgba(251,146,60,0.15)', min: 30, max: 35 },
-  { label: 'Obezita II.', color: '#f87171', bg: 'rgba(248,113,113,0.15)', min: 35, max: 40 },
-  { label: 'Obezita III.', color: '#dc2626', bg: 'rgba(220,38,38,0.15)', min: 40, max: 999 },
+  { label: 'Severe underweight', color: '#60a5fa', bg: 'rgba(96,165,250,0.15)', min: 0, max: 16 },
+  { label: 'Underweight', color: '#93c5fd', bg: 'rgba(147,197,253,0.12)', min: 16, max: 18.5 },
+  { label: 'Normal weight', color: '#4ade80', bg: 'rgba(74,222,128,0.15)', min: 18.5, max: 25 },
+  { label: 'Overweight', color: '#facc15', bg: 'rgba(250,204,21,0.15)', min: 25, max: 30 },
+  { label: 'Obesity I', color: '#fb923c', bg: 'rgba(251,146,60,0.15)', min: 30, max: 35 },
+  { label: 'Obesity II', color: '#f87171', bg: 'rgba(248,113,113,0.15)', min: 35, max: 40 },
+  { label: 'Obesity III', color: '#dc2626', bg: 'rgba(220,38,38,0.15)', min: 40, max: 999 },
 ];
 
 function getCategory(bmi: number): Category {
@@ -30,39 +30,39 @@ function getCategory(bmi: number): Category {
 function getRecommendations(bmi: number, age: number, gender: Gender): string[] {
   const recs: string[] = [];
   if (bmi < 16) {
-    recs.push('Okamžitě vyhledej odbornou lékařskou pomoc.');
-    recs.push('Zvyš příjem kalorií o 500–1000 kcal/den.');
-    recs.push('Zaměř se na bílkoviny a zdravé tuky.');
+    recs.push('Seek medical attention immediately.');
+    recs.push('Increase calorie intake by 500–1000 kcal/day.');
+    recs.push('Focus on protein and healthy fats.');
   } else if (bmi < 18.5) {
-    recs.push('Postupně zvyš kalorický příjem (300–500 kcal/den).');
-    recs.push('Zařaď silový trénink pro nárůst svalové hmoty.');
-    recs.push('Konzultuj jídelníček s nutričním specialistou.');
+    recs.push('Gradually increase calorie intake (300–500 kcal/day).');
+    recs.push('Add strength training to build muscle mass.');
+    recs.push('Consult a nutritionist about your diet plan.');
   } else if (bmi < 25) {
-    recs.push('Výborně! Udržuj současný životní styl.');
-    recs.push('Pravidelná pohybová aktivita 150 min/týden.');
-    recs.push('Vyvážená strava bohatá na zeleninu a ovoce.');
+    recs.push('Great! Maintain your current lifestyle.');
+    recs.push('Stay active with at least 150 min of exercise per week.');
+    recs.push('Keep a balanced diet rich in vegetables and fruit.');
   } else if (bmi < 30) {
-    recs.push('Sniž příjem kalorií o 300–500 kcal/den.');
-    recs.push('Zařaď kardio cvičení min. 30 min denně.');
-    recs.push('Omez cukry, alkohol a průmyslově zpracované potraviny.');
+    recs.push('Reduce calorie intake by 300–500 kcal/day.');
+    recs.push('Add cardio exercise for at least 30 min daily.');
+    recs.push('Limit sugar, alcohol, and processed foods.');
   } else if (bmi < 35) {
-    recs.push('Konzultuj redukční plán s lékařem nebo nutričním poradcem.');
-    recs.push('Pohybová aktivita přizpůsobená fyzickému stavu.');
-    recs.push('Sleduj krevní tlak a hladinu cukru v krvi pravidelně.');
+    recs.push('Consult a doctor or nutritionist for a weight loss plan.');
+    recs.push('Choose physical activity suited to your fitness level.');
+    recs.push('Monitor blood pressure and blood sugar regularly.');
   } else {
-    recs.push('Vyhledej odbornou lékařskou pomoc co nejdříve.');
-    recs.push('Zvažuj multidisciplinární program léčby obezity.');
-    recs.push('Pravidelné lékařské kontroly a monitoring zdravotních rizik.');
+    recs.push('Seek professional medical help as soon as possible.');
+    recs.push('Consider a multidisciplinary obesity treatment program.');
+    recs.push('Regular medical check-ups and health risk monitoring.');
   }
 
   if (age >= 65 && bmi < 22) {
-    recs.push('Ve vyšším věku je mírně vyšší BMI (22–27) příznivější.');
+    recs.push('At older age, a slightly higher BMI (22–27) may be beneficial.');
   }
   if (gender === 'female' && bmi >= 18.5 && bmi < 25) {
-    recs.push('Dbej na dostatečný příjem vápníku a vitaminu D.');
+    recs.push('Ensure adequate calcium and vitamin D intake.');
   }
   if (gender === 'male' && bmi >= 25) {
-    recs.push('U mužů s vyšším BMI je zvýšené riziko kardiovaskulárních onemocnění.');
+    recs.push('Men with higher BMI have increased cardiovascular risk.');
   }
 
   return recs;
@@ -187,7 +187,7 @@ export default function BMI() {
     <div className="card" style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>
-          ⚖️ BMI Kalkulačka
+          ⚖️ BMI Calculator
         </h2>
         {/* System toggle */}
         <div style={{
@@ -214,7 +214,7 @@ export default function BMI() {
                 fontWeight: system === s ? '600' : '400',
               }}
             >
-              {s === 'metric' ? 'Metrický' : 'Imperiální'}
+              {s === 'metric' ? 'Metric' : 'Imperial'}
             </button>
           ))}
         </div>
@@ -222,9 +222,9 @@ export default function BMI() {
 
       {/* Gender toggle */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={labelStyle}>Pohlaví</div>
+        <div style={labelStyle}>Gender</div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {([['male', '♂ Muž'], ['female', '♀ Žena']] as [Gender, string][]).map(([g, label]) => (
+          {([['male', '♂ Male'], ['female', '♀ Female']] as [Gender, string][]).map(([g, label]) => (
             <button
               key={g}
               onClick={() => setGender(g)}
@@ -262,7 +262,7 @@ export default function BMI() {
         <div style={{ gridColumn: system === 'imperial' ? 'span 2' : 'span 1' }}>
           {system === 'metric' ? (
             <>
-              <div style={labelStyle}>Výška (cm)</div>
+              <div style={labelStyle}>Height (cm)</div>
               <input
                 type="number"
                 value={heightCm}
@@ -273,7 +273,7 @@ export default function BMI() {
             </>
           ) : (
             <>
-              <div style={labelStyle}>Výška</div>
+              <div style={labelStyle}>Height</div>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <div style={{ flex: 1 }}>
                   <input
@@ -305,7 +305,7 @@ export default function BMI() {
         {/* Weight */}
         {system === 'metric' && (
           <div>
-            <div style={labelStyle}>Váha (kg)</div>
+            <div style={labelStyle}>Weight (kg)</div>
             <input
               type="number"
               value={weightKg}
@@ -318,7 +318,7 @@ export default function BMI() {
 
         {/* Age */}
         <div>
-          <div style={labelStyle}>Věk (roky)</div>
+          <div style={labelStyle}>Age (years)</div>
           <input
             type="number"
             value={age}
@@ -331,7 +331,7 @@ export default function BMI() {
         {/* Weight imperial */}
         {system === 'imperial' && (
           <div>
-            <div style={labelStyle}>Váha (lb)</div>
+            <div style={labelStyle}>Weight (lb)</div>
             <input
               type="number"
               value={weightLb}
@@ -345,7 +345,7 @@ export default function BMI() {
 
       {bmi === null ? (
         <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          Zadej výšku, váhu a věk
+          Enter height, weight, and age
         </div>
       ) : (
         <>
@@ -359,7 +359,7 @@ export default function BMI() {
             textAlign: 'center',
           }}>
             <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-              Index tělesné hmotnosti
+              Body Mass Index
             </div>
             <div style={{
               fontFamily: 'Poppins',
@@ -442,7 +442,7 @@ export default function BMI() {
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
-              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Ideální rozsah váhy</div>
+              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Ideal weight range</div>
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#4ade80' }}>
                 {idealRange[0]} – {idealRange[1]} {weightUnit}
               </div>
@@ -458,7 +458,7 @@ export default function BMI() {
               padding: '.875rem 1rem',
             }}>
               <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '.5rem', letterSpacing: '.5px', textTransform: 'uppercase' }}>
-                Doporučení
+                Recommendations
               </div>
               {recs.map((r, i) => (
                 <div key={i} style={{
