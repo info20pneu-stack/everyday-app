@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import Image from 'next/image';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
+import { useLang } from '../../lib/LanguageContext';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
@@ -93,6 +94,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
   onToggle: () => void;
   showCharts: boolean;
 }) {
+  const { t } = useLang();
   const positive = coin.price_change_percentage_24h >= 0;
   const cc = positive ? 'var(--green2)' : '#EF4444';
   const sp = coin.sparkline_in_7d?.price ?? [];
@@ -179,12 +181,12 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
             {[
-              { label: '24h High',    val: fmtPrice(coin.high_24h) },
-              { label: '24h Low',     val: fmtPrice(coin.low_24h) },
-              { label: '24h Change',  val: fmtPrice(Math.abs(coin.price_change_24h)), color: cc },
-              { label: '24h Volume',  val: fmtBig(coin.total_volume) },
+              { label: t.crypto.detail_high24h,    val: fmtPrice(coin.high_24h) },
+              { label: t.crypto.detail_low24h,     val: fmtPrice(coin.low_24h) },
+              { label: t.crypto.detail_change24h,  val: fmtPrice(Math.abs(coin.price_change_24h)), color: cc },
+              { label: t.crypto.detail_volume24h,  val: fmtBig(coin.total_volume) },
               { label: 'Market Cap',  val: fmtBig(coin.market_cap) },
-              { label: 'Circulating', val: coin.circulating_supply >= 1e6
+              { label: t.crypto.detail_circulating, val: coin.circulating_supply >= 1e6
                 ? (coin.circulating_supply / 1e6).toFixed(2) + 'M ' + coin.symbol.toUpperCase()
                 : coin.circulating_supply.toLocaleString('en-US') + ' ' + coin.symbol.toUpperCase() },
             ].map(({ label, val, color }) => (
@@ -198,7 +200,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
           {/* Full 7d sparkline */}
           {sp.length > 0 && (
             <div style={{ marginTop: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '8px 10px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px' }}>7-day price history</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px' }}>{t.crypto.detail_priceHistory}</div>
               <SparklineLarge prices={sp} positive={positive} id={coin.id + '-lg'} />
             </div>
           )}
@@ -211,6 +213,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
 /* ═══════════════════════ LARGE SPARKLINE ═══════════════════════ */
 
 const SparklineLarge = memo(function SparklineLarge({ prices, positive, id }: { prices: number[]; positive: boolean; id: string }) {
+  const { t } = useLang();
   const step = Math.max(1, Math.floor(prices.length / 80));
   const pts = prices.filter((_, i) => i % step === 0);
 
@@ -250,8 +253,8 @@ const SparklineLarge = memo(function SparklineLarge({ prices, positive, id }: { 
         ))}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>Min: {fmtPrice(min)}</span>
-        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>Max: {fmtPrice(max)}</span>
+        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.crypto.detail_min} {fmtPrice(min)}</span>
+        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.crypto.detail_max} {fmtPrice(max)}</span>
       </div>
     </div>
   );
@@ -284,6 +287,7 @@ function mapCoinCapToCoins(assets: any[]): Coin[] {
 }
 
 export default function Crypto() {
+  const { t } = useLang();
   const { listLimit, showCharts, isMobile } = useDeviceDetect();
   const [coins, setCoins]       = useState<Coin[]>([]);
   const [state, setState]       = useState<FetchState>('loading');
@@ -352,7 +356,6 @@ export default function Crypto() {
           )}
           <button
             onClick={load}
-            title="Obnovit"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer' }}
           >↺</button>
         </div>
@@ -361,7 +364,7 @@ export default function Crypto() {
       {/* Search */}
       <input
         type="text"
-        placeholder="🔍 Search cryptocurrency…"
+        placeholder={t.crypto.searchPlaceholder}
         value={search}
         onChange={e => setSearch(e.target.value)}
         style={{
@@ -375,11 +378,11 @@ export default function Crypto() {
       {state === 'ok' && (
         <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 80px 60px 70px 76px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
           <span style={{ textAlign: 'center' }}>#</span>
-          <span>Name</span>
-          <span style={{ textAlign: 'right' }}>Price</span>
-          <span style={{ textAlign: 'right' }}>24h %</span>
-          <span style={{ textAlign: 'right' }}>Mkt Cap</span>
-          <span style={{ textAlign: 'right' }}>7d graf</span>
+          <span>{t.crypto.col_name}</span>
+          <span style={{ textAlign: 'right' }}>{t.crypto.col_price}</span>
+          <span style={{ textAlign: 'right' }}>{t.crypto.col_change24h}</span>
+          <span style={{ textAlign: 'right' }}>{t.crypto.col_marketCap}</span>
+          <span style={{ textAlign: 'right' }}>{t.crypto.col_chart}</span>
         </div>
       )}
 
@@ -401,10 +404,10 @@ export default function Crypto() {
       {state === 'rate-limit' && (
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⏳</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '4px' }}>CoinGecko rate limit (10 req/min)</div>
-          <div style={{ color: 'var(--text3)', fontSize: '11px', marginBottom: '1rem' }}>Try again in a moment.</div>
+          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '4px' }}>{t.crypto.rateLimit}</div>
+          <div style={{ color: 'var(--text3)', fontSize: '11px', marginBottom: '1rem' }}>{t.crypto.tryAgainMoment}</div>
           <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
-            Try again
+            {t.crypto.tryAgain}
           </button>
         </div>
       )}
@@ -413,9 +416,9 @@ export default function Crypto() {
       {state === 'error' && (
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚠️</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Failed to load data.</div>
+          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>{t.crypto.failedToLoad}</div>
           <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
-            Try again
+            {t.crypto.tryAgain}
           </button>
         </div>
       )}
@@ -425,7 +428,7 @@ export default function Crypto() {
         <>
           {filtered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-              No cryptocurrency found
+              {t.crypto.noCoinFound}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -440,14 +443,14 @@ export default function Crypto() {
               ))}
               {isMobile && !search && filtered.length > listLimit && (
                 <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text3)', paddingTop: '4px' }}>
-                  + {filtered.length - listLimit} more · search to show more
+                  {t.crypto.moreCoins.replace('{count}', String(filtered.length - listLimit))}
                 </div>
               )}
             </div>
           )}
 
           <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            Source: {source === 'coingecko' ? 'CoinGecko API' : 'CoinCap API (backup)'} · Click a coin for details and 7d chart
+            Source: {source === 'coingecko' ? t.crypto.source_coingecko : t.crypto.source_coincap} · Click a coin for details and 7d chart
           </div>
         </>
       )}
