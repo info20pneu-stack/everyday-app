@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useLang } from '../../lib/LanguageContext';
 
 type Phase = 'idle' | 'ping' | 'download' | 'upload' | 'done' | 'error';
 
@@ -33,7 +34,14 @@ function speedColor(pct: number) {
 
 const TICKS = [0, 50, 100, 150, 200];
 
+// Icons are shown separately from these labels, so strip the translation's
+// own leading emoji (all follow "<emoji> Text").
+function stripLeadingEmoji(s: string): string {
+  return s.slice(s.indexOf(' ') + 1);
+}
+
 function Gauge({ value, phase }: { value: number; phase: Phase }) {
+  const { t } = useLang();
   const pct = Math.min(value / MAX_MBPS, 1);
   const vDeg = START_DEG + pct * SWEEP;
   const tip = polarR(R - 15, vDeg);
@@ -127,7 +135,7 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
         <>
           <text x={CX} y={CY + 28} textAnchor="middle"
             fill="rgba(93,76,255,0.9)" fontSize="18" fontWeight="600">
-            ↑ Upload
+            {t.speedTest.upload}
           </text>
           <text x={CX} y={CY + 50} textAnchor="middle"
             fill="rgba(255,255,255,0.25)" fontSize="10">
@@ -207,6 +215,7 @@ async function measureUpload(onProgress: (mbps: number) => void): Promise<number
 
 /* ─── Main component ─── */
 export default function SpeedTest() {
+  const { t } = useLang();
   const [phase, setPhase] = useState<Phase>('idle');
   const [gauge, setGauge] = useState(0);
   const [ping, setPing] = useState<number | null>(null);
@@ -253,12 +262,12 @@ export default function SpeedTest() {
 
   const stats = [
     {
-      icon: '📡', label: 'Ping', value: ping,
+      icon: '📡', label: stripLeadingEmoji(t.speedTest.ping), value: ping,
       fmt: (v: number) => v.toFixed(0), unit: 'ms',
       quality: ping != null ? pingQuality(ping) : null,
     },
     {
-      icon: '↓', label: 'Download', value: download,
+      icon: '↓', label: stripLeadingEmoji(t.speedTest.download), value: download,
       fmt: (v: number) => v.toFixed(1), unit: 'Mbps',
       quality: download != null ? {
         label: download > 100 ? 'Excellent' : download > 30 ? 'Good' : 'Slow',
@@ -266,7 +275,7 @@ export default function SpeedTest() {
       } : null,
     },
     {
-      icon: '↑', label: 'Upload', value: upload,
+      icon: '↑', label: stripLeadingEmoji(t.speedTest.upload), value: upload,
       fmt: (v: number) => v.toFixed(1), unit: 'Mbps',
       quality: upload != null ? {
         label: upload > 50 ? 'Excellent' : upload > 10 ? 'Good' : 'Slow',
@@ -276,8 +285,8 @@ export default function SpeedTest() {
   ];
 
   const phaseLabel: Record<Phase, string> = {
-    idle: '', ping: 'Measuring latency...', download: 'Testing download...',
-    upload: 'Testing upload...', done: 'Test complete', error: '',
+    idle: '', ping: t.speedTest.measuring, download: t.speedTest.testingDownload,
+    upload: t.speedTest.testingUpload, done: t.speedTest.complete, error: '',
   };
 
   return (
@@ -295,8 +304,7 @@ export default function SpeedTest() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '1.2rem' }}>⚡</span>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>Speed Test</span>
+          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>{t.speedTest.title}</span>
         </div>
         {running && (
           <span style={{ color: 'var(--purple3)', fontSize: '0.78rem', animation: 'stBlink 1.2s ease-in-out infinite' }}>
@@ -308,7 +316,7 @@ export default function SpeedTest() {
             background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)',
             borderRadius: 7, padding: '2px 8px', fontSize: '0.75rem', color: '#4ADE80',
           }}>
-            ✓ Hotovo
+            ✓ {t.speedTest.complete}
           </span>
         )}
       </div>
@@ -334,7 +342,7 @@ export default function SpeedTest() {
         })}
       </div>
       <div style={{ display: 'flex', gap: '0.4rem', marginTop: '-0.75rem' }}>
-        {(['Ping', 'Download', 'Upload'] as const).map((l, i) => (
+        {[stripLeadingEmoji(t.speedTest.ping), stripLeadingEmoji(t.speedTest.download), stripLeadingEmoji(t.speedTest.upload)].map((l) => (
           <div key={l} style={{
             flex: 1, textAlign: 'center',
             fontSize: '0.65rem', color: 'var(--text3)',
@@ -403,10 +411,10 @@ export default function SpeedTest() {
         }}
       >
         {running
-          ? '⏳ Running test...'
+          ? t.speedTest.running
           : phase === 'done' || phase === 'error'
-            ? '🔄 Run again'
-            : '▶ Start Speed Test'}
+            ? t.speedTest.runAgain
+            : t.speedTest.runTest}
       </button>
 
       <style>{`
