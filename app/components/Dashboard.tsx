@@ -2,6 +2,8 @@
 
 import { useState, lazy, Suspense } from 'react';
 import AdBanner from './AdBanner';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 /* ─── Lazy widget imports ─── */
 const WorldTime          = lazy(() => import('./WorldTime'));
@@ -26,44 +28,46 @@ const BMI                = lazy(() => import('./BMI'));
 const SuggestClient      = lazy(() => import('../suggest/SuggestClient'));
 
 /* ─── Tile definitions ── 7 rows × 3, last row 2 ─── */
-const TILES = [
-  /* Row 1 */
-  { id: 'worldTime'      as const, icon: '🕐', label: 'WORLD TIME',          desc: 'Live clocks for cities worldwide',           Widget: WorldTime },
-  { id: 'currency'       as const, icon: '💵', label: 'CURRENCY',             desc: 'Real-time exchange rates',                  Widget: Currency },
-  { id: 'weather'        as const, icon: '🌤️', label: 'WEATHER',             desc: 'Forecast for your location',                Widget: Weather },
-  /* Row 2 */
-  { id: 'sports'         as const, icon: '🏆', label: 'SPORTS CENTER',        desc: 'Live scores, standings and stats',          Widget: Sports },
-  { id: 'crypto'         as const, icon: '₿',  label: 'CRYPTO',               desc: 'Cryptocurrency prices and charts',          Widget: Crypto },
-  { id: 'markets'        as const, icon: '📊', label: 'MARKETS',              desc: 'Indices, forex and commodities',            Widget: Markets },
-  /* Row 3 */
-  { id: 'dailyGames'     as const, icon: '🎮', label: 'DAILY GAMES',          desc: 'Memory, Flag Quiz, Puzzle and more',        Widget: DailyGames },
-  { id: 'dailyBoost'     as const, icon: '⚡', label: 'DAILY BOOST',          desc: 'Daily health and wellness challenges',       Widget: DailyBoost },
-  { id: 'rankings'       as const, icon: '📈', label: 'RANKINGS',             desc: 'Top music, stocks and AI models',           Widget: Rankings },
-  /* Row 4 */
-  { id: 'ageCalculator'  as const, icon: '👤', label: 'AGE CALCULATOR',       desc: 'Exact age, zodiac and next birthday',       Widget: AgeCalculator },
-  { id: 'dateCounter'    as const, icon: '⏳', label: 'DATE COUNTER',         desc: 'Time difference between any two dates',     Widget: DateCounter },
-  { id: 'unitConverter'  as const, icon: '📐', label: 'UNIT CONVERTER',       desc: 'Length, weight, temperature and more',      Widget: UnitConverter },
-  /* Row 5 */
-  { id: 'news'           as const, icon: '📰', label: 'NEWS',                 desc: 'Top headlines from global sources',         Widget: News },
-  { id: 'celebBirthdays' as const, icon: '🎂', label: 'CELEBRITY BIRTHDAYS',  desc: 'Who celebrates a birthday today',           Widget: CelebrityBirthdays },
-  { id: 'sunriseSunset'  as const, icon: '🌅', label: 'SUNRISE & SUNSET',     desc: 'Sun times and golden hour for your area',   Widget: SunriseSunset },
-  /* Row 6 */
-  { id: 'ipAddress'      as const, icon: '🌐', label: 'IP ADDRESS',           desc: 'Your public IP, ISP and location info',     Widget: IPAddress },
-  { id: 'speedTest'      as const, icon: '🚀', label: 'SPEED TEST',           desc: 'Test your internet download and upload',    Widget: SpeedTest },
-  { id: 'passwordGen'    as const, icon: '🔑', label: 'PASSWORD GENERATOR',   desc: 'Secure random passwords with strength score', Widget: PasswordGenerator },
-  /* Row 7 */
-  { id: 'bmi'            as const, icon: '⚖️', label: 'BMI CALCULATOR',      desc: 'Body mass index and health recommendations', Widget: BMI },
-  { id: 'suggestVote'    as const, icon: '💡', label: 'SUGGEST & VOTE',       desc: 'Request and vote for new features',         Widget: SuggestClient },
-];
+function getTiles(t: Translations) {
+  return [
+    /* Row 1 */
+    { id: 'worldTime'      as const, icon: '🕐', label: 'WORLD TIME',          desc: t.dashboard.desc_worldTime,      Widget: WorldTime },
+    { id: 'currency'       as const, icon: '💵', label: 'CURRENCY',             desc: t.dashboard.desc_currency,       Widget: Currency },
+    { id: 'weather'        as const, icon: '🌤️', label: 'WEATHER',             desc: t.dashboard.desc_weather,        Widget: Weather },
+    /* Row 2 */
+    { id: 'sports'         as const, icon: '🏆', label: 'SPORTS CENTER',        desc: t.dashboard.desc_sports,         Widget: Sports },
+    { id: 'crypto'         as const, icon: '₿',  label: 'CRYPTO',               desc: t.dashboard.desc_crypto,         Widget: Crypto },
+    { id: 'markets'        as const, icon: '📊', label: 'MARKETS',              desc: t.dashboard.desc_markets,        Widget: Markets },
+    /* Row 3 */
+    { id: 'dailyGames'     as const, icon: '🎮', label: 'DAILY GAMES',          desc: t.dashboard.desc_dailyGames,     Widget: DailyGames },
+    { id: 'dailyBoost'     as const, icon: '⚡', label: 'DAILY BOOST',          desc: t.dashboard.desc_dailyBoost,     Widget: DailyBoost },
+    { id: 'rankings'       as const, icon: '📈', label: 'RANKINGS',             desc: t.dashboard.desc_rankings,       Widget: Rankings },
+    /* Row 4 */
+    { id: 'ageCalculator'  as const, icon: '👤', label: 'AGE CALCULATOR',       desc: t.dashboard.desc_ageCalculator,  Widget: AgeCalculator },
+    { id: 'dateCounter'    as const, icon: '⏳', label: 'DATE COUNTER',         desc: t.dashboard.desc_dateCounter,    Widget: DateCounter },
+    { id: 'unitConverter'  as const, icon: '📐', label: 'UNIT CONVERTER',       desc: t.dashboard.desc_unitConverter,  Widget: UnitConverter },
+    /* Row 5 */
+    { id: 'news'           as const, icon: '📰', label: 'NEWS',                 desc: t.dashboard.desc_news,           Widget: News },
+    { id: 'celebBirthdays' as const, icon: '🎂', label: 'CELEBRITY BIRTHDAYS',  desc: t.dashboard.desc_celebBirthdays, Widget: CelebrityBirthdays },
+    { id: 'sunriseSunset'  as const, icon: '🌅', label: 'SUNRISE & SUNSET',     desc: t.dashboard.desc_sunriseSunset,  Widget: SunriseSunset },
+    /* Row 6 */
+    { id: 'ipAddress'      as const, icon: '🌐', label: 'IP ADDRESS',           desc: t.dashboard.desc_ipAddress,      Widget: IPAddress },
+    { id: 'speedTest'      as const, icon: '🚀', label: 'SPEED TEST',           desc: t.dashboard.desc_speedTest,      Widget: SpeedTest },
+    { id: 'passwordGen'    as const, icon: '🔑', label: 'PASSWORD GENERATOR',   desc: t.dashboard.desc_passwordGen,    Widget: PasswordGenerator },
+    /* Row 7 */
+    { id: 'bmi'            as const, icon: '⚖️', label: 'BMI CALCULATOR',      desc: t.dashboard.desc_bmi,            Widget: BMI },
+    { id: 'suggestVote'    as const, icon: '💡', label: 'SUGGEST & VOTE',       desc: t.dashboard.desc_suggestVote,    Widget: SuggestClient },
+  ];
+}
 
-type TileId = typeof TILES[number]['id'];
+type TileId = ReturnType<typeof getTiles>[number]['id'];
 
 /* ─── Ad after every 2 rows (6 tiles): indices 5, 11, 17 ─── */
 const AD_AFTER = new Set([5, 11, 17]);
 const AD_SLOTS = ['2222222222', '3333333333', '4444444444'];
 
 /* ─── Loading fallback ─── */
-function WidgetSkeleton() {
+function WidgetSkeleton({ text }: { text: string }) {
   return (
     <div style={{
       background: 'rgba(15,20,40,0.92)',
@@ -77,18 +81,20 @@ function WidgetSkeleton() {
       color: 'var(--text3)',
       fontSize: '14px',
     }}>
-      Loading…
+      {text}
     </div>
   );
 }
 
 /* ─── Main component ─── */
 export default function Dashboard() {
+  const { t } = useLang();
   const [activeId, setActiveId] = useState<TileId | null>(null);
+  const TILES = getTiles(t);
 
   /* ── Widget detail view ── */
   if (activeId) {
-    const tile = TILES.find(t => t.id === activeId)!;
+    const tile = TILES.find(x => x.id === activeId)!;
     const { Widget } = tile;
 
     return (
@@ -119,7 +125,7 @@ export default function Dashboard() {
               (e.currentTarget as HTMLButtonElement).style.color = 'var(--text2)';
             }}
           >
-            ← Back
+            {t.dashboard.back}
           </button>
           <span style={{
             fontSize: '11px', color: 'var(--text3)',
@@ -135,7 +141,7 @@ export default function Dashboard() {
         </div>
 
         {/* Widget */}
-        <Suspense fallback={<WidgetSkeleton />}>
+        <Suspense fallback={<WidgetSkeleton text={t.dashboard.loading} />}>
           <Widget />
         </Suspense>
       </div>
