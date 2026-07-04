@@ -19,7 +19,7 @@ export interface LBEntry {
   date: number;
 }
 
-const VALID_GAMES: GameId[] = [
+export const VALID_GAMES: GameId[] = [
   'sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing',
   'hb_reaction', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_aimtrainer', 'hb_mentalmath',
 ];
@@ -34,7 +34,7 @@ function toSortScore(game: GameId, timeMs: number, score?: number): number {
   return timeMs; // time-based: lower = better
 }
 
-function lbKey(game: GameId) { return `lb2:${game}`; }
+export function lbKey(game: GameId) { return `lb2:${game}`; }
 function ipsKey(game: GameId) { return `lb2:ips:${game}`; }
 
 function hashIp(ip: string, game: string): string {
