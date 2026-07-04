@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 /* ── Word lists per category (5-letter, uppercase) ── */
 const WORDS: Record<string, string[]> = {
@@ -14,16 +16,18 @@ const WORDS: Record<string, string[]> = {
   city:    ['TOKYO','PARIS','CAIRO','DELHI','DUBAI','SEOUL','SOFIA','TUNIS','OSAKA','HANOI','KABUL','KYOTO','LAGOS','DAKAR','QUITO','MIAMI','MINSK','AMMAN','ASWAN','BASEL','BREST','CUSCO','DAVOS','DOVER','ESSEN','GENOA','KAZAN','KONYA','LHASA','LIEGE','MACAU','MALMO','PATAN','RONDA','SIENA','SPLIT','TARTU','TOURS','VADUZ','WUHAN','YALTA','BERNE','ACCRA','GHENT','NATAL','EVIAN','TROMS','ZARIA','NICEA','DERRY'],
 };
 
-const MODES = [
-  { id: 'classic',  label: 'Classic',   emoji: '🔤', color: '#538d4e', desc: 'Common 5-letter words' },
-  { id: 'football', label: 'Football',  emoji: '⚽', color: '#2d6a4f', desc: 'Football terms & clubs' },
-  { id: 'hockey',   label: 'Hockey',    emoji: '🏒', color: '#1d3557', desc: 'Ice hockey vocabulary' },
-  { id: 'car',      label: 'Car',       emoji: '🚗', color: '#c1121f', desc: 'Automotive world' },
-  { id: 'crypto',   label: 'Crypto',    emoji: '₿',  color: '#d97706', desc: 'Blockchain & finance' },
-  { id: 'animal',   label: 'Animal',    emoji: '🦁', color: '#92400e', desc: 'Animals & wildlife' },
-  { id: 'plant',    label: 'Plant',     emoji: '🌿', color: '#166534', desc: 'Flora & botany' },
-  { id: 'city',     label: 'City',      emoji: '🌆', color: '#1e40af', desc: 'Cities of the world' },
-];
+function getModes(t: Translations) {
+  return [
+    { id: 'classic',  label: t.wordle.var_classic,  emoji: '🔤', color: '#538d4e', desc: 'Common 5-letter words' },
+    { id: 'football', label: t.wordle.var_football, emoji: '⚽', color: '#2d6a4f', desc: 'Football terms & clubs' },
+    { id: 'hockey',   label: t.wordle.var_hockey,   emoji: '🏒', color: '#1d3557', desc: 'Ice hockey vocabulary' },
+    { id: 'car',      label: t.wordle.var_car,      emoji: '🚗', color: '#c1121f', desc: 'Automotive world' },
+    { id: 'crypto',   label: t.wordle.var_crypto,   emoji: '₿',  color: '#d97706', desc: 'Blockchain & finance' },
+    { id: 'animal',   label: t.wordle.var_animal,   emoji: '🦁', color: '#92400e', desc: 'Animals & wildlife' },
+    { id: 'plant',    label: t.wordle.var_plant,    emoji: '🌿', color: '#166534', desc: 'Flora & botany' },
+    { id: 'city',     label: t.wordle.var_city,     emoji: '🌆', color: '#1e40af', desc: 'Cities of the world' },
+  ];
+}
 
 type TileState = 'correct' | 'present' | 'absent' | 'empty' | 'typed';
 
@@ -98,6 +102,8 @@ function Confetti() {
 
 /* ── Game component ── */
 function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) {
+  const { t } = useLang();
+  const MODES = getModes(t);
   const mode = MODES.find(m => m.id === modeId)!;
   const target = getTarget(modeId);
   const MAX = 6;
@@ -136,7 +142,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
     if (animating || phase !== 'playing') return;
     if (current.length < 5) {
       setShake(true); setTimeout(() => setShake(false), 500);
-      showMsg('Not enough letters'); return;
+      showMsg(t.wordle.notEnoughLetters); return;
     }
     const guess = current.toUpperCase();
     const ev = evaluate(guess, target);
@@ -157,7 +163,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
       setAnimating(false);
       if (ev.every(s => s === 'correct')) {
         setPhase('won');
-        const msgs = ['🧠 Genius!','✨ Magnificent!','🌟 Impressive!','🎉 Splendid!','👏 Great!','😅 Phew!'];
+        const msgs = [t.wordle.genius, t.wordle.magnificent, t.wordle.impressive, t.wordle.splendid, t.wordle.great, t.wordle.phew];
         showMsg(msgs[rowIdx] ?? '🎉', 3000);
         const today = dateSeed();
         const newCur = streak.lastDate === today - 1 ? streak.cur + 1 : 1;
@@ -172,7 +178,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
         try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
       }
     }, 5 * 300 + 400);
-  }, [animating, current, guesses, target, phase, streak, lsKey]);
+  }, [animating, current, guesses, target, phase, streak, lsKey, t]);
 
   const handleKey = useCallback((k: string) => {
     if (phase !== 'playing' || animating) return;
@@ -207,7 +213,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
           background: `${mode.color}22`, border: `1px solid ${mode.color}55`,
           borderRadius: '8px', color: mode.color, fontSize: '12px', fontWeight: '600',
           padding: '5px 11px', cursor: 'pointer',
-        }}>‹ Back</button>
+        }}>{t.wordle.back}</button>
         <span style={{ fontSize: '18px' }}>{mode.emoji}</span>
         <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#fff', flex: 1 }}>
           {mode.label} Wordle
@@ -288,7 +294,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
                   background: bg, color: '#fff',
                   fontSize: key.length > 1 ? '10px' : '13px',
                   fontWeight: '700', fontFamily: 'Poppins',
-                }}>{key}</button>
+                }}>{key === 'ENTER' ? t.wordle.keyboard_enter : key === '⌫' ? t.wordle.keyboard_backspace : key}</button>
               );
             })}
           </div>
@@ -305,10 +311,10 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
             fontSize: '13px', fontWeight: '600',
             padding: '9px 22px', cursor: 'pointer', transition: 'all 0.2s',
           }}>
-            {copied ? '✓ Copied!' : '📋 Share Grid'}
+            {copied ? t.wordle.copied : t.wordle.shareGrid}
           </button>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
-            New word tomorrow{phase === 'lost' ? ` · Answer: ${target}` : ''}
+            {t.wordle.newWordTomorrow}{phase === 'lost' ? ` · ${t.wordle.answer.replace('{word}', target)}` : ''}
           </div>
         </div>
       )}
@@ -327,6 +333,8 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
 
 /* ── Mode picker / exported component ── */
 export default function WordleGames({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useLang();
+  const MODES = getModes(t);
   const [selected, setSelected] = useState<string | null>(null);
 
   if (selected) {
@@ -337,7 +345,7 @@ export default function WordleGames({ embedded = false }: { embedded?: boolean }
     <div>
       {!embedded && (
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '14px' }}>
-          🟩 Wordle Games
+          {t.wordle.title}
         </h2>
       )}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>

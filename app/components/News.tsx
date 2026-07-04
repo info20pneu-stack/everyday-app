@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useLang } from '../../lib/LanguageContext';
 
 /* ─── Feed definitions ─── */
 type Source = { id: string; name: string; flag: string; url: string; lang: string };
@@ -207,6 +208,7 @@ function Skeleton() {
 
 /* ─── Main component ─── */
 export default function News() {
+  const { t } = useLang();
   const [activeId, setActiveId] = useState<string>('bbc');
   const [cache, setCache] = useState<Record<string, { articles: Article[]; ts: number }>>({});
   const [state, setState] = useState<LoadState>('idle');
@@ -268,8 +270,7 @@ export default function News() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '1.2rem' }}>📰</span>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>Today's News</span>
+          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>{t.news.title}</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {lastRefresh && (
@@ -280,7 +281,7 @@ export default function News() {
           <button
             onClick={() => loadFeed(activeId, true)}
             disabled={state === 'loading'}
-            title="Refresh"
+            title={t.news.refresh}
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -343,7 +344,7 @@ export default function News() {
             borderRadius: 5, padding: '1px 6px',
             color: '#4ADE80', fontSize: '0.65rem',
           }}>
-            {articles.length} articles
+            {articles.length} {t.news.articleUnit}
           </span>
         </div>
       )}
@@ -358,10 +359,10 @@ export default function News() {
         }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📡</div>
           <div style={{ fontSize: '0.9rem', color: 'var(--text2)', marginBottom: '0.3rem' }}>
-            Failed to load news
+            {t.news.failedToLoad}
           </div>
           <div style={{ fontSize: '0.78rem' }}>
-            Check your connection or try a different source
+            {t.news.checkConnection}
           </div>
           <button
             onClick={() => loadFeed(activeId, true)}
@@ -372,7 +373,7 @@ export default function News() {
               fontSize: '0.8rem', padding: '0.4rem 0.9rem',
             }}
           >
-            ↺ Try again
+            {t.news.tryAgain}
           </button>
         </div>
       )}
@@ -391,7 +392,7 @@ export default function News() {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <span style={{ fontSize: '0.68rem', color: 'var(--text3)' }}>
-            Source: {source.name} · Refreshes every 15 min
+            {t.news.source} {source.name} · {t.news.refreshNote}
           </span>
           <a
             href={source.url} target="_blank" rel="noopener noreferrer"
