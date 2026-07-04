@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 type System = 'metric' | 'imperial';
 type Gender = 'male' | 'female';
@@ -13,56 +15,58 @@ type Category = {
   max: number;
 };
 
-const CATEGORIES: Category[] = [
-  { label: 'Severe underweight', color: '#60a5fa', bg: 'rgba(96,165,250,0.15)', min: 0, max: 16 },
-  { label: 'Underweight', color: '#93c5fd', bg: 'rgba(147,197,253,0.12)', min: 16, max: 18.5 },
-  { label: 'Normal weight', color: '#4ade80', bg: 'rgba(74,222,128,0.15)', min: 18.5, max: 25 },
-  { label: 'Overweight', color: '#facc15', bg: 'rgba(250,204,21,0.15)', min: 25, max: 30 },
-  { label: 'Obesity I', color: '#fb923c', bg: 'rgba(251,146,60,0.15)', min: 30, max: 35 },
-  { label: 'Obesity II', color: '#f87171', bg: 'rgba(248,113,113,0.15)', min: 35, max: 40 },
-  { label: 'Obesity III', color: '#dc2626', bg: 'rgba(220,38,38,0.15)', min: 40, max: 999 },
-];
-
-function getCategory(bmi: number): Category {
-  return CATEGORIES.find(c => bmi >= c.min && bmi < c.max) ?? CATEGORIES[CATEGORIES.length - 1];
+function getCategories(t: Translations): Category[] {
+  return [
+    { label: t.bmi.cat_severeUnderweight, color: '#60a5fa', bg: 'rgba(96,165,250,0.15)', min: 0, max: 16 },
+    { label: t.bmi.cat_underweight, color: '#93c5fd', bg: 'rgba(147,197,253,0.12)', min: 16, max: 18.5 },
+    { label: t.bmi.cat_normal, color: '#4ade80', bg: 'rgba(74,222,128,0.15)', min: 18.5, max: 25 },
+    { label: t.bmi.cat_overweight, color: '#facc15', bg: 'rgba(250,204,21,0.15)', min: 25, max: 30 },
+    { label: t.bmi.cat_obesity1, color: '#fb923c', bg: 'rgba(251,146,60,0.15)', min: 30, max: 35 },
+    { label: t.bmi.cat_obesity2, color: '#f87171', bg: 'rgba(248,113,113,0.15)', min: 35, max: 40 },
+    { label: t.bmi.cat_obesity3, color: '#dc2626', bg: 'rgba(220,38,38,0.15)', min: 40, max: 999 },
+  ];
 }
 
-function getRecommendations(bmi: number, age: number, gender: Gender): string[] {
+function getCategory(categories: Category[], bmi: number): Category {
+  return categories.find(c => bmi >= c.min && bmi < c.max) ?? categories[categories.length - 1];
+}
+
+function getRecommendations(t: Translations, bmi: number, age: number, gender: Gender): string[] {
   const recs: string[] = [];
   if (bmi < 16) {
-    recs.push('Seek medical attention immediately.');
-    recs.push('Increase calorie intake by 500–1000 kcal/day.');
-    recs.push('Focus on protein and healthy fats.');
+    recs.push(t.bmi.rec_seekMedical);
+    recs.push(t.bmi.rec_increaseCalories);
+    recs.push(t.bmi.rec_proteinFats);
   } else if (bmi < 18.5) {
-    recs.push('Gradually increase calorie intake (300–500 kcal/day).');
-    recs.push('Add strength training to build muscle mass.');
-    recs.push('Consult a nutritionist about your diet plan.');
+    recs.push(t.bmi.rec_gradualIncrease);
+    recs.push(t.bmi.rec_strengthTraining);
+    recs.push(t.bmi.rec_nutritionist);
   } else if (bmi < 25) {
-    recs.push('Great! Maintain your current lifestyle.');
-    recs.push('Stay active with at least 150 min of exercise per week.');
-    recs.push('Keep a balanced diet rich in vegetables and fruit.');
+    recs.push(t.bmi.rec_maintainLifestyle);
+    recs.push(t.bmi.rec_stayActive);
+    recs.push(t.bmi.rec_balancedDiet);
   } else if (bmi < 30) {
-    recs.push('Reduce calorie intake by 300–500 kcal/day.');
-    recs.push('Add cardio exercise for at least 30 min daily.');
-    recs.push('Limit sugar, alcohol, and processed foods.');
+    recs.push(t.bmi.rec_reduceCalories);
+    recs.push(t.bmi.rec_addCardio);
+    recs.push(t.bmi.rec_limitSugar);
   } else if (bmi < 35) {
-    recs.push('Consult a doctor or nutritionist for a weight loss plan.');
-    recs.push('Choose physical activity suited to your fitness level.');
-    recs.push('Monitor blood pressure and blood sugar regularly.');
+    recs.push(t.bmi.rec_consultDoctor);
+    recs.push(t.bmi.rec_suitableActivity);
+    recs.push(t.bmi.rec_monitorBP);
   } else {
-    recs.push('Seek professional medical help as soon as possible.');
-    recs.push('Consider a multidisciplinary obesity treatment program.');
-    recs.push('Regular medical check-ups and health risk monitoring.');
+    recs.push(t.bmi.rec_professionalHelp);
+    recs.push(t.bmi.rec_multidisciplinary);
+    recs.push(t.bmi.rec_regularCheckups);
   }
 
   if (age >= 65 && bmi < 22) {
-    recs.push('At older age, a slightly higher BMI (22–27) may be beneficial.');
+    recs.push(t.bmi.rec_olderAgeBMI);
   }
   if (gender === 'female' && bmi >= 18.5 && bmi < 25) {
-    recs.push('Ensure adequate calcium and vitamin D intake.');
+    recs.push(t.bmi.rec_calcium);
   }
   if (gender === 'male' && bmi >= 25) {
-    recs.push('Men with higher BMI have increased cardiovascular risk.');
+    recs.push(t.bmi.rec_cardiovascular);
   }
 
   return recs;
@@ -132,6 +136,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function BMI() {
+  const { t } = useLang();
   const [system, setSystem] = useState<System>('metric');
   const [gender, setGender] = useState<Gender>('male');
   const [age, setAge] = useState('25');
@@ -175,10 +180,11 @@ export default function BMI() {
     return [Math.round(lo * 2.20462 * 10) / 10, Math.round(hi * 2.20462 * 10) / 10];
   }
 
+  const categories = getCategories(t);
   const bmi = calcBMI();
-  const cat = bmi !== null ? getCategory(bmi) : null;
+  const cat = bmi !== null ? getCategory(categories, bmi) : null;
   const ageN = parseInt(age) || 0;
-  const recs = bmi !== null && ageN >= 2 ? getRecommendations(bmi, ageN, gender) : [];
+  const recs = bmi !== null && ageN >= 2 ? getRecommendations(t, bmi, ageN, gender) : [];
   const idealRange = idealWeightRange();
   const markerPct = bmi !== null ? bmiToPercent(bmi) : null;
   const weightUnit = system === 'metric' ? 'kg' : 'lb';
@@ -187,7 +193,7 @@ export default function BMI() {
     <div className="card" style={cardStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>
-          ⚖️ BMI Calculator
+          {t.bmi.title}
         </h2>
         {/* System toggle */}
         <div style={{
@@ -214,7 +220,7 @@ export default function BMI() {
                 fontWeight: system === s ? '600' : '400',
               }}
             >
-              {s === 'metric' ? 'Metric' : 'Imperial'}
+              {s === 'metric' ? t.bmi.metric : t.bmi.imperial}
             </button>
           ))}
         </div>
@@ -224,7 +230,7 @@ export default function BMI() {
       <div style={{ marginBottom: '1rem' }}>
         <div style={labelStyle}>Gender</div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          {([['male', '♂ Male'], ['female', '♀ Female']] as [Gender, string][]).map(([g, label]) => (
+          {([['male', t.bmi.male], ['female', t.bmi.female]] as [Gender, string][]).map(([g, label]) => (
             <button
               key={g}
               onClick={() => setGender(g)}
@@ -262,7 +268,7 @@ export default function BMI() {
         <div style={{ gridColumn: system === 'imperial' ? 'span 2' : 'span 1' }}>
           {system === 'metric' ? (
             <>
-              <div style={labelStyle}>Height (cm)</div>
+              <div style={labelStyle}>{t.bmi.heightCm}</div>
               <input
                 type="number"
                 value={heightCm}
@@ -281,10 +287,10 @@ export default function BMI() {
                     value={heightFt}
                     onChange={e => setHeightFt(e.target.value)}
                     min="1" max="9"
-                    placeholder="ft"
+                    placeholder={t.bmi.ft}
                     style={{ ...inputStyle, textAlign: 'center' }}
                   />
-                  <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>ft</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.ft}</div>
                 </div>
                 <div style={{ flex: 1 }}>
                   <input
@@ -292,10 +298,10 @@ export default function BMI() {
                     value={heightIn}
                     onChange={e => setHeightIn(e.target.value)}
                     min="0" max="11"
-                    placeholder="in"
+                    placeholder={t.bmi.in}
                     style={{ ...inputStyle, textAlign: 'center' }}
                   />
-                  <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>in</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.in}</div>
                 </div>
               </div>
             </>
@@ -305,7 +311,7 @@ export default function BMI() {
         {/* Weight */}
         {system === 'metric' && (
           <div>
-            <div style={labelStyle}>Weight (kg)</div>
+            <div style={labelStyle}>{t.bmi.weightKg}</div>
             <input
               type="number"
               value={weightKg}
@@ -318,7 +324,7 @@ export default function BMI() {
 
         {/* Age */}
         <div>
-          <div style={labelStyle}>Age (years)</div>
+          <div style={labelStyle}>{t.bmi.ageYears}</div>
           <input
             type="number"
             value={age}
@@ -331,7 +337,7 @@ export default function BMI() {
         {/* Weight imperial */}
         {system === 'imperial' && (
           <div>
-            <div style={labelStyle}>Weight (lb)</div>
+            <div style={labelStyle}>{t.bmi.weightLb}</div>
             <input
               type="number"
               value={weightLb}
@@ -345,7 +351,7 @@ export default function BMI() {
 
       {bmi === null ? (
         <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          Enter height, weight, and age
+          {t.bmi.enterAll}
         </div>
       ) : (
         <>
@@ -359,7 +365,7 @@ export default function BMI() {
             textAlign: 'center',
           }}>
             <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-              Body Mass Index
+              {t.bmi.bodyMassIndex}
             </div>
             <div style={{
               fontFamily: 'Poppins',
@@ -442,7 +448,7 @@ export default function BMI() {
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
-              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Ideal weight range</div>
+              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.bmi.idealWeightRange}</div>
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#4ade80' }}>
                 {idealRange[0]} – {idealRange[1]} {weightUnit}
               </div>
@@ -458,7 +464,7 @@ export default function BMI() {
               padding: '.875rem 1rem',
             }}>
               <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '.5rem', letterSpacing: '.5px', textTransform: 'uppercase' }}>
-                Recommendations
+                {t.bmi.recommendations}
               </div>
               {recs.map((r, i) => (
                 <div key={i} style={{
