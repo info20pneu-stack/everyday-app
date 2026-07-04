@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 function pad(n: number) {
   return String(n).padStart(2, '0');
@@ -69,12 +71,14 @@ function calcAge(birth: Date, now: Date): Age {
   };
 }
 
-const STATS = [
-  { key: 'totalDays', label: 'Days' },
-  { key: 'totalHours', label: 'Hours' },
-  { key: 'totalMinutes', label: 'Minutes' },
-  { key: 'totalSeconds', label: 'Seconds' },
-] as const;
+function getStats(t: Translations) {
+  return [
+    { key: 'totalDays', label: t.ageCalculator.statDays },
+    { key: 'totalHours', label: t.ageCalculator.statHours },
+    { key: 'totalMinutes', label: t.ageCalculator.statMinutes },
+    { key: 'totalSeconds', label: t.ageCalculator.statSeconds },
+  ] as const;
+}
 
 const ZODIAC = [
   { sign: 'Capricorn', emoji: '♑', start: [12, 22], end: [1, 19] },
@@ -104,19 +108,25 @@ function getZodiac(month: number, day: number) {
   return ZODIAC[0];
 }
 
-const MONTH_NAMES = [
-  'January','February','March','April','May','June',
-  'July','August','September','October','November','December',
-];
+function getMonthNames(t: Translations): string[] {
+  return [
+    t.ageCalculator.months_jan, t.ageCalculator.months_feb, t.ageCalculator.months_mar, t.ageCalculator.months_apr,
+    t.ageCalculator.months_may, t.ageCalculator.months_jun, t.ageCalculator.months_jul, t.ageCalculator.months_aug,
+    t.ageCalculator.months_sep, t.ageCalculator.months_oct, t.ageCalculator.months_nov, t.ageCalculator.months_dec,
+  ];
+}
 
 const DAYS   = Array.from({ length: 31 }, (_, i) => i + 1);
 const YEARS  = Array.from({ length: 126 }, (_, i) => 2025 - i); // 2025..1900
 
 export default function AgeCalculator() {
+  const { t } = useLang();
   const [birthDay,   setBirthDay]   = useState(1);
   const [birthMonth, setBirthMonth] = useState(1);   // 1 = January
   const [birthYear,  setBirthYear]  = useState(2000);
   const [now, setNow] = useState(new Date());
+  const MONTH_NAMES = getMonthNames(t);
+  const STATS = getStats(t);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -154,12 +164,12 @@ export default function AgeCalculator() {
       boxShadow: 'var(--card-shadow)',
     }}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        🎂 Age Calculator
+        {t.ageCalculator.title}
       </h2>
 
       {/* Birth date — three selects */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>Date of birth</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.ageCalculator.dateOfBirth}</div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {/* Day */}
           <select value={birthDay} onChange={e => setBirthDay(Number(e.target.value))} style={selectStyle}>
@@ -183,7 +193,7 @@ export default function AgeCalculator() {
 
       {!valid && (
         <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          Enter date of birth
+          {t.ageCalculator.enterDateOfBirth}
         </div>
       )}
 
@@ -205,7 +215,7 @@ export default function AgeCalculator() {
               letterSpacing: '1px',
               textTransform: 'uppercase',
             }}>
-              Your age
+              {t.ageCalculator.yourAge}
             </div>
             <div style={{
               fontFamily: 'Poppins',
@@ -239,11 +249,11 @@ export default function AgeCalculator() {
           }}>
             <div>
               <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '2px' }}>
-                Next birthday
+                {t.ageCalculator.nextBirthday}
               </div>
               <div style={{ fontSize: '13px', color: '#fff' }}>
                 {age.isToday
-                  ? '🎉 Happy Birthday!'
+                  ? t.ageCalculator.happyBirthday
                   : `${age.nextBirthdayDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`}
               </div>
             </div>
@@ -257,7 +267,7 @@ export default function AgeCalculator() {
                 }}>
                   {age.nextBirthday}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>days</div>
+                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.ageCalculator.daysLabel}</div>
               </div>
             )}
           </div>
@@ -277,7 +287,7 @@ export default function AgeCalculator() {
                 <span style={{ fontSize: '22px' }}>{zodiac.emoji}</span>
                 <div>
                   <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>{zodiac.sign}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Zodiac</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.ageCalculator.zodiac}</div>
                 </div>
               </div>
             )}
@@ -295,7 +305,7 @@ export default function AgeCalculator() {
                 <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>
                   {birth.toLocaleDateString('en-US', { weekday: 'long' })}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Day of birth</div>
+                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.ageCalculator.dayOfBirth}</div>
               </div>
             </div>
           </div>

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 type Diff = {
   years: number;
@@ -46,15 +48,17 @@ function pad(n: number) {
   return String(n).padStart(2, '0');
 }
 
-const STAT_LABELS = [
-  { key: 'years', label: 'Years' },
-  { key: 'months', label: 'Months' },
-  { key: 'weeks', label: 'Weeks' },
-  { key: 'days', label: 'Days' },
-  { key: 'hours', label: 'Hours' },
-  { key: 'minutes', label: 'Minutes' },
-  { key: 'seconds', label: 'Seconds' },
-] as const;
+function getStatLabels(t: Translations) {
+  return [
+    { key: 'years', label: t.dateCounter.years },
+    { key: 'months', label: t.dateCounter.months },
+    { key: 'weeks', label: t.dateCounter.weeks },
+    { key: 'days', label: t.dateCounter.days },
+    { key: 'hours', label: t.dateCounter.hours },
+    { key: 'minutes', label: t.dateCounter.minutes },
+    { key: 'seconds', label: t.dateCounter.seconds },
+  ] as const;
+}
 
 function toLocalInput(d: Date) {
   const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -62,6 +66,8 @@ function toLocalInput(d: Date) {
 }
 
 export default function DateCounter() {
+  const { t } = useLang();
+  const STAT_LABELS = getStatLabels(t);
   const now = new Date();
   const [fromVal, setFromVal] = useState(toLocalInput(now));
   const [toVal, setToVal] = useState(() => {
@@ -102,13 +108,13 @@ export default function DateCounter() {
       boxShadow: 'var(--card-shadow)',
     }}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        ⏳ Date & Time Difference
+        {t.dateCounter.title}
       </h2>
 
       {/* Inputs */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem', marginBottom: '1rem' }}>
         <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>From</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.from}</div>
           <input
             type="datetime-local"
             value={fromVal}
@@ -117,7 +123,7 @@ export default function DateCounter() {
           />
         </div>
         <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>To</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.to}</div>
           <input
             type="datetime-local"
             value={toVal}
@@ -135,7 +141,7 @@ export default function DateCounter() {
           fontSize: '12px',
           color: diff.past ? 'var(--amber)' : 'var(--green2)',
         }}>
-          {diff.past ? '⬅ in the past' : '➡ in the future'}
+          {diff.past ? t.dateCounter.inThePast : t.dateCounter.inTheFuture}
         </div>
       )}
 
@@ -210,14 +216,14 @@ export default function DateCounter() {
             <div style={{ fontSize: '18px', fontWeight: '500', fontFamily: 'Poppins', color: 'var(--purple3)' }}>
               {diff.totalDays.toLocaleString('en-US')}
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>total days</div>
+            <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>{t.dateCounter.totalDays}</div>
           </div>
         </div>
       )}
 
       {!valid && (
         <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          Enter both dates
+          {t.dateCounter.enterBothDates}
         </div>
       )}
 
@@ -236,7 +242,7 @@ export default function DateCounter() {
           width: '100%',
         }}
       >
-        Set From = now
+        {t.dateCounter.setFromNow}
       </button>
     </div>
   );
