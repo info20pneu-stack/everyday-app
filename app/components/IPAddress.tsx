@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLang } from '../../lib/LanguageContext';
 
 type IPData = {
   ip: string;
@@ -86,7 +87,14 @@ function utcLabel(offset: string): string {
   return `UTC${sign}${parseInt(h)}${m !== '00' ? ':' + m : ''}`;
 }
 
+// The Row icon box already shows the emoji, so strip the translation's own
+// leading emoji (all t.ipAddress row titles follow "<emoji> Text").
+function stripLeadingEmoji(s: string): string {
+  return s.slice(s.indexOf(' ') + 1);
+}
+
 export default function IPAddress() {
+  const { t } = useLang();
   const [state, setState] = useState<State>('loading');
   const [data, setData] = useState<IPData | null>(null);
   const [copied, setCopied] = useState(false);
@@ -114,8 +122,7 @@ export default function IPAddress() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '1.2rem' }}>🌐</span>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>IP Address</span>
+          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>{t.ipAddress.title}</span>
         </div>
         {state === 'ok' && data && (
           <div style={{
@@ -129,7 +136,7 @@ export default function IPAddress() {
               background: 'var(--green)', display: 'inline-block',
               boxShadow: '0 0 6px var(--green)',
             }} />
-            <span style={{ color: 'var(--text2)', fontSize: '0.75rem' }}>Online</span>
+            <span style={{ color: 'var(--text2)', fontSize: '0.75rem' }}>{t.ipAddress.online}</span>
           </div>
         )}
       </div>
@@ -155,8 +162,8 @@ export default function IPAddress() {
           padding: '1rem 0',
         }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
-          Failed to load IP data.<br />
-          <span style={{ fontSize: '0.8rem' }}>Check your internet connection.</span>
+          {t.ipAddress.failedToLoad}<br />
+          <span style={{ fontSize: '0.8rem' }}>{t.ipAddress.checkConnection}</span>
         </div>
       )}
 
@@ -177,7 +184,7 @@ export default function IPAddress() {
               gap: '1rem',
             }}>
               <div>
-                <div style={label}>Your IP address</div>
+                <div style={label}>{t.ipAddress.yourIP}</div>
                 <div style={{
                   fontFamily: 'monospace',
                   fontSize: '1.4rem',
@@ -190,7 +197,7 @@ export default function IPAddress() {
               </div>
               <button
                 onClick={copyIP}
-                title="Copy"
+                title={t.ipAddress.copy}
                 style={{
                   background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(93,76,255,0.15)',
                   border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(93,76,255,0.3)'}`,
@@ -204,12 +211,12 @@ export default function IPAddress() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {copied ? '✓ Copied' : '⎘ Copy'}
+                {copied ? t.ipAddress.copied : t.ipAddress.copy}
               </button>
             </div>
 
             {/* Location */}
-            <Row icon="📍" title="Location">
+            <Row icon="📍" title={stripLeadingEmoji(t.ipAddress.location)}>
               {flagEmoji(data.country_code)}{' '}
               {[data.city, data.region, data.country_name].filter(Boolean).join(', ')}
               {data.postal && (
@@ -218,13 +225,13 @@ export default function IPAddress() {
             </Row>
 
             {/* ISP */}
-            <Row icon="🏢" title="Internet Provider (ISP)">
+            <Row icon="🏢" title={stripLeadingEmoji(t.ipAddress.isp)}>
               {isp}
               <span style={{ color: 'var(--text3)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{asn}</span>
             </Row>
 
             {/* Timezone */}
-            <Row icon="🕐" title="Timezone">
+            <Row icon="🕐" title={stripLeadingEmoji(t.ipAddress.timezone)}>
               {data.timezone}
               <span style={{
                 marginLeft: '0.5rem',
@@ -240,7 +247,7 @@ export default function IPAddress() {
             </Row>
 
             {/* Coordinates */}
-            <Row icon="🗺️" title="Coordinates">
+            <Row icon="🗺️" title={stripLeadingEmoji(t.ipAddress.coordinates)}>
               <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
                 {data.latitude.toFixed(4)}° N, {data.longitude.toFixed(4)}° E
               </span>
