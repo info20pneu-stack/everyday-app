@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 const CHARS = {
   upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -88,6 +90,7 @@ function calcStrength(pwd: string, opts: Options): Strength {
 function PasswordDisplay({ pwd, onCopy, copied }: {
   pwd: string; onCopy: () => void; copied: boolean;
 }) {
+  const { t } = useLang();
   if (!pwd) return null;
   return (
     <div style={{
@@ -126,7 +129,7 @@ function PasswordDisplay({ pwd, onCopy, copied }: {
           whiteSpace: 'nowrap',
         }}
       >
-        {copied ? '✓ Copied' : '⎘ Copy'}
+        {copied ? t.passwordGen.copied : t.passwordGen.copy}
       </button>
     </div>
   );
@@ -158,14 +161,18 @@ function StrengthBar({ strength }: { strength: Strength }) {
   );
 }
 
-const TOGGLE_OPTIONS = [
-  { key: 'upper'   as keyof Options, label: 'ABC', title: 'Uppercase letters', color: '#C084FC' },
-  { key: 'lower'   as keyof Options, label: 'abc', title: 'Lowercase letters', color: '#A78BFA' },
-  { key: 'digits'  as keyof Options, label: '123', title: 'Numbers',           color: '#60A5FA' },
-  { key: 'symbols' as keyof Options, label: '!@#', title: 'Symbols',           color: '#34D399' },
-];
+function getToggleOptions(t: Translations) {
+  return [
+    { key: 'upper'   as keyof Options, label: 'ABC', title: t.passwordGen.uppercase, color: '#C084FC' },
+    { key: 'lower'   as keyof Options, label: 'abc', title: t.passwordGen.lowercase, color: '#A78BFA' },
+    { key: 'digits'  as keyof Options, label: '123', title: t.passwordGen.numbers,   color: '#60A5FA' },
+    { key: 'symbols' as keyof Options, label: '!@#', title: t.passwordGen.symbols,   color: '#34D399' },
+  ];
+}
 
 export default function PasswordGenerator() {
+  const { t } = useLang();
+  const TOGGLE_OPTIONS = getToggleOptions(t);
   const [length, setLength] = useState(16);
   const [opts, setOpts] = useState<Options>({ upper: true, lower: true, digits: true, symbols: false });
   const [password, setPassword] = useState('');
@@ -226,9 +233,8 @@ export default function PasswordGenerator() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ fontSize: '1.2rem' }}>🔑</span>
           <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>
-            Password Generator
+            {t.passwordGen.title}
           </span>
         </div>
         <span style={{
@@ -249,7 +255,7 @@ export default function PasswordGenerator() {
       {/* Length slider */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-          <span style={{ color: 'var(--text2)', fontSize: '0.82rem' }}>Password length</span>
+          <span style={{ color: 'var(--text2)', fontSize: '0.82rem' }}>{t.passwordGen.passwordLength}</span>
           <span style={{
             fontFamily: 'monospace', fontWeight: 700,
             color: 'var(--purple3)', fontSize: '1rem',
@@ -271,7 +277,7 @@ export default function PasswordGenerator() {
       {/* Character set toggles */}
       <div>
         <div style={{ color: 'var(--text2)', fontSize: '0.82rem', marginBottom: '0.6rem' }}>
-          Character sets
+          {t.passwordGen.characterSets}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem' }}>
           {TOGGLE_OPTIONS.map(({ key, label, title, color }) => {
@@ -324,7 +330,7 @@ export default function PasswordGenerator() {
           onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
           onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
         >
-          ↺ Vygenerovat
+          {t.passwordGen.generate}
         </button>
         <button
           onClick={copyPassword}
@@ -339,7 +345,7 @@ export default function PasswordGenerator() {
             transition: 'all 0.2s',
           }}
         >
-          {copied ? '✓ Copied' : '⎘ Copy'}
+          {copied ? t.passwordGen.copied : t.passwordGen.copy}
         </button>
       </div>
 
@@ -347,7 +353,7 @@ export default function PasswordGenerator() {
       {history.length > 0 && (
         <div>
           <div style={{ color: 'var(--text3)', fontSize: '0.72rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Recent passwords
+            {t.passwordGen.recentPasswords}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             {history.map((h, i) => (
@@ -384,10 +390,10 @@ export default function PasswordGenerator() {
       {/* Legend */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
         {[
-          { color: '#C084FC', label: 'Upper' },
-          { color: '#A78BFA', label: 'Lower' },
-          { color: '#60A5FA', label: 'Digits' },
-          { color: '#34D399', label: 'Symbols' },
+          { color: '#C084FC', label: t.passwordGen.legend_upper },
+          { color: '#A78BFA', label: t.passwordGen.legend_lower },
+          { color: '#60A5FA', label: t.passwordGen.legend_digits },
+          { color: '#34D399', label: t.passwordGen.legend_symbols },
         ].map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
