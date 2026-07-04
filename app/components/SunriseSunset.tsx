@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLang } from '../../lib/LanguageContext';
 
 type SunData = {
   sunrise: Date;
@@ -90,6 +91,7 @@ const statBox = (accent?: string): React.CSSProperties => ({
 });
 
 export default function SunriseSunset() {
+  const { t } = useLang();
   const [status, setStatus] = useState<Status>('idle');
   const [data, setData] = useState<SunData | null>(null);
   const [error, setError] = useState('');
@@ -134,14 +136,14 @@ export default function SunriseSunset() {
     return (
       <div className="card" style={card}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
-          🌅 Sun
+          {t.sunriseSunset.title}
         </h2>
         {status !== 'error' ? (
           <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text3)', fontSize: '13px' }}>
             <div style={{ fontSize: '32px', marginBottom: '1rem' }}>
               {status === 'locating' ? '📍' : '☀️'}
             </div>
-            {status === 'locating' ? 'Locating…' : 'Loading data…'}
+            {status === 'locating' ? t.sunriseSunset.locating : t.sunriseSunset.loadingData}
           </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '2rem 0' }}>
@@ -152,7 +154,7 @@ export default function SunriseSunset() {
               border: 'none', borderRadius: '8px',
               color: '#fff', fontSize: '12px',
               padding: '7px 16px', cursor: 'pointer',
-            }}>Try again</button>
+            }}>{t.sunriseSunset.tryAgain}</button>
           </div>
         )}
       </div>
@@ -211,7 +213,7 @@ export default function SunriseSunset() {
     <div style={card}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌅 Sun</h2>
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>{t.sunriseSunset.title}</h2>
         <button onClick={load} title="Refresh" style={{
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.08)',
@@ -354,7 +356,7 @@ export default function SunriseSunset() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
         {/* Sunrise */}
         <div style={statBox('255,140,0')}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>🌅 Sunrise</div>
+          <div style={{ fontSize: '10px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>{t.sunriseSunset.sunrise}</div>
           <div style={{ fontSize: '19px', fontWeight: '600', color: '#FFB300', fontFamily: 'Poppins' }}>
             {fmt(sunrise)}
           </div>
@@ -362,7 +364,7 @@ export default function SunriseSunset() {
 
         {/* Sunset */}
         <div style={statBox('160,100,255')}>
-          <div style={{ fontSize: '10px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>🌇 Sunset</div>
+          <div style={{ fontSize: '10px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>{t.sunriseSunset.sunset}</div>
           <div style={{ fontSize: '19px', fontWeight: '600', color: 'var(--purple3)', fontFamily: 'Poppins' }}>
             {fmt(sunset)}
           </div>
@@ -372,7 +374,7 @@ export default function SunriseSunset() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
         {/* Day length */}
         <div style={statBox()}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px' }}>⏱ Day length</div>
+          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px' }}>{t.sunriseSunset.dayLength}</div>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>{fmtDuration(dayLength)}</div>
         </div>
 
@@ -380,12 +382,12 @@ export default function SunriseSunset() {
         <div style={statBox(isGoldenHour ? '255,160,0' : undefined)}>
           <div style={{ fontSize: '10px', color: isGoldenHour ? 'rgba(255,160,0,0.8)' : 'var(--text3)', marginBottom: '3px' }}>
             {isGoldenHour
-              ? '✨ Golden hour'
+              ? t.sunriseSunset.goldenHour
               : !isAboveHorizon && nowMs < sunriseMs
-                ? '🌅 Until sunrise'
+                ? t.sunriseSunset.untilSunrise
                 : countdownSunset
-                  ? '⏳ Until sunset'
-                  : '🌙 Sun has set'}
+                  ? t.sunriseSunset.untilSunset
+                  : t.sunriseSunset.sunHasSet}
           </div>
           <div style={{ fontSize: '14px', fontWeight: '500', color: isGoldenHour ? '#FFB300' : '#fff' }}>
             {isGoldenHour
@@ -401,7 +403,7 @@ export default function SunriseSunset() {
 
       {/* Golden hour info row */}
       <div style={statBox()}>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>✨ Golden hour</div>
+        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>{t.sunriseSunset.goldenHour}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#FFB300' }}>
           <span>🌄 {fmt(sunrise)} – {fmt(new Date(goldenMorningEndMs))}</span>
           <span>🌆 {fmt(new Date(goldenEveningStartMs))} – {fmt(sunset)}</span>
@@ -420,12 +422,12 @@ export default function SunriseSunset() {
           color: '#FFB300',
           textAlign: 'center',
         }}>
-          ✨ Golden hour is now! Perfect time for photography.
+          {t.sunriseSunset.goldenHourNow}
         </div>
       )}
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        Sunrise-Sunset API · Nominatim OSM
+        {t.sunriseSunset.source}
       </div>
     </div>
   );
