@@ -1,88 +1,92 @@
 'use client';
 
 import { useState } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 type Unit = { label: string; factor: number; offset?: number };
-type Category = { icon: string; name: string; units: Unit[] };
+type Category = { id: string; name: string; units: Unit[] };
 
-const CATEGORIES: Category[] = [
-  {
-    icon: '📏', name: 'Length',
-    units: [
-      { label: 'mm', factor: 0.001 },
-      { label: 'cm', factor: 0.01 },
-      { label: 'm', factor: 1 },
-      { label: 'km', factor: 1000 },
-      { label: 'in', factor: 0.0254 },
-      { label: 'ft', factor: 0.3048 },
-      { label: 'yd', factor: 0.9144 },
-      { label: 'mi', factor: 1609.344 },
-    ],
-  },
-  {
-    icon: '⚖️', name: 'Weight',
-    units: [
-      { label: 'mg', factor: 0.000001 },
-      { label: 'g', factor: 0.001 },
-      { label: 'kg', factor: 1 },
-      { label: 't', factor: 1000 },
-      { label: 'oz', factor: 0.028349523 },
-      { label: 'lb', factor: 0.45359237 },
-      { label: 'st', factor: 6.35029318 },
-    ],
-  },
-  {
-    icon: '🌡️', name: 'Temperature',
-    units: [
-      { label: '°C', factor: 1 },
-      { label: '°F', factor: 1 },
-      { label: 'K', factor: 1 },
-    ],
-  },
-  {
-    icon: '🧴', name: 'Volume',
-    units: [
-      { label: 'ml', factor: 0.001 },
-      { label: 'cl', factor: 0.01 },
-      { label: 'dl', factor: 0.1 },
-      { label: 'l', factor: 1 },
-      { label: 'm³', factor: 1000 },
-      { label: 'tsp', factor: 0.00492892 },
-      { label: 'tbsp', factor: 0.01478676 },
-      { label: 'fl oz', factor: 0.02957353 },
-      { label: 'cup', factor: 0.23658824 },
-      { label: 'pt', factor: 0.47317647 },
-      { label: 'gal', factor: 3.78541178 },
-    ],
-  },
-  {
-    icon: '🚀', name: 'Speed',
-    units: [
-      { label: 'm/s', factor: 1 },
-      { label: 'km/h', factor: 0.27777778 },
-      { label: 'mph', factor: 0.44704 },
-      { label: 'kn', factor: 0.51444444 },
-      { label: 'ft/s', factor: 0.3048 },
-    ],
-  },
-  {
-    icon: '⬛', name: 'Area',
-    units: [
-      { label: 'mm²', factor: 0.000001 },
-      { label: 'cm²', factor: 0.0001 },
-      { label: 'm²', factor: 1 },
-      { label: 'km²', factor: 1_000_000 },
-      { label: 'ha', factor: 10_000 },
-      { label: 'in²', factor: 0.00064516 },
-      { label: 'ft²', factor: 0.09290304 },
-      { label: 'ac', factor: 4046.8564 },
-      { label: 'mi²', factor: 2_589_988.11 },
-    ],
-  },
-];
+function getCategories(t: Translations): Category[] {
+  return [
+    {
+      id: 'length', name: t.unitConverter.cat_length,
+      units: [
+        { label: 'mm', factor: 0.001 },
+        { label: 'cm', factor: 0.01 },
+        { label: 'm', factor: 1 },
+        { label: 'km', factor: 1000 },
+        { label: 'in', factor: 0.0254 },
+        { label: 'ft', factor: 0.3048 },
+        { label: 'yd', factor: 0.9144 },
+        { label: 'mi', factor: 1609.344 },
+      ],
+    },
+    {
+      id: 'weight', name: t.unitConverter.cat_weight,
+      units: [
+        { label: 'mg', factor: 0.000001 },
+        { label: 'g', factor: 0.001 },
+        { label: 'kg', factor: 1 },
+        { label: 't', factor: 1000 },
+        { label: 'oz', factor: 0.028349523 },
+        { label: 'lb', factor: 0.45359237 },
+        { label: 'st', factor: 6.35029318 },
+      ],
+    },
+    {
+      id: 'temperature', name: t.unitConverter.cat_temperature,
+      units: [
+        { label: '°C', factor: 1 },
+        { label: '°F', factor: 1 },
+        { label: 'K', factor: 1 },
+      ],
+    },
+    {
+      id: 'volume', name: t.unitConverter.cat_volume,
+      units: [
+        { label: 'ml', factor: 0.001 },
+        { label: 'cl', factor: 0.01 },
+        { label: 'dl', factor: 0.1 },
+        { label: 'l', factor: 1 },
+        { label: 'm³', factor: 1000 },
+        { label: 'tsp', factor: 0.00492892 },
+        { label: 'tbsp', factor: 0.01478676 },
+        { label: 'fl oz', factor: 0.02957353 },
+        { label: 'cup', factor: 0.23658824 },
+        { label: 'pt', factor: 0.47317647 },
+        { label: 'gal', factor: 3.78541178 },
+      ],
+    },
+    {
+      id: 'speed', name: t.unitConverter.cat_speed,
+      units: [
+        { label: 'm/s', factor: 1 },
+        { label: 'km/h', factor: 0.27777778 },
+        { label: 'mph', factor: 0.44704 },
+        { label: 'kn', factor: 0.51444444 },
+        { label: 'ft/s', factor: 0.3048 },
+      ],
+    },
+    {
+      id: 'area', name: t.unitConverter.cat_area,
+      units: [
+        { label: 'mm²', factor: 0.000001 },
+        { label: 'cm²', factor: 0.0001 },
+        { label: 'm²', factor: 1 },
+        { label: 'km²', factor: 1_000_000 },
+        { label: 'ha', factor: 10_000 },
+        { label: 'in²', factor: 0.00064516 },
+        { label: 'ft²', factor: 0.09290304 },
+        { label: 'ac', factor: 4046.8564 },
+        { label: 'mi²', factor: 2_589_988.11 },
+      ],
+    },
+  ];
+}
 
-function toBase(value: number, unit: Unit, catName: string): number {
-  if (catName === 'Temperature') {
+function toBase(value: number, unit: Unit, catId: string): number {
+  if (catId === 'temperature') {
     if (unit.label === '°C') return value;
     if (unit.label === '°F') return (value - 32) * 5 / 9;
     return value - 273.15;
@@ -90,8 +94,8 @@ function toBase(value: number, unit: Unit, catName: string): number {
   return value * unit.factor;
 }
 
-function fromBase(base: number, unit: Unit, catName: string): number {
-  if (catName === 'Temperature') {
+function fromBase(base: number, unit: Unit, catId: string): number {
+  if (catId === 'temperature') {
     if (unit.label === '°C') return base;
     if (unit.label === '°F') return base * 9 / 5 + 32;
     return base + 273.15;
@@ -147,6 +151,8 @@ const rowStyle: React.CSSProperties = {
 };
 
 export default function UnitConverter() {
+  const { t } = useLang();
+  const CATEGORIES = getCategories(t);
   const [catIdx, setCatIdx] = useState(0);
   const cat = CATEGORIES[catIdx];
 
@@ -160,8 +166,8 @@ export default function UnitConverter() {
   const fromUnit = cat.units[safeFrom];
   const toUnit = cat.units[safeTo];
 
-  const base = toBase(parseFloat(input) || 0, fromUnit, cat.name);
-  const result = fromBase(base, toUnit, cat.name);
+  const base = toBase(parseFloat(input) || 0, fromUnit, cat.id);
+  const result = fromBase(base, toUnit, cat.id);
 
   function switchCategory(idx: number) {
     setCatIdx(idx);
@@ -178,7 +184,7 @@ export default function UnitConverter() {
   return (
     <div className="card" style={cardStyle}>
       <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        📐 Unit Converter
+        {t.unitConverter.title}
       </h2>
 
       {/* Category tabs */}
@@ -190,7 +196,7 @@ export default function UnitConverter() {
       }}>
         {CATEGORIES.map((c, i) => (
           <button
-            key={c.name}
+            key={c.id}
             onClick={() => switchCategory(i)}
             style={{
               background: i === catIdx
@@ -209,7 +215,6 @@ export default function UnitConverter() {
               gap: '4px',
             }}
           >
-            <span>{c.icon}</span>
             <span>{c.name}</span>
           </button>
         ))}
@@ -217,7 +222,7 @@ export default function UnitConverter() {
 
       {/* From */}
       <div style={rowStyle}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>From</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.from}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input
             type="number"
@@ -256,7 +261,7 @@ export default function UnitConverter() {
 
       {/* To */}
       <div style={{ ...rowStyle, marginTop: '.75rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>To</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.to}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ ...inputStyle, color: 'var(--blue2)', fontSize: '28px', display: 'flex', alignItems: 'center' }}>
             {fmt(result)}
