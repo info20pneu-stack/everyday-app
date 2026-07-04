@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 import type { TickerData, Tab } from '../api/markets/route';
 
 /* ── Price helpers ── */
@@ -177,12 +179,17 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
 }
 
 /* ── Main component ── */
-const TAB_ICONS:  Record<Tab, string> = { indices: '📈', forex: '💱', commodities: '🏗️' };
-const TAB_LABELS: Record<Tab, string> = { indices: 'INDICES', forex: 'FOREX', commodities: 'COMMODITIES' };
+const TAB_ICONS: Record<Tab, string> = { indices: '📈', forex: '💱', commodities: '🏗️' };
+
+function getTabLabels(t: Translations): Record<Tab, string> {
+  return { indices: t.markets.tab_indices, forex: t.markets.tab_forex, commodities: t.markets.tab_commodities };
+}
 
 const EMPTY: Record<Tab, TickerData[]> = { indices: [], forex: [], commodities: [] };
 
 export default function Markets() {
+  const { t } = useLang();
+  const TAB_LABELS = getTabLabels(t);
   const { listLimit } = useDeviceDetect();
   const [tab,     setTab]     = useState<Tab>('indices');
   const [base,    setBase]    = useState<Record<Tab, TickerData[]>>(EMPTY);
@@ -202,9 +209,9 @@ export default function Markets() {
     function tick() {
       setData(prev => {
         const next = { ...prev };
-        (Object.keys(next) as Tab[]).forEach(t => {
-          next[t] = next[t].map(ticker => {
-            const seed = base[t].find(s => s.symbol === ticker.symbol);
+        (Object.keys(next) as Tab[]).forEach(tabId => {
+          next[tabId] = next[tabId].map(ticker => {
+            const seed = base[tabId].find(s => s.symbol === ticker.symbol);
             if (!seed) return ticker;
             const newPrice = Math.max(0.0001, jitter(ticker.price, 0.0008));
             const change    = newPrice - seed.price;
@@ -226,7 +233,7 @@ export default function Markets() {
   return (
     <div className="card" style={{ background: 'rgba(15,20,40,0.92)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--card-radius)', padding: '1.25rem', boxShadow: 'var(--card-shadow)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>📊 Markets</h2>
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>{t.markets.title}</h2>
         {updated && (
           <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
             {updated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
@@ -236,14 +243,14 @@ export default function Markets() {
 
       {/* Tab bar */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '1rem' }}>
-        {(Object.keys(TAB_LABELS) as Tab[]).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            flex: 1, background: tab === t ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
-            border: tab === t ? 'none' : '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
-            color: tab === t ? '#fff' : 'var(--text2)', padding: '5px 4px', fontSize: '10px',
+        {(Object.keys(TAB_LABELS) as Tab[]).map(tabId => (
+          <button key={tabId} onClick={() => setTab(tabId)} style={{
+            flex: 1, background: tab === tabId ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
+            border: tab === tabId ? 'none' : '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
+            color: tab === tabId ? '#fff' : 'var(--text2)', padding: '5px 4px', fontSize: '10px',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
           }}>
-            <span>{TAB_ICONS[t]}</span><span>{TAB_LABELS[t]}</span>
+            <span>{TAB_ICONS[tabId]}</span><span>{TAB_LABELS[tabId]}</span>
           </button>
         ))}
       </div>
@@ -288,7 +295,7 @@ export default function Markets() {
       </div>
 
       <div style={{ marginTop: '.75rem', fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>
-        Simulated data · updates every 15 s · click for detail
+        {t.markets.simulatedNote}
       </div>
 
       {detail && <TickerDetail ticker={detail} onClose={() => setDetail(null)} />}
