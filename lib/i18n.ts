@@ -160,6 +160,13 @@ export type Translations = {
   };
   dashboard: {
     back: string;
+      label_worldTime: string; label_currency: string; label_weather: string;
+      label_sports: string; label_crypto: string; label_markets: string;
+      label_dailyGames: string; label_dailyBoost: string; label_rankings: string;
+      label_ageCalculator: string; label_dateCounter: string; label_unitConverter: string;
+      label_news: string; label_celebBirthdays: string; label_sunriseSunset: string;
+      label_ipAddress: string; label_speedTest: string; label_passwordGen: string;
+      label_bmi: string; label_suggestVote: string;
     desc_worldTime: string; desc_currency: string; desc_weather: string;
     desc_sports: string; desc_crypto: string; desc_markets: string;
     desc_dailyGames: string; desc_dailyBoost: string; desc_rankings: string;
@@ -423,6 +430,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -707,6 +721,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -991,6 +1012,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -1275,6 +1303,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -1559,6 +1594,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Zpět',
+      label_worldTime: 'Světový čas', label_currency: 'Měna', label_weather: 'Počasí',
+      label_sports: 'Sport', label_crypto: 'Krypto', label_markets: 'Trhy',
+      label_dailyGames: 'Denní hry', label_dailyBoost: 'Denní boost', label_rankings: 'Žebříčky',
+      label_ageCalculator: 'Věková kalkulačka', label_dateCounter: 'Počítadlo dnů', label_unitConverter: 'Převodník jednotek',
+      label_news: 'Zprávy', label_celebBirthdays: 'Narozeniny celebrit', label_sunriseSunset: 'Východ a západ slunce',
+      label_ipAddress: 'IP adresa', label_speedTest: 'Test rychlosti', label_passwordGen: 'Generátor hesel',
+      label_bmi: 'BMI', label_suggestVote: 'Navrhnout & Hlasovat',
       desc_worldTime: 'Živé hodiny · 50+ měst', desc_currency: 'Živé kurzy měn',
       desc_weather: 'Místní 5denní předpověď', desc_sports: 'NHL · NBA · NFL · MS 2026',
       desc_crypto: 'Živé ceny a grafy kryptoměn', desc_markets: 'Akcie · Forex · Komodity',
@@ -1843,6 +1885,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -2127,6 +2176,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -2411,6 +2467,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -2695,6 +2758,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -2979,6 +3049,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -3263,6 +3340,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -3547,6 +3631,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -3831,6 +3922,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',
@@ -4115,6 +4213,13 @@ const t: Record<Lang, Translations> = {
     },
     dashboard: {
       back: '← Back',
+      label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
+      label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
+      label_dailyGames: 'Daily Games', label_dailyBoost: 'Daily Boost', label_rankings: 'Rankings',
+      label_ageCalculator: 'Age Calculator', label_dateCounter: 'Date Counter', label_unitConverter: 'Unit Converter',
+      label_news: 'News', label_celebBirthdays: 'Celebrity Birthdays', label_sunriseSunset: 'Sunrise & Sunset',
+      label_ipAddress: 'IP Address', label_speedTest: 'Speed Test', label_passwordGen: 'Password Generator',
+      label_bmi: 'BMI', label_suggestVote: 'Suggest & Vote',
       desc_worldTime: 'Live clocks · 50+ cities', desc_currency: 'Live exchange rates',
       desc_weather: 'Your local 5-day forecast', desc_sports: 'NHL · NBA · NFL · WC2026',
       desc_crypto: 'Live crypto prices & charts', desc_markets: 'Stocks · Forex · Commodities',

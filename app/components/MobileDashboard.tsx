@@ -2,29 +2,35 @@
 
 import { memo } from 'react';
 import Link from 'next/link';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
-const TILES = [
-  { icon: '🕐', label: 'World Time',         href: '/world-time'        },
-  { icon: '💵', label: 'Currency',            href: '/currency'          },
-  { icon: '📏', label: 'Unit Converter',      href: '/unit-converter'    },
-  { icon: '📅', label: 'Date Counter',        href: '/date-counter'      },
-  { icon: '🌤️', label: 'Weather',            href: '/weather'           },
-  { icon: '👤', label: 'Age Calculator',      href: '/age-calculator'    },
-  { icon: '🏆', label: 'Sports',             href: '/sports'            },
-  { icon: '📈', label: 'Rankings',           href: '/rankings'          },
-  { icon: '₿',  label: 'Crypto',             href: '/crypto'            },
-  { icon: '⚡', label: 'Daily Boost',        href: '/daily-boost'       },
-  { icon: '🎮', label: 'Daily Games',        href: '/daily-games'       },
-  { icon: '📊', label: 'Markets',            href: '/markets'           },
-  { icon: '🌐', label: 'IP Address',         href: '/ip-address'        },
-  { icon: '🚀', label: 'Speed Test',         href: '/speed-test'        },
-  { icon: '🔑', label: 'Password Generator', href: '/password-generator'},
-  { icon: '🌅', label: 'Sunrise & Sunset',   href: '/sunrise-sunset'    },
-  { icon: '⚖️', label: 'BMI Calculator',    href: '/bmi'               },
-  { icon: '💡', label: 'Suggest & Vote',     href: '/suggest'           },
-];
+function getTiles(t: Translations) {
+  return [
+    { icon: '🕐', label: t.dashboard.label_worldTime,     href: '/world-time'        },
+    { icon: '💵', label: t.dashboard.label_currency,      href: '/currency'          },
+    { icon: '📏', label: t.dashboard.label_unitConverter, href: '/unit-converter'    },
+    { icon: '📅', label: t.dashboard.label_dateCounter,   href: '/date-counter'      },
+    { icon: '🌤️', label: t.dashboard.label_weather,       href: '/weather'           },
+    { icon: '👤', label: t.dashboard.label_ageCalculator, href: '/age-calculator'    },
+    { icon: '🏆', label: t.dashboard.label_sports,        href: '/sports'            },
+    { icon: '📈', label: t.dashboard.label_rankings,      href: '/rankings'          },
+    { icon: '₿',  label: t.dashboard.label_crypto,        href: '/crypto'            },
+    { icon: '⚡', label: t.dashboard.label_dailyBoost,    href: '/daily-boost'       },
+    { icon: '🎮', label: t.dashboard.label_dailyGames,    href: '/daily-games'       },
+    { icon: '📊', label: t.dashboard.label_markets,       href: '/markets'           },
+    { icon: '🌐', label: t.dashboard.label_ipAddress,     href: '/ip-address'        },
+    { icon: '🚀', label: t.dashboard.label_speedTest,     href: '/speed-test'        },
+    { icon: '🔑', label: t.dashboard.label_passwordGen,   href: '/password-generator'},
+    { icon: '🌅', label: t.dashboard.label_sunriseSunset, href: '/sunrise-sunset'    },
+    { icon: '⚖️', label: t.dashboard.label_bmi,           href: '/bmi'               },
+    { icon: '💡', label: t.dashboard.label_suggestVote,   href: '/suggest'           },
+  ];
+}
 
 function MobileDashboard() {
+  const { t } = useLang();
+  const TILES = getTiles(t);
   return (
     <div style={{
       display: 'grid',

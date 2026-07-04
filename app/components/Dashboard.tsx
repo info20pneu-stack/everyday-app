@@ -31,32 +31,32 @@ const SuggestClient      = lazy(() => import('../suggest/SuggestClient'));
 function getTiles(t: Translations) {
   return [
     /* Row 1 */
-    { id: 'worldTime'      as const, icon: '🕐', label: 'WORLD TIME',          desc: t.dashboard.desc_worldTime,      Widget: WorldTime },
-    { id: 'currency'       as const, icon: '💵', label: 'CURRENCY',             desc: t.dashboard.desc_currency,       Widget: Currency },
-    { id: 'weather'        as const, icon: '🌤️', label: 'WEATHER',             desc: t.dashboard.desc_weather,        Widget: Weather },
+    { id: 'worldTime'      as const, icon: '🕐', label: t.dashboard.label_worldTime,      desc: t.dashboard.desc_worldTime,      Widget: WorldTime },
+    { id: 'currency'       as const, icon: '💵', label: t.dashboard.label_currency,       desc: t.dashboard.desc_currency,       Widget: Currency },
+    { id: 'weather'        as const, icon: '🌤️', label: t.dashboard.label_weather,        desc: t.dashboard.desc_weather,        Widget: Weather },
     /* Row 2 */
-    { id: 'sports'         as const, icon: '🏆', label: 'SPORTS CENTER',        desc: t.dashboard.desc_sports,         Widget: Sports },
-    { id: 'crypto'         as const, icon: '₿',  label: 'CRYPTO',               desc: t.dashboard.desc_crypto,         Widget: Crypto },
-    { id: 'markets'        as const, icon: '📊', label: 'MARKETS',              desc: t.dashboard.desc_markets,        Widget: Markets },
+    { id: 'sports'         as const, icon: '🏆', label: t.dashboard.label_sports,         desc: t.dashboard.desc_sports,         Widget: Sports },
+    { id: 'crypto'         as const, icon: '₿',  label: t.dashboard.label_crypto,         desc: t.dashboard.desc_crypto,         Widget: Crypto },
+    { id: 'markets'        as const, icon: '📊', label: t.dashboard.label_markets,        desc: t.dashboard.desc_markets,        Widget: Markets },
     /* Row 3 */
-    { id: 'dailyGames'     as const, icon: '🎮', label: 'DAILY GAMES',          desc: t.dashboard.desc_dailyGames,     Widget: DailyGames },
-    { id: 'dailyBoost'     as const, icon: '⚡', label: 'DAILY BOOST',          desc: t.dashboard.desc_dailyBoost,     Widget: DailyBoost },
-    { id: 'rankings'       as const, icon: '📈', label: 'RANKINGS',             desc: t.dashboard.desc_rankings,       Widget: Rankings },
+    { id: 'dailyGames'     as const, icon: '🎮', label: t.dashboard.label_dailyGames,     desc: t.dashboard.desc_dailyGames,     Widget: DailyGames },
+    { id: 'dailyBoost'     as const, icon: '⚡', label: t.dashboard.label_dailyBoost,     desc: t.dashboard.desc_dailyBoost,     Widget: DailyBoost },
+    { id: 'rankings'       as const, icon: '📈', label: t.dashboard.label_rankings,       desc: t.dashboard.desc_rankings,       Widget: Rankings },
     /* Row 4 */
-    { id: 'ageCalculator'  as const, icon: '👤', label: 'AGE CALCULATOR',       desc: t.dashboard.desc_ageCalculator,  Widget: AgeCalculator },
-    { id: 'dateCounter'    as const, icon: '⏳', label: 'DATE COUNTER',         desc: t.dashboard.desc_dateCounter,    Widget: DateCounter },
-    { id: 'unitConverter'  as const, icon: '📐', label: 'UNIT CONVERTER',       desc: t.dashboard.desc_unitConverter,  Widget: UnitConverter },
+    { id: 'ageCalculator'  as const, icon: '👤', label: t.dashboard.label_ageCalculator,  desc: t.dashboard.desc_ageCalculator,  Widget: AgeCalculator },
+    { id: 'dateCounter'    as const, icon: '⏳', label: t.dashboard.label_dateCounter,    desc: t.dashboard.desc_dateCounter,    Widget: DateCounter },
+    { id: 'unitConverter'  as const, icon: '📐', label: t.dashboard.label_unitConverter,  desc: t.dashboard.desc_unitConverter,  Widget: UnitConverter },
     /* Row 5 */
-    { id: 'news'           as const, icon: '📰', label: 'NEWS',                 desc: t.dashboard.desc_news,           Widget: News },
-    { id: 'celebBirthdays' as const, icon: '🎂', label: 'CELEBRITY BIRTHDAYS',  desc: t.dashboard.desc_celebBirthdays, Widget: CelebrityBirthdays },
-    { id: 'sunriseSunset'  as const, icon: '🌅', label: 'SUNRISE & SUNSET',     desc: t.dashboard.desc_sunriseSunset,  Widget: SunriseSunset },
+    { id: 'news'           as const, icon: '📰', label: t.dashboard.label_news,           desc: t.dashboard.desc_news,           Widget: News },
+    { id: 'celebBirthdays' as const, icon: '🎂', label: t.dashboard.label_celebBirthdays, desc: t.dashboard.desc_celebBirthdays, Widget: CelebrityBirthdays },
+    { id: 'sunriseSunset'  as const, icon: '🌅', label: t.dashboard.label_sunriseSunset,  desc: t.dashboard.desc_sunriseSunset,  Widget: SunriseSunset },
     /* Row 6 */
-    { id: 'ipAddress'      as const, icon: '🌐', label: 'IP ADDRESS',           desc: t.dashboard.desc_ipAddress,      Widget: IPAddress },
-    { id: 'speedTest'      as const, icon: '🚀', label: 'SPEED TEST',           desc: t.dashboard.desc_speedTest,      Widget: SpeedTest },
-    { id: 'passwordGen'    as const, icon: '🔑', label: 'PASSWORD GENERATOR',   desc: t.dashboard.desc_passwordGen,    Widget: PasswordGenerator },
+    { id: 'ipAddress'      as const, icon: '🌐', label: t.dashboard.label_ipAddress,      desc: t.dashboard.desc_ipAddress,      Widget: IPAddress },
+    { id: 'speedTest'      as const, icon: '🚀', label: t.dashboard.label_speedTest,      desc: t.dashboard.desc_speedTest,      Widget: SpeedTest },
+    { id: 'passwordGen'    as const, icon: '🔑', label: t.dashboard.label_passwordGen,    desc: t.dashboard.desc_passwordGen,    Widget: PasswordGenerator },
     /* Row 7 */
-    { id: 'bmi'            as const, icon: '⚖️', label: 'BMI CALCULATOR',      desc: t.dashboard.desc_bmi,            Widget: BMI },
-    { id: 'suggestVote'    as const, icon: '💡', label: 'SUGGEST & VOTE',       desc: t.dashboard.desc_suggestVote,    Widget: SuggestClient },
+    { id: 'bmi'            as const, icon: '⚖️', label: t.dashboard.label_bmi,            desc: t.dashboard.desc_bmi,            Widget: BMI },
+    { id: 'suggestVote'    as const, icon: '💡', label: t.dashboard.label_suggestVote,    desc: t.dashboard.desc_suggestVote,    Widget: SuggestClient },
   ];
 }
 
@@ -177,6 +177,7 @@ export default function Dashboard() {
         <span style={{
           fontSize: '10px', fontWeight: '700', letterSpacing: '1px',
           color: '#fff', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2,
+          textTransform: 'uppercase',
         }}>
           {tile.label}
         </span>
