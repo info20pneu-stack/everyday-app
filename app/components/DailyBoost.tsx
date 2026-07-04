@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -103,11 +105,12 @@ function TimerRing({ progress, size = 52 }: { progress: number; size?: number })
 /* ═══════════════════════ ACTIVITY CARD ═══════════════════════ */
 
 function ActivityCard({
-  activity, done, onDone,
+  activity, done, onDone, t,
 }: {
   activity: Activity;
   done: boolean;
   onDone: () => void;
+  t: Translations;
 }) {
   const hasDuration = !!activity.duration;
   const [remaining, setRemaining] = useState(activity.duration ?? 0);
@@ -225,7 +228,7 @@ function ActivityCard({
                   fontSize: '12px', fontWeight: '600',
                 }}
               >
-                {running ? '⏸ Pauza' : finished ? 'Hotovo!' : '▶ Start'}
+                {running ? t.dailyBoost.pause : finished ? t.dailyBoost.finished : t.dailyBoost.start}
               </button>
               <button
                 onClick={reset}
@@ -249,13 +252,13 @@ function ActivityCard({
             cursor: 'pointer', fontWeight: '500',
           }}
         >
-          Mark as done
+          {t.dailyBoost.markAsDone}
         </button>
       )}
 
       {done && (
         <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--green2)', fontWeight: '600' }}>
-          Done! Great work 💚
+          {t.dailyBoost.done}
         </div>
       )}
     </div>
@@ -284,6 +287,7 @@ function StreakBadge({ count }: { count: number }) {
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
 export default function DailyBoost() {
+  const { t } = useLang();
   const today = todayKey();
   const seed  = dateSeed();
 
@@ -358,7 +362,7 @@ export default function DailyBoost() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.75rem' }}>
         <div>
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '2px' }}>
-            🌅 Daily Boost
+            {t.dailyBoost.title}
           </h2>
           <div style={{ fontSize: '11px', color: 'var(--text3)' }}>
             {formatDate()}
@@ -370,7 +374,7 @@ export default function DailyBoost() {
       {/* Progress bar */}
       <div style={{ marginBottom: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text3)', marginBottom: '5px' }}>
-          <span>Today's challenges</span>
+          <span>{t.dailyBoost.todaysChallenges}</span>
           <span style={{ color: allDone ? 'var(--green2)' : '#fff', fontWeight: '600' }}>{doneCount} / 4</span>
         </div>
         <div style={{ height: '6px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
@@ -414,10 +418,10 @@ export default function DailyBoost() {
         }}>
           <div style={{ fontSize: '22px', marginBottom: '4px' }}>🎉</div>
           <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--green2)', fontFamily: 'Poppins' }}>
-            All challenges completed!
+            {t.dailyBoost.allCompleted}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '2px' }}>
-            {streak > 1 ? `${streak}-day streak! Keep it up 🔥` : 'Great start. Come back tomorrow!'}
+            {streak > 1 ? t.dailyBoost.streakMessage.replace('{streak}', String(streak)) : t.dailyBoost.greatStart}
           </div>
         </div>
       )}
@@ -430,12 +434,13 @@ export default function DailyBoost() {
             activity={a}
             done={completed[i]}
             onDone={() => markDone(i)}
+            t={t}
           />
         ))}
       </div>
 
       <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '1rem' }}>
-        Activities change daily · Streak counts when all 4 are completed
+        {t.dailyBoost.activitiesNote}
       </div>
     </div>
   );

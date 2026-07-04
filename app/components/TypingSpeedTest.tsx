@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 const TYPING_TEXTS: Record<string, string> = {
   en: "The quick brown fox jumps over the lazy dog. A skilled typist can achieve remarkable speed through dedicated practice and proper technique. Speed develops from muscle memory built over time with consistent effort.",
@@ -40,6 +42,11 @@ const DURATIONS = [15, 30, 60, 120] as const;
 type Duration = 15 | 30 | 60 | 120;
 type Phase = 'idle' | 'playing' | 'done';
 
+function durationLabel(t: Translations, d: Duration): string {
+  const key = `dur_${d}s` as const;
+  return t.typingTest[key];
+}
+
 interface TSStats { wpm: number; cpm: number; accuracy: number; correct: number; total: number; }
 
 function computeStats(typed: string, text: string, elapsedSec: number): TSStats {
@@ -55,13 +62,13 @@ function computeStats(typed: string, text: string, elapsedSec: number): TSStats 
   return { wpm, cpm, accuracy, correct, total };
 }
 
-function WpmGraph({ history }: { history: number[] }) {
+function WpmGraph({ history, t }: { history: number[]; t: Translations }) {
   if (history.length < 2) return null;
   const max = Math.max(...history, 10);
   const bars = history.slice(-60);
   return (
     <div style={{ marginTop: '10px' }}>
-      <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>WPM Graph</div>
+      <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{t.typingTest.wpmGraph}</div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '44px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '4px 6px' }}>
         {bars.map((v, i) => (
           <div key={i} style={{
@@ -80,6 +87,7 @@ function WpmGraph({ history }: { history: number[] }) {
 export function TypingSpeedTest({ onComplete }: {
   onComplete: (timeMs: number, wpm: number, diff: string) => void;
 }) {
+  const { t } = useLang();
   const [duration, setDuration]     = useState<Duration>(60);
   const [lang, setLang]             = useState('en');
   const [phase, setPhase]           = useState<Phase>('idle');
@@ -179,7 +187,7 @@ export function TypingSpeedTest({ onComplete }: {
                 fontSize: '12px', fontWeight: '700',
                 background: d === duration ? 'linear-gradient(135deg,var(--purple),#7A3FFF)' : 'rgba(255,255,255,0.06)',
                 color: d === duration ? '#fff' : 'var(--text3)',
-              }}>{d}s</button>
+              }}>{durationLabel(t, d)}</button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px' }}>
@@ -207,9 +215,9 @@ export function TypingSpeedTest({ onComplete }: {
           </div>
           <div style={{ display: 'flex', gap: '5px' }}>
             {[
-              { val: stats.wpm,      label: 'WPM',      color: '#fff' },
-              { val: stats.cpm,      label: 'CPM',      color: '#fff' },
-              { val: `${stats.accuracy}%`, label: 'ACC', color: accColor },
+              { val: stats.wpm,      label: t.typingTest.wpmLabel, color: '#fff' },
+              { val: stats.cpm,      label: t.typingTest.cpmLabel, color: '#fff' },
+              { val: `${stats.accuracy}%`, label: t.typingTest.accLabel, color: accColor },
             ].map(({ val, label, color }) => (
               <div key={label} style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '5px', textAlign: 'center' }}>
                 <div style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'Poppins', color }}>{val}</div>
@@ -272,7 +280,7 @@ export function TypingSpeedTest({ onComplete }: {
       )}
 
       {/* Live WPM graph */}
-      {phase === 'playing' && <WpmGraph history={wpmHistory} />}
+      {phase === 'playing' && <WpmGraph history={wpmHistory} t={t} />}
 
       {/* Idle — start button */}
       {phase === 'idle' && (
@@ -280,15 +288,15 @@ export function TypingSpeedTest({ onComplete }: {
           {bestWpm > 0 && (
             <div style={{ marginBottom: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,179,0,0.1)', border: '1px solid rgba(255,179,0,0.2)', borderRadius: '8px', padding: '3px 10px' }}>
               <span>🏆</span>
-              <span style={{ fontSize: '11px', color: 'var(--amber)' }}>Best: {bestWpm} WPM</span>
+              <span style={{ fontSize: '11px', color: 'var(--amber)' }}>{t.typingTest.bestRecord.replace('{wpm}', String(bestWpm))}</span>
             </div>
           )}
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px' }}>Click text or Start • Esc to reset</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px' }}>{t.typingTest.clickToStart}</div>
           <button onClick={startGame} style={{
             background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px',
             color: '#fff', fontSize: '14px', fontWeight: '700', padding: '10px 28px', cursor: 'pointer',
             boxShadow: '0 0 20px rgba(93,76,255,0.4)',
-          }}>▶ Start ({duration}s)</button>
+          }}>{t.typingTest.startButton.replace('{duration}', String(duration))}</button>
         </div>
       )}
 
@@ -303,18 +311,18 @@ export function TypingSpeedTest({ onComplete }: {
             <div style={{ fontFamily: 'Poppins', fontSize: '64px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>
               {finalStats.wpm}
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>WPM</div>
+            <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>{t.typingTest.wpmLabel}</div>
             {finalStats.wpm >= bestWpm && finalStats.wpm > 0 && (
-              <div style={{ fontSize: '11px', fontWeight: '700', color: '#FFB300', marginTop: '4px' }}>🏆 New record!</div>
+              <div style={{ fontSize: '11px', fontWeight: '700', color: '#FFB300', marginTop: '4px' }}>{t.typingTest.newRecord}</div>
             )}
           </div>
 
           <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
             {[
-              { val: finalStats.cpm,      label: 'CPM',         color: '#fff' },
-              { val: `${finalStats.accuracy}%`, label: 'Accuracy', color: finalStats.accuracy >= 95 ? 'var(--green2)' : finalStats.accuracy >= 80 ? '#FFB300' : '#f87171' },
-              { val: finalStats.correct,  label: 'Correct',     color: '#fff' },
-              { val: `${duration}s`,       label: 'Duration',    color: 'var(--text2)' },
+              { val: finalStats.cpm,      label: t.typingTest.cpmLabel,  color: '#fff' },
+              { val: `${finalStats.accuracy}%`, label: t.typingTest.accuracy, color: finalStats.accuracy >= 95 ? 'var(--green2)' : finalStats.accuracy >= 80 ? '#FFB300' : '#f87171' },
+              { val: finalStats.correct,  label: t.typingTest.correct,   color: '#fff' },
+              { val: `${duration}s`,       label: t.typingTest.duration, color: 'var(--text2)' },
             ].map(({ val, label, color }) => (
               <div key={label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '7px 12px', textAlign: 'center' }}>
                 <div style={{ fontSize: '16px', fontWeight: '700', color }}>{val}</div>
@@ -323,14 +331,14 @@ export function TypingSpeedTest({ onComplete }: {
             ))}
           </div>
 
-          <WpmGraph history={wpmHistory} />
+          <WpmGraph history={wpmHistory} t={t} />
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
             <button onClick={reset} style={{
               background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none',
               borderRadius: '10px', color: '#fff', fontSize: '13px', fontWeight: '600',
               padding: '9px 22px', cursor: 'pointer',
-            }}>↺ Play Again</button>
+            }}>{t.typingTest.playAgain}</button>
           </div>
         </div>
       )}
