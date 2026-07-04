@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLang } from '../../lib/LanguageContext';
 import type { BirthdayCeleb, Category, HistoricalEvent, BirthdaysResponse } from '../api/birthdays/route';
 
 /* ── Helpers ── */
@@ -56,6 +57,7 @@ function eraColor(year: number): string {
 
 /* ── Profile popup ── */
 function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () => void }) {
+  const { t } = useLang();
   const meta = CATEGORY_META[celeb.category];
   const [copied, setCopied] = useState(false);
 
@@ -121,9 +123,9 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
           <div style={{ display: 'flex', gap: '5px' }}>
             {[
               { label: '📤 Share', action: nativeShare, bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', color: '#fff' },
-              { label: '𝕏 X', action: () => shareVia('twitter'), bg: 'rgba(0,0,0,0.3)', border: 'rgba(255,255,255,0.08)', color: '#fff' },
-              { label: '💬 WA', action: () => shareVia('whatsapp'), bg: 'rgba(37,211,102,0.1)', border: 'rgba(37,211,102,0.25)', color: '#25D366' },
-              { label: copied ? '✓ OK' : '📋 Copy', action: copyText, bg: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: copied ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)', color: copied ? 'var(--green2)' : '#fff' },
+              { label: t.celebrity.shareTweet, action: () => shareVia('twitter'), bg: 'rgba(0,0,0,0.3)', border: 'rgba(255,255,255,0.08)', color: '#fff' },
+              { label: t.celebrity.shareWhatsapp, action: () => shareVia('whatsapp'), bg: 'rgba(37,211,102,0.1)', border: 'rgba(37,211,102,0.25)', color: '#25D366' },
+              { label: copied ? '✓ OK' : t.celebrity.shareCopy, action: copyText, bg: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: copied ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)', color: copied ? 'var(--green2)' : '#fff' },
             ].map(({ label, action, bg, border, color }) => (
               <button key={label} onClick={action} style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: '8px', color, fontSize: '10px', fontWeight: '600', padding: '7px 2px', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</button>
             ))}
@@ -131,7 +133,7 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
         </div>
 
         <a href={celeb.url} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)', borderRadius: '10px', color: 'var(--purple3)', fontSize: '12px', fontWeight: '600', padding: '9px', textDecoration: 'none' }}>
-          📚 Wikipedia ↗
+          {t.celebrity.wikipedia}
         </a>
       </div>
     </div>
@@ -171,13 +173,14 @@ function CelebCard({ celeb, rank, onClick }: { celeb: BirthdayCeleb; rank: numbe
 
 /* ── Historical events section ── */
 function EventsSection({ events, dateLabel }: { events: HistoricalEvent[]; dateLabel: string }) {
+  const { t } = useLang();
   if (!events.length) return null;
   return (
     <div style={{ marginTop: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
         <div style={{ height: '1px', flex: 1, background: 'rgba(255,255,255,0.07)' }} />
         <span style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
-          📅 On this day in history
+          {t.celebrity.historicalEvents}
         </span>
         <div style={{ height: '1px', flex: 1, background: 'rgba(255,255,255,0.07)' }} />
       </div>
@@ -273,6 +276,7 @@ function DatePicker({
 
 /* ── Main component ── */
 export default function CelebrityBirthdays() {
+  const { t } = useLang();
   const now = new Date();
   const todayM = now.getMonth() + 1;
   const todayD = now.getDate();
@@ -311,8 +315,12 @@ export default function CelebrityBirthdays() {
 
   const tabs: (Category | 'all')[] = ['all', 'film', 'music', 'sport', 'other'];
   const tabCounts = useMemo(() => Object.fromEntries(
-    tabs.map(t => [t, t === 'all' ? celebs.length : celebs.filter(c => c.category === t).length])
+    tabs.map(cat => [cat, cat === 'all' ? celebs.length : celebs.filter(c => c.category === cat).length])
   ), [celebs]);
+  const tabLabels: Record<Category | 'all', string> = {
+    all: t.celebrity.tab_all, film: t.celebrity.tab_film, music: t.celebrity.tab_music,
+    sport: t.celebrity.tab_sport, other: t.celebrity.tab_other,
+  };
 
   const close = useCallback(() => setSelected(null), []);
 
@@ -321,17 +329,16 @@ export default function CelebrityBirthdays() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontSize: '20px' }}>🎂</span>
           <div>
-            <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', lineHeight: 1.2 }}>Celebrity Birthdays</h2>
+            <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', lineHeight: 1.2 }}>{t.celebrity.title}</h2>
             <div style={{ fontSize: '11px', color: isToday ? 'var(--green2)' : 'var(--text3)' }}>
-              {isToday ? '✦ Today' : data?.dateLabel ?? ''}
+              {isToday ? t.celebrity.todayLabel : data?.dateLabel ?? ''}
             </div>
           </div>
         </div>
         {state === 'ok' && (
           <span style={{ fontSize: '11px', color: 'var(--green2)', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '6px', padding: '2px 8px' }}>
-            {filtered.length} celeb
+            {filtered.length} {t.celebrity.celebUnit}
           </span>
         )}
       </div>
@@ -343,14 +350,14 @@ export default function CelebrityBirthdays() {
 
       {/* Category tabs */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap' }}>
-        {tabs.map(t => {
-          const m = CATEGORY_META[t];
-          const isActive = tab === t;
+        {tabs.map(cat => {
+          const m = CATEGORY_META[cat];
+          const isActive = tab === cat;
           return (
-            <button key={t} onClick={() => setTab(t)} style={{ padding: '4px 8px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: isActive ? '700' : '400', background: isActive ? `${m.color}22` : 'rgba(255,255,255,0.04)', color: isActive ? m.color : 'var(--text3)', outline: isActive ? `1px solid ${m.color}55` : 'none', display: 'flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}>
+            <button key={cat} onClick={() => setTab(cat)} style={{ padding: '4px 8px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: isActive ? '700' : '400', background: isActive ? `${m.color}22` : 'rgba(255,255,255,0.04)', color: isActive ? m.color : 'var(--text3)', outline: isActive ? `1px solid ${m.color}55` : 'none', display: 'flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}>
               <span>{m.emoji}</span>
-              <span>{m.label}</span>
-              {state === 'ok' && <span style={{ fontSize: '9px', opacity: 0.6 }}>({tabCounts[t]})</span>}
+              <span>{tabLabels[cat]}</span>
+              {state === 'ok' && <span style={{ fontSize: '9px', opacity: 0.6 }}>({tabCounts[cat]})</span>}
             </button>
           );
         })}
@@ -363,8 +370,8 @@ export default function CelebrityBirthdays() {
       {state === 'error' && (
         <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text3)' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>📡</div>
-          <div style={{ fontSize: '13px' }}>Failed to load data</div>
-          <button onClick={() => loadData(selMonth, selDay)} style={{ marginTop: '10px', background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)', borderRadius: '8px', color: 'var(--purple3)', fontSize: '12px', padding: '6px 14px', cursor: 'pointer' }}>↺ Try again</button>
+          <div style={{ fontSize: '13px' }}>{t.celebrity.failedToLoad}</div>
+          <button onClick={() => loadData(selMonth, selDay)} style={{ marginTop: '10px', background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)', borderRadius: '8px', color: 'var(--purple3)', fontSize: '12px', padding: '6px 14px', cursor: 'pointer' }}>{t.celebrity.tryAgain}</button>
         </div>
       )}
 
@@ -374,7 +381,7 @@ export default function CelebrityBirthdays() {
           {/* From your region */}
           {localFiltered.length > 0 && (
             <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>📍 From your region</div>
+              <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>{t.celebrity.fromYourRegion}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(93,76,255,0.05)', border: '1px solid rgba(93,76,255,0.12)', borderRadius: '12px', padding: '6px' }}>
                 {localFiltered.slice(0, 5).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
               </div>
@@ -385,7 +392,7 @@ export default function CelebrityBirthdays() {
           {filtered.length > 0 ? (
             <div>
               <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-                🌍 Top {Math.min(filtered.length, 15)} · by popularity
+                {t.celebrity.topByPopularity.replace('{count}', String(Math.min(filtered.length, 15)))}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {filtered.slice(0, 15).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
@@ -394,7 +401,7 @@ export default function CelebrityBirthdays() {
           ) : (
             <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text3)', fontSize: '13px' }}>
               <div style={{ fontSize: '24px', marginBottom: '6px' }}>{CATEGORY_META[tab].emoji}</div>
-              No celebrities in this category for this day
+              {t.celebrity.noCelebrities}
             </div>
           )}
 
@@ -402,7 +409,7 @@ export default function CelebrityBirthdays() {
           <EventsSection events={events} dateLabel={data?.dateLabel ?? ''} />
 
           <div style={{ marginTop: '10px', fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>
-            Source: Wikipedia · sorted by popularity
+            {t.celebrity.source}
           </div>
         </>
       )}
