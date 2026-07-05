@@ -914,7 +914,9 @@ a:focus-visible {
   height: 460px;
   border-radius: 20px;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 30%, rgba(59,130,246,0.14), transparent 65%), #03050c;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(59,130,246,0.10), transparent 60%),
+    linear-gradient(160deg, #0d1324 0%, #050810 55%, #02040e 100%);
   border: 1px solid rgba(255,255,255,0.06);
 }
 .globe-hero-canvas {
@@ -1370,4 +1372,107 @@ a:focus-visible {
   background: linear-gradient(135deg, var(--purple), #7A3FFF);
   border-color: transparent;
   color: #fff;
+}
+
+/* ─────────────────────────────────────────
+   Maintenance / coming-soon page
+───────────────────────────────────────── */
+.maintenance-page {
+  position: relative;
+  min-height: 100vh;
+  background: #02040E;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+.maintenance-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(93,76,255,0.18), transparent 60%);
+  animation: maintenancePulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes maintenancePulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.maintenance-title {
+  position: relative;
+  font-family: 'Poppins', sans-serif;
+  font-size: 5rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--purple), #7A3FFF, var(--purple2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: pageFadeIn 0.6s ease both;
+}
+.maintenance-tagline {
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
+  color: var(--text2);
+  margin-top: 1rem;
+  animation: pageFadeIn 0.6s ease 0.15s both;
+}
+.maintenance-countdown {
+  position: relative;
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  animation: pageFadeIn 0.6s ease 0.3s both;
+}
+.maintenance-countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  min-width: 90px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.maintenance-countdown-value {
+  display: inline-block;
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  animation: countdownTick 0.4s ease;
+}
+@keyframes countdownTick {
+  from { opacity: 0.4; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.maintenance-countdown-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text3);
+}
+@media (max-width: 600px) {
+  .maintenance-title {
+    font-size: 2.75rem;
+    letter-spacing: 2px;
+  }
+  .maintenance-countdown {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .maintenance-countdown-unit {
+    min-width: 70px;
+    padding: 1rem;
+  }
+  .maintenance-countdown-value {
+    font-size: 1.75rem;
+  }
 }

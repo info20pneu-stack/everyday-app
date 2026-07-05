@@ -11,6 +11,10 @@ import { GLOBE_CITIES, GLOBE_ARCS, type GlobeCity } from '../../lib/globeCities'
 // NASA night-lights composite, bundled as an example asset of the three-globe package.
 const NIGHT_IMG = 'https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg';
 
+// Globe is temporarily disabled while we tune it further — code stays intact,
+// just gated off. Flip back to true to re-enable rendering.
+const GLOBE_ENABLED = false;
+
 type ArcDatum = { startLat: number; startLng: number; endLat: number; endLng: number };
 
 export default function GlobeHero() {
@@ -22,11 +26,13 @@ export default function GlobeHero() {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
+    if (!GLOBE_ENABLED) return;
     const tick = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(tick);
   }, []);
 
   useEffect(() => {
+    if (!GLOBE_ENABLED) return;
     const el = containerRef.current;
     if (!el) return;
 
@@ -113,7 +119,7 @@ export default function GlobeHero() {
   return (
     <>
       <div className="globe-hero hero-section">
-        <div ref={containerRef} className="globe-hero-canvas" />
+        {GLOBE_ENABLED && <div ref={containerRef} className="globe-hero-canvas" />}
 
         <div className="globe-hero-overlay">
           <h1 className="globe-hero-title">EVERY <span>DAY</span></h1>
@@ -130,7 +136,7 @@ export default function GlobeHero() {
           </div>
         </div>
 
-        {hovered && (
+        {GLOBE_ENABLED && hovered && (
           <div className="globe-tooltip" style={{ left: mousePos.x + 18, top: mousePos.y + 18 }}>
             <span className="globe-tooltip-flag">{hovered.flag}</span>
             <div>
