@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type AppTheme = 'dark' | 'light' | 'xp' | 'win98' | 'win7';
+export type AppTheme = 'dark' | 'light' | 'xp' | 'win98' | 'win2000';
 
 interface ThemeCtx { theme: AppTheme; setTheme: (t: AppTheme) => void; }
 

@@ -1,5 +1,6 @@
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import RetroWindow from './RetroWindow';
 
 export default function PageShell({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,7 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
         <main className="main-content" style={{ flex: 1, background: 'var(--bg1)', padding: '1.25rem', minWidth: 0 }}>
           <div style={{ maxWidth: '680px', margin: '0 auto' }}>
-            {children}
+            <RetroWindow>{children}</RetroWindow>
           </div>
         </main>
       </div>

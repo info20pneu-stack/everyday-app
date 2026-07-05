@@ -10,7 +10,7 @@ const THEMES: { id: AppTheme; label: string; icon: string }[] = [
   { id: 'light', label: 'Light',     icon: '☀️' },
   { id: 'xp',    label: 'Windows XP', icon: '🪟' },
   { id: 'win98', label: 'Win 98',    icon: '💾' },
-  { id: 'win7',  label: 'Windows 7', icon: '🔷' },
+  { id: 'win2000', label: 'Windows 2000', icon: '🖥️' },
 ];
 
 export default function Topbar() {

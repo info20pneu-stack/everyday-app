@@ -2,11 +2,14 @@
 
 import { LanguageProvider } from '../../lib/LanguageContext';
 import { ThemeProvider } from '../../lib/ThemeContext';
+import { RetroWindowProvider } from '../../lib/RetroWindowContext';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
-      <LanguageProvider>{children}</LanguageProvider>
+      <LanguageProvider>
+        <RetroWindowProvider>{children}</RetroWindowProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

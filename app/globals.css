@@ -7,7 +7,7 @@
 }
 
 :root {
-  --bg1: #02040E;
+  --bg1: linear-gradient(160deg, #02040E 0%, #0D1324 100%);
   --bg2: #0D1324;
   --bg3: #111827;
   --sidebar: #0B1020;
@@ -23,8 +23,8 @@
   --text2: #AAAAB8;
   --text3: #8E8E9E;
   --card-radius: 20px;
-  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --card-shadow-hover: 0 12px 48px rgba(93, 76, 255, 0.26), 0 2px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(93, 76, 255, 0.22);
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 32px rgba(93, 76, 255, 0.12);
+  --card-shadow-hover: 0 16px 56px rgba(93, 76, 255, 0.32), 0 4px 16px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(93, 76, 255, 0.28), 0 0 40px rgba(93, 76, 255, 0.22);
 }
 
 html {
@@ -33,9 +33,11 @@ html {
 
 body {
   background: var(--bg1);
+  background-attachment: fixed;
   color: var(--text1);
   font-family: 'Inter', system-ui, sans-serif;
   min-height: 100vh;
+  position: relative;
 }
 
 h1, h2, h3 {
@@ -132,13 +134,15 @@ a:focus-visible {
    Only on devices that support hover (not touch)
 ───────────────────────────────────────── */
 .card {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   will-change: transform;
 }
 
 @media (hover: hover) {
   .card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
     box-shadow: var(--card-shadow-hover) !important;
     border-color: rgba(93, 76, 255, 0.22) !important;
   }
@@ -193,6 +197,13 @@ a:focus-visible {
 .main-content {
   padding-bottom: 1.25rem;
   animation: pageFadeIn 0.4s ease both;
+}
+
+.hero-section {
+  position: relative;
+  margin-bottom: 1.25rem;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
@@ -374,7 +385,7 @@ a:focus-visible {
 }
 
 /* ─────────────────────────────────────────
-   Themes — Light, Windows XP, 98, 7
+   Themes — Light, Windows XP, 98, 2000
 ───────────────────────────────────────── */
 
 [data-theme="light"] {
@@ -391,7 +402,9 @@ a:focus-visible {
 [data-theme="light"] body { background: var(--bg1); color: var(--text1); }
 
 [data-theme="xp"] {
-  --bg1: #3a6ea5;
+  --bg1:
+    radial-gradient(ellipse 90% 55% at 50% 116%, #3f9142 0%, #2f7a34 45%, transparent 72%),
+    linear-gradient(180deg, #1c5fa8 0%, #3a82c4 42%, #7ec1e8 72%, #bfe3f5 100%);
   --bg2: #ece9d8;
   --bg3: #d4d0c8;
   --sidebar: #d4d0c8;
@@ -405,7 +418,7 @@ a:focus-visible {
   --card-shadow: 2px 2px 0 rgba(0,0,0,0.3), inset 1px 1px 0 rgba(255,255,255,0.8);
   --card-shadow-hover: 3px 3px 0 rgba(0,0,0,0.4);
 }
-[data-theme="xp"] body { background: var(--bg1); font-family: Tahoma, Arial, sans-serif !important; color: var(--text1); }
+[data-theme="xp"] body { background: var(--bg1); background-attachment: fixed; font-family: Tahoma, Arial, sans-serif !important; color: var(--text1); font-size: 11px; }
 [data-theme="xp"] h1, [data-theme="xp"] h2, [data-theme="xp"] h3 { font-family: Tahoma, Arial, sans-serif !important; }
 
 [data-theme="win98"] {
@@ -419,27 +432,402 @@ a:focus-visible {
   --text1: #000000;
   --text2: #222222;
   --text3: #555555;
-  --card-radius: 2px;
-  --card-shadow: 2px 2px 0 #000, inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
-  --card-shadow-hover: 2px 2px 0 #000, inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+  --card-radius: 0px;
+  --card-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff, 2px 2px 0 #000;
+  --card-shadow-hover: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff, 2px 2px 0 #000;
 }
-[data-theme="win98"] body { background: var(--bg1); font-family: 'MS Sans Serif', Tahoma, Arial, sans-serif !important; color: var(--text1); }
+[data-theme="win98"] body { background: var(--bg1); font-family: 'MS Sans Serif', Tahoma, Arial, sans-serif !important; color: var(--text1); font-size: 12px; }
 [data-theme="win98"] h1, [data-theme="win98"] h2, [data-theme="win98"] h3 { font-family: Tahoma, Arial, sans-serif !important; }
 
-[data-theme="win7"] {
-  --bg1: #08090f;
-  --bg2: rgba(20,30,60,0.85);
-  --bg3: rgba(30,40,80,0.7);
-  --sidebar: rgba(15,20,40,0.9);
-  --purple: #1B6BF5;
-  --purple2: #4a9bff;
-  --purple3: #7ab8ff;
-  --card-radius: 8px;
-  --card-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.08);
-  --card-shadow-hover: 0 8px 32px rgba(27,107,245,0.25), 0 0 0 1px rgba(27,107,245,0.2);
+[data-theme="win2000"] {
+  --bg1: linear-gradient(180deg, #1e4e8c 0%, #3a6ea5 55%, #5b8dc4 100%);
+  --bg2: #d4d0c8;
+  --bg3: #c0c0c0;
+  --sidebar: #d4d0c8;
+  --purple: #0a246a;
+  --purple2: #3a6ea5;
+  --purple3: #6a9bd1;
+  --text1: #000000;
+  --text2: #222222;
+  --text3: #555555;
+  --card-radius: 2px;
+  --card-shadow: 1px 1px 0 rgba(0,0,0,0.35), inset 1px 1px 0 rgba(255,255,255,0.6);
+  --card-shadow-hover: 1px 1px 0 rgba(0,0,0,0.45);
 }
-[data-theme="win7"] body { background: var(--bg1); font-family: 'Segoe UI', system-ui, sans-serif !important; }
-[data-theme="win7"] h1, [data-theme="win7"] h2, [data-theme="win7"] h3 { font-family: 'Segoe UI', system-ui, sans-serif !important; }
+[data-theme="win2000"] body { background: var(--bg1); background-attachment: fixed; font-family: Tahoma, Arial, sans-serif !important; color: var(--text1); font-size: 11px; }
+[data-theme="win2000"] h1, [data-theme="win2000"] h2, [data-theme="win2000"] h3 { font-family: Tahoma, Arial, sans-serif !important; }
+
+/* ─────────────────────────────────────────
+   Retro window chrome — base layout
+   (theme-agnostic structure; skins below)
+───────────────────────────────────────── */
+.retro-window {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+  animation: pageFadeIn 0.3s ease both;
+}
+.retro-window-maximized {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 44px;
+  z-index: 1000;
+  margin: 0;
+}
+.retro-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 8px;
+  cursor: default;
+  user-select: none;
+  flex-shrink: 0;
+}
+.retro-titlebar-icon { font-size: 14px; line-height: 1; }
+.retro-titlebar-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.retro-titlebar-buttons { display: flex; gap: 2px; }
+.retro-titlebar-buttons button {
+  width: 20px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.retro-window-body {
+  flex: 1;
+  overflow: auto;
+  padding: 14px;
+}
+.retro-window-maximized .retro-window-body { height: 100%; }
+
+/* ─── XP window skin ─── */
+[data-theme="xp"] .retro-window {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+  border: 1px solid #0054e3;
+}
+[data-theme="xp"] .retro-titlebar {
+  background: linear-gradient(180deg, #2a8cf3 0%, #0058ee 8%, #0054e3 40%, #0058ee 92%, #2a8cf3 100%);
+  color: #fff;
+  font-weight: 700;
+  font-family: Tahoma, Arial, sans-serif;
+  border-radius: 7px 7px 0 0;
+}
+[data-theme="xp"] .retro-window-body { background: #ece9d8; color: #000; }
+[data-theme="xp"] .retro-titlebar-buttons button {
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.35);
+  color: #fff;
+  font-weight: 700;
+}
+[data-theme="xp"] .retro-btn-min,
+[data-theme="xp"] .retro-btn-max { background: linear-gradient(180deg, #5fa9f7, #0d5fd6); }
+[data-theme="xp"] .retro-btn-close { background: linear-gradient(180deg, #f3a49a, #d6291a); }
+[data-theme="xp"] .retro-titlebar-buttons button:hover { filter: brightness(1.15); }
+[data-theme="xp"] .retro-titlebar-buttons button:active { filter: brightness(0.85); }
+
+/* ─── Win98 window skin ─── */
+[data-theme="win98"] .retro-window {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #dfdfdf #000 #000 #dfdfdf;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+}
+[data-theme="win98"] .retro-titlebar {
+  background: #000080;
+  color: #fff;
+  font-weight: 700;
+  font-family: 'MS Sans Serif', Tahoma, sans-serif;
+}
+[data-theme="win98"] .retro-window-body { background: #c0c0c0; color: #000; }
+[data-theme="win98"] .retro-titlebar-buttons button {
+  background: #c0c0c0;
+  border: 1px solid;
+  border-color: #fff #000 #000 #fff;
+  color: #000;
+  font-weight: 700;
+}
+[data-theme="win98"] .retro-titlebar-buttons button:active {
+  border-color: #000 #fff #fff #000;
+}
+
+/* ─── Win2000 window skin (flatter, cleaner than 98) ─── */
+[data-theme="win2000"] .retro-window {
+  background: #d4d0c8;
+  border: 1px solid #0a246a;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.35);
+}
+[data-theme="win2000"] .retro-titlebar {
+  background: linear-gradient(180deg, #0a246a 0%, #3a6ea5 100%);
+  color: #fff;
+  font-weight: 700;
+  font-family: Tahoma, Arial, sans-serif;
+}
+[data-theme="win2000"] .retro-window-body { background: #d4d0c8; color: #000; }
+[data-theme="win2000"] .retro-titlebar-buttons button {
+  background: #d4d0c8;
+  border: 1px solid #7f9db9;
+  color: #000;
+}
+[data-theme="win2000"] .retro-titlebar-buttons button:active { background: #b8c4d0; }
+
+/* ─────────────────────────────────────────
+   Retro taskbar — base layout
+───────────────────────────────────────── */
+.retro-taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+}
+.retro-start-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+.retro-start-flag { font-size: 13px; }
+.retro-start-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 2px);
+  width: 220px;
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 2px;
+  z-index: 901;
+}
+.retro-start-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  text-decoration: none;
+  font-size: 12px;
+  color: inherit;
+}
+.retro-start-item-icon { font-size: 16px; width: 20px; text-align: center; }
+.retro-taskbar-task {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+  max-width: 200px;
+}
+.retro-taskbar-task-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.retro-systray {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+/* ─── XP taskbar skin ─── */
+[data-theme="xp"] .retro-taskbar {
+  background: linear-gradient(180deg, #2a5fcb 0%, #1f3fa0 4%, #1948b5 50%, #1f3fa0 96%, #4580d8 100%);
+  border-top: 1px solid #0f2a6e;
+}
+[data-theme="xp"] .retro-start-btn {
+  background: linear-gradient(180deg, #6fd85a 0%, #3fa828 50%, #2e8a1c 100%);
+  color: #fff;
+  border-radius: 0 10px 10px 0;
+  border: 1px solid #1c5c10;
+  font-style: italic;
+}
+[data-theme="xp"] .retro-start-menu {
+  background: #ece9d8;
+  border: 1px solid #0054e3;
+  border-radius: 0 8px 8px 0;
+  color: #000;
+}
+[data-theme="xp"] .retro-start-item:hover { background: #316ac5; color: #fff; }
+[data-theme="xp"] .retro-taskbar-task {
+  background: #2a5fcb;
+  color: #fff;
+  border-radius: 3px;
+  border: 1px solid #0f2a6e;
+}
+[data-theme="xp"] .retro-taskbar-task-active {
+  background: #0f2a6e;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.6);
+}
+[data-theme="xp"] .retro-systray { color: #fff; }
+
+/* ─── Win98 taskbar skin ─── */
+[data-theme="win98"] .retro-taskbar {
+  background: #c0c0c0;
+  box-shadow: inset 0 1px 0 #fff;
+}
+[data-theme="win98"] .retro-start-btn {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #000 #000 #fff;
+  color: #000;
+}
+[data-theme="win98"] .retro-start-btn:active { border-color: #000 #fff #fff #000; }
+[data-theme="win98"] .retro-start-menu {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #000 #000 #fff;
+  color: #000;
+}
+[data-theme="win98"] .retro-start-item:hover { background: #000080; color: #fff; }
+[data-theme="win98"] .retro-taskbar-task {
+  background: #c0c0c0;
+  border: 1px solid;
+  border-color: #fff #000 #000 #fff;
+  color: #000;
+}
+[data-theme="win98"] .retro-taskbar-task-active {
+  border-color: #000 #fff #fff #000;
+  background: #d4d0c8;
+}
+
+/* ─── Win2000 taskbar skin ─── */
+[data-theme="win2000"] .retro-taskbar {
+  background: #d4d0c8;
+  border-top: 1px solid #7f9db9;
+}
+[data-theme="win2000"] .retro-start-btn {
+  background: #d4d0c8;
+  border: 1px solid #7f9db9;
+  color: #000;
+}
+[data-theme="win2000"] .retro-start-btn:active { background: #b8c4d0; }
+[data-theme="win2000"] .retro-start-menu {
+  background: #d4d0c8;
+  border: 1px solid #7f9db9;
+  color: #000;
+}
+[data-theme="win2000"] .retro-start-item:hover { background: #0a246a; color: #fff; }
+[data-theme="win2000"] .retro-taskbar-task {
+  background: #d4d0c8;
+  border: 1px solid #7f9db9;
+  color: #000;
+}
+[data-theme="win2000"] .retro-taskbar-task-active { background: #b8c4d0; }
+
+/* ─────────────────────────────────────────
+   Retro dashboard tiles — look like desktop icons
+───────────────────────────────────────── */
+[data-theme="xp"] .dash-grid .card,
+[data-theme="win98"] .dash-grid .card,
+[data-theme="win2000"] .dash-grid .card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+[data-theme="xp"] .dash-grid .card:hover,
+[data-theme="win98"] .dash-grid .card:hover,
+[data-theme="win2000"] .dash-grid .card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: rgba(255,255,255,0.18) !important;
+  border-radius: 4px !important;
+}
+[data-theme="xp"] .dash-grid .card span:first-child,
+[data-theme="win98"] .dash-grid .card span:first-child,
+[data-theme="win2000"] .dash-grid .card span:first-child {
+  font-size: 32px !important;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.7));
+}
+[data-theme="xp"] .dash-grid .card span:nth-child(2),
+[data-theme="win98"] .dash-grid .card span:nth-child(2),
+[data-theme="win2000"] .dash-grid .card span:nth-child(2) {
+  color: #fff !important;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+}
+[data-theme="xp"] .dash-grid .card span:nth-child(3),
+[data-theme="win98"] .dash-grid .card span:nth-child(3),
+[data-theme="win2000"] .dash-grid .card span:nth-child(3) {
+  display: none;
+}
+
+/* ─────────────────────────────────────────
+   Retro scrollbars (WebKit only — best effort)
+───────────────────────────────────────── */
+[data-theme="xp"] ::-webkit-scrollbar,
+[data-theme="win98"] ::-webkit-scrollbar,
+[data-theme="win2000"] ::-webkit-scrollbar {
+  width: 17px;
+  height: 17px;
+}
+[data-theme="xp"] ::-webkit-scrollbar-track { background: #ece9d8; }
+[data-theme="win98"] ::-webkit-scrollbar-track,
+[data-theme="win2000"] ::-webkit-scrollbar-track { background: #c0c0c0; }
+[data-theme="xp"] ::-webkit-scrollbar-thumb {
+  background: #d4d0c8;
+  border: 1px solid #8a8a8a;
+  border-radius: 2px;
+}
+[data-theme="win98"] ::-webkit-scrollbar-thumb,
+[data-theme="win2000"] ::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border: 2px solid;
+  border-color: #fff #000 #000 #fff;
+}
+[data-theme="xp"] ::-webkit-scrollbar-button {
+  background: linear-gradient(180deg, #5fa9f7, #0d5fd6);
+  border: 1px solid #0954c9;
+  display: block;
+  height: 16px;
+}
+[data-theme="win98"] ::-webkit-scrollbar-button,
+[data-theme="win2000"] ::-webkit-scrollbar-button {
+  background: #c0c0c0;
+  border: 1px solid;
+  border-color: #fff #000 #000 #fff;
+  display: block;
+  height: 16px;
+}
+
+/* ─────────────────────────────────────────
+   Retro themes — taskbar replaces bottom-nav
+───────────────────────────────────────── */
+[data-theme="xp"] .bottom-nav,
+[data-theme="win98"] .bottom-nav,
+[data-theme="win2000"] .bottom-nav {
+  display: none !important;
+}
+[data-theme="xp"] .main-content,
+[data-theme="win98"] .main-content,
+[data-theme="win2000"] .main-content {
+  padding-bottom: 40px !important;
+}
 
 /* ─────────────────────────────────────────
    Utility
@@ -452,4 +840,220 @@ a:focus-visible {
   .hide-on-mobile {
     display: none !important;
   }
+}
+
+/* ─────────────────────────────────────────
+   Star field — dark theme only (default / no
+   data-theme attribute yet also counts as dark)
+───────────────────────────────────────── */
+.star-field {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+[data-theme="light"] .star-field,
+[data-theme="xp"] .star-field,
+[data-theme="win98"] .star-field,
+[data-theme="win2000"] .star-field {
+  display: none;
+}
+.star-field::before,
+.star-field::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20px 30px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 90px 120px, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 160px 60px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 220px 180px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 280px 40px, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 340px 220px, rgba(255,255,255,0.5), transparent);
+  background-size: 380px 260px;
+  animation: twinkle 6s ease-in-out infinite;
+}
+.star-field::after {
+  background-position: 190px 130px;
+  animation-duration: 8s;
+  animation-delay: 2s;
+  opacity: 0.6;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────
+   Scroll-reveal (lib/useReveal.ts)
+───────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────
+   Typography utility
+───────────────────────────────────────── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────
+   Hero globe
+───────────────────────────────────────── */
+.globe-hero {
+  position: relative;
+  height: 420px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, rgba(93,76,255,0.12), transparent 65%);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.globe-hero-canvas {
+  width: 100%;
+  height: 100%;
+}
+.globe-tooltip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15,20,40,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(93,76,255,0.3);
+  border-radius: 12px;
+  padding: 8px 12px;
+  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 20px rgba(93,76,255,0.2);
+  animation: fadeIn 0.15s ease both;
+}
+.globe-tooltip-flag {
+  font-size: 20px;
+  line-height: 1;
+}
+.globe-tooltip-city {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+}
+.globe-tooltip-time {
+  font-size: 13px;
+  color: var(--purple3);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .globe-hero {
+    height: 300px;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Dashboard right panel — Sports Center + Crypto
+───────────────────────────────────────── */
+.dashboard-right-panel {
+  width: 280px;
+  flex-shrink: 0;
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+@media (max-width: 1180px) {
+  .dashboard-right-panel {
+    display: none;
+  }
+}
+.right-panel-section {
+  background: rgba(15,20,40,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: var(--card-shadow);
+}
+.right-panel-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 0.75rem;
+}
+.right-panel-empty {
+  font-size: 12px;
+  color: var(--text3);
+  padding: 0.5rem 0;
+}
+.right-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.right-panel-row:first-of-type {
+  border-top: none;
+}
+.right-panel-row-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  width: 22px;
+  text-align: center;
+}
+.right-panel-row-icon-img {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.right-panel-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.right-panel-row-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+.right-panel-row-sub {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.right-panel-live {
+  color: var(--green2);
+  font-weight: 600;
+}
+.right-panel-row-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+.right-panel-row-value-block {
+  text-align: right;
+  flex-shrink: 0;
+}
+.right-panel-row-change {
+  font-size: 10px;
+  margin-top: 2px;
+}
+.right-panel-up {
+  color: var(--green2);
+}
+.right-panel-down {
+  color: #FF6B6B;
 }

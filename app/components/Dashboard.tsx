@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, lazy, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import AdBanner from './AdBanner';
+import RetroWindow from './RetroWindow';
 import { useLang } from '../../lib/LanguageContext';
+import { useTheme } from '../../lib/ThemeContext';
+import { useReveal } from '../../lib/useReveal';
 import type { Translations } from '../../lib/i18n';
+
+const GlobeHero = dynamic(() => import('./GlobeHero'), { ssr: false });
 
 /* ─── Lazy widget imports ─── */
 const WorldTime          = lazy(() => import('./WorldTime'));
@@ -89,8 +95,11 @@ function WidgetSkeleton({ text }: { text: string }) {
 /* ─── Main component ─── */
 export default function Dashboard() {
   const { t } = useLang();
+  const { theme } = useTheme();
   const [activeId, setActiveId] = useState<TileId | null>(null);
   const TILES = getTiles(t);
+  const heroRef = useReveal<HTMLDivElement>();
+  const isRetro = theme === 'xp' || theme === 'win98' || theme === 'win2000';
 
   /* ── Widget detail view ── */
   if (activeId) {
@@ -141,9 +150,11 @@ export default function Dashboard() {
         </div>
 
         {/* Widget */}
-        <Suspense fallback={<WidgetSkeleton text={t.dashboard.loading} />}>
-          <Widget />
-        </Suspense>
+        <RetroWindow icon={tile.icon} title={tile.label} onClose={() => setActiveId(null)}>
+          <Suspense fallback={<WidgetSkeleton text={t.dashboard.loading} />}>
+            <Widget />
+          </Suspense>
+        </RetroWindow>
       </div>
     );
   }
@@ -170,7 +181,7 @@ export default function Dashboard() {
           textAlign: 'center',
           width: '100%',
           boxShadow: 'var(--card-shadow)',
-          animation: `widgetIn 0.4s ease ${0.03 + i * 0.025}s both`,
+          animation: `widgetIn 0.4s ease ${i * 0.1}s both`,
         }}
       >
         <span style={{ fontSize: '32px', lineHeight: 1 }}>{tile.icon}</span>
@@ -196,5 +207,14 @@ export default function Dashboard() {
     }
   });
 
-  return <div className="dash-grid">{items}</div>;
+  return (
+    <>
+      {!isRetro && (
+        <div ref={heroRef} className="reveal">
+          <GlobeHero />
+        </div>
+      )}
+      <div className="dash-grid">{items}</div>
+    </>
+  );
 }
