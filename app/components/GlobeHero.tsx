@@ -4,82 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import Globe, { type GlobeInstance } from 'globe.gl';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import * as solar from 'solar-calculator';
 import { useLang } from '../../lib/LanguageContext';
+import { useInstallPrompt } from '../../lib/useInstallPrompt';
 import { GLOBE_CITIES, GLOBE_ARCS, type GlobeCity } from '../../lib/globeCities';
 
-const DAY_IMG = 'https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-day.jpg';
+// NASA night-lights composite, bundled as an example asset of the three-globe package.
 const NIGHT_IMG = 'https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg';
-
-// Official globe.gl day/night recipe (bundled example: day-night-cycle) —
-// blends two globe textures using the real solar position for the given time.
-const DAY_NIGHT_SHADER = {
-  vertexShader: `
-    varying vec3 vNormal;
-    varying vec2 vUv;
-    void main() {
-      vNormal = normalize(normalMatrix * normal);
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    #define PI 3.141592653589793
-    uniform sampler2D dayTexture;
-    uniform sampler2D nightTexture;
-    uniform vec2 sunPosition;
-    uniform vec2 globeRotation;
-    varying vec3 vNormal;
-    varying vec2 vUv;
-
-    float toRad(in float a) {
-      return a * PI / 180.0;
-    }
-
-    vec3 Polar2Cartesian(in vec2 c) {
-      float theta = toRad(90.0 - c.x);
-      float phi = toRad(90.0 - c.y);
-      return vec3(
-        sin(phi) * cos(theta),
-        cos(phi),
-        sin(phi) * sin(theta)
-      );
-    }
-
-    void main() {
-      float invLon = toRad(globeRotation.x);
-      float invLat = -toRad(globeRotation.y);
-      mat3 rotX = mat3(
-        1, 0, 0,
-        0, cos(invLat), -sin(invLat),
-        0, sin(invLat), cos(invLat)
-      );
-      mat3 rotY = mat3(
-        cos(invLon), 0, sin(invLon),
-        0, 1, 0,
-        -sin(invLon), 0, cos(invLon)
-      );
-      vec3 rotatedSunDirection = rotX * rotY * Polar2Cartesian(sunPosition);
-      float intensity = dot(normalize(vNormal), normalize(rotatedSunDirection));
-      vec4 dayColor = texture2D(dayTexture, vUv);
-      vec4 nightColor = texture2D(nightTexture, vUv) * 0.6;
-      float blendFactor = smoothstep(-0.1, 0.1, intensity);
-      gl_FragColor = mix(nightColor, dayColor, blendFactor);
-    }
-  `,
-};
-
-function sunPosAt(dt: number): [number, number] {
-  const day = new Date(dt).setUTCHours(0, 0, 0, 0);
-  const t = solar.century(dt);
-  const longitude = ((day - dt) / 864e5) * 360 - 180;
-  return [longitude - solar.equationOfTime(t) / 4, solar.declination(t)];
-}
 
 type ArcDatum = { startLat: number; startLng: number; endLat: number; endLng: number };
 
 export default function GlobeHero() {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
+  const { canInstall, promptInstall } = useInstallPrompt();
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<GlobeCity | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -94,23 +30,6 @@ export default function GlobeHero() {
     const el = containerRef.current;
     if (!el) return;
 
-    const material = new THREE.ShaderMaterial({
-      uniforms: {
-        dayTexture: { value: null },
-        nightTexture: { value: null },
-        sunPosition: { value: new THREE.Vector2() },
-        globeRotation: { value: new THREE.Vector2() },
-      },
-      vertexShader: DAY_NIGHT_SHADER.vertexShader,
-      fragmentShader: DAY_NIGHT_SHADER.fragmentShader,
-    });
-
-    const loader = new THREE.TextureLoader();
-    Promise.all([loader.loadAsync(DAY_IMG), loader.loadAsync(NIGHT_IMG)]).then(([day, night]) => {
-      material.uniforms.dayTexture.value = day;
-      material.uniforms.nightTexture.value = night;
-    });
-
     const arcsData: ArcDatum[] = GLOBE_ARCS.map(([a, b]) => {
       const from = GLOBE_CITIES.find(c => c.name === a)!;
       const to = GLOBE_CITIES.find(c => c.name === b)!;
@@ -118,16 +37,16 @@ export default function GlobeHero() {
     });
 
     const globe: GlobeInstance = new Globe(el, { animateIn: true })
-      .globeMaterial(material)
+      .globeImageUrl(NIGHT_IMG)
       .backgroundColor('rgba(0,0,0,0)')
       .showAtmosphere(true)
-      .atmosphereColor('#7A6CFF')
-      .atmosphereAltitude(0.2)
+      .atmosphereColor('#3B82F6')
+      .atmosphereAltitude(0.22)
       .pointsData(GLOBE_CITIES)
       .pointLat('lat')
       .pointLng('lng')
       .pointLabel(() => '')
-      .pointColor(() => '#ffd76b')
+      .pointColor(() => '#FF9500')
       .pointAltitude(0.012)
       .pointRadius(0.45)
       .pointResolution(12)
@@ -136,7 +55,7 @@ export default function GlobeHero() {
       .arcStartLng((d: object) => (d as ArcDatum).startLng)
       .arcEndLat((d: object) => (d as ArcDatum).endLat)
       .arcEndLng((d: object) => (d as ArcDatum).endLng)
-      .arcColor(() => ['rgba(93,76,255,0.65)', 'rgba(160,130,255,0.95)'])
+      .arcColor(() => ['rgba(59,130,246,0.65)', 'rgba(147,197,253,0.95)'])
       .arcDashLength(0.4)
       .arcDashGap(2)
       .arcDashInitialGap(() => Math.random() * 4)
@@ -145,22 +64,14 @@ export default function GlobeHero() {
       .arcAltitude(0.22)
       .onPointHover(point => setHovered(point as GlobeCity | null));
 
-    globe.onZoom(({ lng, lat }) => material.uniforms.globeRotation.value.set(lng, lat));
-
     const controls = globe.controls();
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35;
     controls.enableZoom = false;
 
-    // Bloom pass so the city points glow without blowing out the globe texture itself.
-    const bloom = new UnrealBloomPass(new THREE.Vector2(el.clientWidth || 1, el.clientHeight || 1), 0.5, 0.4, 0.92);
+    // Bloom so city lights + point markers actually glow against the dark night texture.
+    const bloom = new UnrealBloomPass(new THREE.Vector2(el.clientWidth || 1, el.clientHeight || 1), 0.6, 0.4, 0.85);
     globe.postProcessingComposer().addPass(bloom);
-
-    let raf = 0;
-    (function animate() {
-      material.uniforms.sunPosition.value.set(...sunPosAt(Date.now()));
-      raf = requestAnimationFrame(animate);
-    })();
 
     function handleMouseMove(e: MouseEvent) {
       const rect = el!.getBoundingClientRect();
@@ -178,7 +89,6 @@ export default function GlobeHero() {
     ro.observe(el);
 
     return () => {
-      cancelAnimationFrame(raf);
       ro.disconnect();
       el.removeEventListener('mousemove', handleMouseMove);
       globe._destructor();
@@ -196,21 +106,59 @@ export default function GlobeHero() {
     }).format(now);
   }
 
+  function scrollToTiles() {
+    document.querySelector('.dash-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   return (
-    <div className="globe-hero hero-section">
-      <div ref={containerRef} className="globe-hero-canvas" />
-      {hovered && (
-        <div
-          className="globe-tooltip"
-          style={{ left: mousePos.x + 18, top: mousePos.y + 18 }}
-        >
-          <span className="globe-tooltip-flag">{hovered.flag}</span>
-          <div>
-            <div className="globe-tooltip-city">{hovered.name}</div>
-            <div className="globe-tooltip-time tabular-nums">{cityTime(hovered.tz)}</div>
+    <>
+      <div className="globe-hero hero-section">
+        <div ref={containerRef} className="globe-hero-canvas" />
+
+        <div className="globe-hero-overlay">
+          <h1 className="globe-hero-title">EVERY <span>DAY</span></h1>
+          <p className="globe-hero-tagline">Everything you need. Every day.</p>
+          <div className="globe-hero-actions">
+            <button type="button" className="globe-hero-btn-primary" onClick={scrollToTiles}>
+              {t.buttons.exploreNow}
+            </button>
+            {canInstall && (
+              <button type="button" className="globe-hero-btn-outline" onClick={promptInstall}>
+                Add to Home Screen
+              </button>
+            )}
           </div>
         </div>
-      )}
-    </div>
+
+        {hovered && (
+          <div className="globe-tooltip" style={{ left: mousePos.x + 18, top: mousePos.y + 18 }}>
+            <span className="globe-tooltip-flag">{hovered.flag}</span>
+            <div>
+              <div className="globe-tooltip-city">{hovered.name}</div>
+              <div className="globe-tooltip-time tabular-nums">{cityTime(hovered.tz)}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="hero-stats">
+        <div className="hero-stat">
+          <span className="hero-stat-value">50+</span>
+          <span className="hero-stat-label">World Cities</span>
+        </div>
+        <div className="hero-stat">
+          <span className="hero-stat-value">Live</span>
+          <span className="hero-stat-label">Data Updates</span>
+        </div>
+        <div className="hero-stat">
+          <span className="hero-stat-value">9</span>
+          <span className="hero-stat-label">Tools</span>
+        </div>
+        <div className="hero-stat">
+          <span className="hero-stat-value">24/7</span>
+          <span className="hero-stat-label">Availability</span>
+        </div>
+      </div>
+    </>
   );
 }

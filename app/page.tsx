@@ -5,6 +5,7 @@ import BottomNav from './components/BottomNav';
 import AdBanner from './components/AdBanner';
 import Dashboard from './components/Dashboard';
 import DashboardRightPanel from './components/DashboardRightPanel';
+import Footer from './components/Footer';
 
 export const metadata: Metadata = {
   title: 'EVERY DAY | Time, Weather, Sports, Converter and More',
@@ -54,6 +55,8 @@ export default function Home() {
 
         <DashboardRightPanel />
       </div>
+
+      <Footer />
 
       <BottomNav />
     </div>

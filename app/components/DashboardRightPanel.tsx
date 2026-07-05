@@ -1,20 +1,24 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useLang } from '../../lib/LanguageContext';
 import { useTheme } from '../../lib/ThemeContext';
 import { useReveal } from '../../lib/useReveal';
 
 type League = 'nhl' | 'nba' | 'nfl';
+type GameStatus = 'live' | 'final' | 'upcoming';
 
 type MiniGame = {
   id: string;
   league: League;
   homeAbbr: string;
   awayAbbr: string;
+  homeColor: string;
+  awayColor: string;
   homeScore?: number;
   awayScore?: number;
-  status: 'live' | 'final' | 'upcoming';
+  status: GameStatus;
   clock?: string;
 };
 
@@ -26,13 +30,18 @@ type MiniCoin = {
   changePct: number;
 };
 
+const LEAGUES: League[] = ['nhl', 'nba', 'nfl'];
 const LEAGUE_EMOJI: Record<League, string> = { nhl: '🏒', nba: '🏀', nfl: '🏈' };
 
-function parseStatus(status: any): 'live' | 'final' | 'upcoming' {
+function parseStatus(status: any): GameStatus {
   const name: string = status?.type?.name ?? '';
   if (name.startsWith('STATUS_FINAL') || name === 'STATUS_FULL_TIME') return 'final';
   if (name === 'STATUS_SCHEDULED') return 'upcoming';
   return 'live';
+}
+
+function teamColor(team: any): string {
+  return team?.color ? '#' + team.color : '#445566';
 }
 
 async function fetchLeague(league: League): Promise<MiniGame[]> {
@@ -49,6 +58,8 @@ async function fetchLeague(league: League): Promise<MiniGame[]> {
       league,
       homeAbbr: home.team?.abbreviation ?? '?',
       awayAbbr: away.team?.abbreviation ?? '?',
+      homeColor: teamColor(home.team),
+      awayColor: teamColor(away.team),
       homeScore: home.score != null ? Math.round(parseFloat(home.score)) : undefined,
       awayScore: away.score != null ? Math.round(parseFloat(away.score)) : undefined,
       status: parseStatus(comp?.status),
@@ -79,11 +90,14 @@ function formatPrice(price: number): string {
   return price.toPrecision(3);
 }
 
+const STATUS_PRIORITY: Record<GameStatus, number> = { live: 0, upcoming: 1, final: 2 };
+
 export default function DashboardRightPanel() {
   const { t } = useLang();
   const { theme } = useTheme();
   const panelRef = useReveal<HTMLElement>();
-  const [games, setGames] = useState<MiniGame[]>([]);
+  const [gamesByLeague, setGamesByLeague] = useState<Record<League, MiniGame[]>>({ nhl: [], nba: [], nfl: [] });
+  const [activeLeague, setActiveLeague] = useState<League>('nhl');
   const [coins, setCoins] = useState<MiniCoin[]>([]);
   const [gamesLoading, setGamesLoading] = useState(true);
   const [coinsLoading, setCoinsLoading] = useState(true);
@@ -96,10 +110,7 @@ export default function DashboardRightPanel() {
       try {
         const [nhl, nba, nfl] = await Promise.all([fetchLeague('nhl'), fetchLeague('nba'), fetchLeague('nfl')]);
         if (cancelled) return;
-        const all = [...nhl, ...nba, ...nfl];
-        const live = all.filter(g => g.status === 'live');
-        const upcoming = all.filter(g => g.status === 'upcoming');
-        setGames([...live, ...upcoming].slice(0, 4));
+        setGamesByLeague({ nhl, nba, nfl });
       } catch { /* keep previous games on failure */ }
       finally { if (!cancelled) setGamesLoading(false); }
     }
@@ -125,28 +136,52 @@ export default function DashboardRightPanel() {
 
   if (isRetro) return null;
 
+  const games = [...gamesByLeague[activeLeague]]
+    .sort((a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status])
+    .slice(0, 4);
+
   return (
     <aside ref={panelRef} className="dashboard-right-panel reveal">
       <section className="right-panel-section">
         <h3 className="right-panel-title">🏆 {t.dashboard.label_sports}</h3>
+
+        <div className="rp-league-tabs">
+          {LEAGUES.map(lg => (
+            <button
+              key={lg}
+              type="button"
+              className={`rp-league-tab${activeLeague === lg ? ' rp-league-tab-active' : ''}`}
+              onClick={() => setActiveLeague(lg)}
+            >
+              {LEAGUE_EMOJI[lg]} {lg.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
         {gamesLoading && games.length === 0 && <div className="right-panel-empty">{t.general.loading}</div>}
-        {!gamesLoading && games.length === 0 && <div className="right-panel-empty">—</div>}
+        {!gamesLoading && games.length === 0 && <div className="right-panel-empty">{t.sports.noGames}</div>}
+
         {games.map(g => (
-          <div key={g.id} className="right-panel-row">
-            <span className="right-panel-row-icon">{LEAGUE_EMOJI[g.league]}</span>
-            <div className="right-panel-row-main">
-              <div className="right-panel-row-label">{g.awayAbbr} @ {g.homeAbbr}</div>
-              <div className="right-panel-row-sub">
-                {g.status === 'live'
-                  ? <span className="right-panel-live">● {t.currency.liveBadge} {g.clock ?? ''}</span>
-                  : t.sports.sectionUpcoming}
+          <div key={g.id} className="rp-game">
+            <span className="rp-team-badge" style={{ background: g.awayColor }}>{g.awayAbbr}</span>
+            <div className="rp-game-center">
+              <div className="rp-game-score tabular-nums">
+                {g.status === 'upcoming' ? '–' : `${g.awayScore ?? 0} : ${g.homeScore ?? 0}`}
+              </div>
+              <div className={`rp-game-status rp-status-${g.status}`}>
+                {g.status === 'live' && <>● {t.currency.liveBadge} {g.clock ?? ''}</>}
+                {g.status === 'final' && t.sports.sectionFinal}
+                {g.status === 'upcoming' && t.sports.sectionUpcoming}
               </div>
             </div>
-            {g.status !== 'upcoming' && (
-              <div className="right-panel-row-value tabular-nums">{g.awayScore ?? 0}–{g.homeScore ?? 0}</div>
-            )}
+            <span className="rp-team-badge" style={{ background: g.homeColor }}>{g.homeAbbr}</span>
           </div>
         ))}
+
+        <div className="rp-actions">
+          <Link href="/sports" className="rp-action-btn">{t.sports.standings}</Link>
+          <Link href="/sports" className="rp-action-btn rp-action-btn-primary">{t.buttons.viewAll}</Link>
+        </div>
       </section>
 
       <section className="right-panel-section">

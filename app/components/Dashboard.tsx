@@ -174,7 +174,7 @@ export default function Dashboard() {
           alignItems: 'center', justifyContent: 'center',
           gap: '8px',
           background: 'rgba(15,20,40,0.92)',
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 'var(--card-radius)',
           padding: '20px 10px',
           cursor: 'pointer',
@@ -207,6 +207,9 @@ export default function Dashboard() {
     }
   });
 
+  const TRENDING_IDS: TileId[] = ['crypto', 'sports', 'worldTime', 'weather', 'markets', 'currency'];
+  const trendingTiles = TRENDING_IDS.map(id => TILES.find(x => x.id === id)!).filter(Boolean);
+
   return (
     <>
       {!isRetro && (
@@ -215,6 +218,22 @@ export default function Dashboard() {
         </div>
       )}
       <div className="dash-grid">{items}</div>
+
+      <div className="trending-section">
+        <h3 className="trending-title">🔥 {t.nav.trending}</h3>
+        <div className="trending-pills">
+          {trendingTiles.map(tile => (
+            <button
+              key={tile.id}
+              type="button"
+              className="trending-pill"
+              onClick={() => setActiveId(tile.id)}
+            >
+              <span>{tile.icon}</span> {tile.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </>
   );
 }
