@@ -22,7 +22,7 @@ type State = 'loading' | 'ok' | 'error';
 
 const card: React.CSSProperties = {
   background: 'rgba(15,20,40,0.92)',
-  border: '1px solid rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: 'var(--card-radius)',
   boxShadow: 'var(--card-shadow)',
   padding: '1.25rem',

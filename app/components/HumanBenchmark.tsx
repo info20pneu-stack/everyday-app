@@ -1188,16 +1188,17 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
   }, [active]);
 
   const CARD_BG_STYLE: React.CSSProperties = embedded ? {} : {
-    background: 'rgba(8,12,36,0.96)',
-    border: '1px solid rgba(93,76,255,0.15)',
-    borderRadius: '16px',
-    padding: '1.2rem',
-    boxShadow: '0 4px 32px rgba(0,0,0,0.5)',
+    background: 'rgba(15,20,40,0.92)',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 'var(--card-radius)',
+    padding: '1.25rem',
+    boxShadow: 'var(--card-shadow)',
   };
+  const cardClassName = embedded ? undefined : 'card';
 
   if (active === 'mybrain') {
     return (
-      <div style={CARD_BG_STYLE}>
+      <div className={cardClassName} style={CARD_BG_STYLE}>
         <MyBrainProfile onBack={() => setActive(null)} />
         <HBStyles />
       </div>
@@ -1206,7 +1207,7 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
 
   if (active) {
     return (
-      <div style={CARD_BG_STYLE}>
+      <div className={cardClassName} style={CARD_BG_STYLE}>
         <TestRunner testId={active} onBack={() => setActive(null)} />
         <HBStyles />
       </div>
@@ -1214,7 +1215,7 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
   }
 
   return (
-    <div style={CARD_BG_STYLE}>
+    <div className={cardClassName} style={CARD_BG_STYLE}>
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ fontSize: '26px' }}>🧠</div>

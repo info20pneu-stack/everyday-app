@@ -5,8 +5,8 @@ import { useLang } from '../../lib/LanguageContext';
 const S = {
   card: {
     background: 'rgba(15,20,40,0.92)',
-    border: '1px solid rgba(255,255,255,0.05)',
-    borderRadius: '16px' as const,
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 'var(--card-radius)',
     padding: '2rem',
   } as React.CSSProperties,
   h1: {

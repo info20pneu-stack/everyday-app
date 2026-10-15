@@ -282,7 +282,7 @@ export default function Weather() {
 
   const card: React.CSSProperties = {
     background: 'rgba(15,20,40,0.92)',
-    border: '1px solid rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: 'var(--card-radius)',
     padding: '1.25rem',
     boxShadow: 'var(--card-shadow)',
@@ -349,7 +349,7 @@ export default function Weather() {
   const outfitRecs = getOutfitRecs(t, current.temp, current.code);
 
   return (
-    <div style={card}>
+    <div className="card" style={card}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
