@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import { recordGameCompleted } from '../../lib/streak';
 
 /* ══════════════════════════════════════════════════════════════
    TYPES
@@ -1098,7 +1099,7 @@ function TestRunner({ testId, onBack }: { testId: TestId; onBack: () => void }) 
         </div>
         <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer' }}>✕</button>
       </div>
-      <Comp key={key} onDone={r => { setResult(r); }} onBack={onBack} />
+      <Comp key={key} onDone={r => { setResult(r); recordGameCompleted(); }} onBack={onBack} />
     </div>
   );
 }

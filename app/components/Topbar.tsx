@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import { LANGUAGES } from '../../lib/i18n';
 import { useTheme, type AppTheme } from '../../lib/ThemeContext';
+import StreakBadge from './StreakBadge';
 
 const THEMES: { id: AppTheme; label: string; icon: string }[] = [
   { id: 'dark',  label: 'Dark',      icon: '🌙' },
@@ -249,6 +250,9 @@ export default function Topbar() {
             </div>
           )}
         </div>
+
+        {/* Streak badge */}
+        <StreakBadge />
 
         {/* Avatar */}
         <div style={{

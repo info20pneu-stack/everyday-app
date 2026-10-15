@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { recordGameCompleted } from '../../lib/streak';
 
 /* ── Word lists per category (5-letter, uppercase) ── */
 const WORDS: Record<string, string[]> = {
@@ -170,12 +171,14 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
         const s = { cur: newCur, best: Math.max(streak.best, newCur), lastDate: today };
         setStreak(s);
         try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
+        recordGameCompleted();
       } else if (rowIdx + 1 >= MAX) {
         setPhase('lost');
         showMsg(target, 5000);
         const s = { ...streak, cur: 0 };
         setStreak(s);
         try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
+        recordGameCompleted();
       }
     }, 5 * 300 + 400);
   }, [animating, current, guesses, target, phase, streak, lsKey, t]);

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { recordDailyBoostActivity } from '../../lib/streak';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -345,6 +346,7 @@ export default function DailyBoost() {
       next[i] = true;
       return next;
     });
+    recordDailyBoostActivity();
   }
 
   const doneCount  = completed.filter(Boolean).length;

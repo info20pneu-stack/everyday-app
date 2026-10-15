@@ -5,6 +5,7 @@ import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
 import { TypingSpeedTest } from './TypingSpeedTest';
 import WordleGames from './WordleGames';
+import { recordGameCompleted, recordLeaderboardRank } from '../../lib/streak';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -329,13 +330,17 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
         const raw = await fetch(`/api/leaderboard?game=${game}`);
         const lb = await raw.json() as LBApiResponse;
         const idx = lb.entries.findIndex(e => e.id === (data.entry as LBApiEntry).id);
-        setMyRank(idx >= 0 ? idx + 1 : null);
+        const rank = idx >= 0 ? idx + 1 : null;
+        setMyRank(rank);
+        if (rank !== null) recordLeaderboardRank(rank);
         setPhase('confirm');
       } else if (data.notBetter) {
         setMyRank(data.rank as number);
+        recordLeaderboardRank(data.rank as number);
         setPhase('confirm');
       } else if (data.notInTop) {
         setMyRank(data.rank as number);
+        recordLeaderboardRank(data.rank as number);
         setPhase('confirm');
       } else {
         setSubmitErr((data.error as string) || t.games.submitError);
@@ -2671,6 +2676,7 @@ export default function DailyGames() {
 
   function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string }) {
     setModal({ game, timeMs, ...extra });
+    recordGameCompleted();
   }
 
   function handleShowLeaderboard() { /* leaderboard always visible */ }

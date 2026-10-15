@@ -240,6 +240,12 @@ export type Translations = {
     tagline: string; days: string; hours: string; minutes: string; seconds: string;
     launchingSoon: string;
   };
+  streak: {
+    title: string; currentStreak: string; longestStreak: string;
+    totalDays: string; totalGames: string; badgesTitle: string;
+    badge_streak3: string; badge_streak7: string; badge_streak30: string; badge_streak100: string;
+    badge_games10: string; badge_games100: string; badge_top100: string;
+  };
 };
 
 const t: Record<Lang, Translations> = {
@@ -537,6 +543,14 @@ const t: Record<Lang, Translations> = {
       days: 'Days', hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds',
       launchingSoon: 'Launching very soon',
     },
+    streak: {
+      title: '🔥 Daily Streak', currentStreak: 'Current streak', longestStreak: 'Longest streak',
+      totalDays: 'Days completed', totalGames: 'Games played', badgesTitle: 'Badges',
+      badge_streak3: '3-Day Streak', badge_streak7: '7-Day Streak',
+      badge_streak30: '30-Day Streak', badge_streak100: '100-Day Streak',
+      badge_games10: '10 Games Played', badge_games100: '100 Games Played',
+      badge_top100: 'Top 100 Leaderboard',
+    },
   },
 
   de: {
@@ -832,6 +846,14 @@ const t: Record<Lang, Translations> = {
       tagline: 'Wir bauen gerade etwas Großartiges. Bald verfügbar.',
       days: 'Tage', hours: 'Stunden', minutes: 'Minuten', seconds: 'Sekunden',
       launchingSoon: 'Start ist ganz bald',
+    },
+    streak: {
+      title: '🔥 Tägliche Serie', currentStreak: 'Aktuelle Serie', longestStreak: 'Längste Serie',
+      totalDays: 'Abgeschlossene Tage', totalGames: 'Gespielte Spiele', badgesTitle: 'Abzeichen',
+      badge_streak3: '3-Tage-Serie', badge_streak7: '7-Tage-Serie',
+      badge_streak30: '30-Tage-Serie', badge_streak100: '100-Tage-Serie',
+      badge_games10: '10 Spiele gespielt', badge_games100: '100 Spiele gespielt',
+      badge_top100: 'Top 100 Rangliste',
     },
   },
 
@@ -1129,6 +1151,14 @@ const t: Record<Lang, Translations> = {
       days: 'Giorni', hours: 'Ore', minutes: 'Minuti', seconds: 'Secondi',
       launchingSoon: 'Il lancio è vicinissimo',
     },
+    streak: {
+      title: '🔥 Serie Giornaliera', currentStreak: 'Serie attuale', longestStreak: 'Serie più lunga',
+      totalDays: 'Giorni completati', totalGames: 'Partite giocate', badgesTitle: 'Distintivi',
+      badge_streak3: 'Serie di 3 Giorni', badge_streak7: 'Serie di 7 Giorni',
+      badge_streak30: 'Serie di 30 Giorni', badge_streak100: 'Serie di 100 Giorni',
+      badge_games10: '10 Partite Giocate', badge_games100: '100 Partite Giocate',
+      badge_top100: 'Top 100 Classifica',
+    },
   },
 
   fr: {
@@ -1424,6 +1454,14 @@ const t: Record<Lang, Translations> = {
       tagline: "Nous construisons quelque chose d'extraordinaire. Bientôt disponible.",
       days: 'Jours', hours: 'Heures', minutes: 'Minutes', seconds: 'Secondes',
       launchingSoon: 'Le lancement est très proche',
+    },
+    streak: {
+      title: '🔥 Série Quotidienne', currentStreak: 'Série actuelle', longestStreak: 'Plus longue série',
+      totalDays: 'Jours complétés', totalGames: 'Parties jouées', badgesTitle: 'Badges',
+      badge_streak3: 'Série de 3 Jours', badge_streak7: 'Série de 7 Jours',
+      badge_streak30: 'Série de 30 Jours', badge_streak100: 'Série de 100 Jours',
+      badge_games10: '10 Parties Jouées', badge_games100: '100 Parties Jouées',
+      badge_top100: 'Top 100 Classement',
     },
   },
 
@@ -1721,6 +1759,14 @@ const t: Record<Lang, Translations> = {
       days: 'Dny', hours: 'Hodiny', minutes: 'Minuty', seconds: 'Sekundy',
       launchingSoon: 'Spouštíme už velmi brzy',
     },
+    streak: {
+      title: '🔥 Denní Série', currentStreak: 'Aktuální série', longestStreak: 'Nejdelší série',
+      totalDays: 'Splněných dní', totalGames: 'Odehraných her', badgesTitle: 'Odznaky',
+      badge_streak3: 'Série 3 dny', badge_streak7: 'Série 7 dní',
+      badge_streak30: 'Série 30 dní', badge_streak100: 'Série 100 dní',
+      badge_games10: '10 odehraných her', badge_games100: '100 odehraných her',
+      badge_top100: 'Top 100 v žebříčku',
+    },
   },
 
   es: {
@@ -2016,6 +2062,14 @@ const t: Record<Lang, Translations> = {
       tagline: 'Estamos creando algo increíble. Próximamente.',
       days: 'Días', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos',
       launchingSoon: 'El lanzamiento está muy cerca',
+    },
+    streak: {
+      title: '🔥 Racha Diaria', currentStreak: 'Racha actual', longestStreak: 'Racha más larga',
+      totalDays: 'Días completados', totalGames: 'Partidas jugadas', badgesTitle: 'Insignias',
+      badge_streak3: 'Racha de 3 Días', badge_streak7: 'Racha de 7 Días',
+      badge_streak30: 'Racha de 30 Días', badge_streak100: 'Racha de 100 Días',
+      badge_games10: '10 Partidas Jugadas', badge_games100: '100 Partidas Jugadas',
+      badge_top100: 'Top 100 Clasificación',
     },
   },
 
@@ -2313,6 +2367,14 @@ const t: Record<Lang, Translations> = {
       days: 'Dni', hours: 'Godziny', minutes: 'Minuty', seconds: 'Sekundy',
       launchingSoon: 'Startujemy już bardzo wkrótce',
     },
+    streak: {
+      title: '🔥 Dzienna Seria', currentStreak: 'Aktualna seria', longestStreak: 'Najdłuższa seria',
+      totalDays: 'Ukończone dni', totalGames: 'Rozegrane gry', badgesTitle: 'Odznaki',
+      badge_streak3: 'Seria 3 dni', badge_streak7: 'Seria 7 dni',
+      badge_streak30: 'Seria 30 dni', badge_streak100: 'Seria 100 dni',
+      badge_games10: '10 rozegranych gier', badge_games100: '100 rozegranych gier',
+      badge_top100: 'Top 100 w rankingu',
+    },
   },
 
   pt: {
@@ -2608,6 +2670,14 @@ const t: Record<Lang, Translations> = {
       tagline: 'Estamos a construir algo incrível. Brevemente.',
       days: 'Dias', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos',
       launchingSoon: 'O lançamento está muito próximo',
+    },
+    streak: {
+      title: '🔥 Sequência Diária', currentStreak: 'Sequência atual', longestStreak: 'Sequência mais longa',
+      totalDays: 'Dias completados', totalGames: 'Partidas jogadas', badgesTitle: 'Medalhas',
+      badge_streak3: 'Sequência de 3 Dias', badge_streak7: 'Sequência de 7 Dias',
+      badge_streak30: 'Sequência de 30 Dias', badge_streak100: 'Sequência de 100 Dias',
+      badge_games10: '10 Partidas Jogadas', badge_games100: '100 Partidas Jogadas',
+      badge_top100: 'Top 100 Classificação',
     },
   },
 
@@ -2905,6 +2975,14 @@ const t: Record<Lang, Translations> = {
       days: 'Дни', hours: 'Часы', minutes: 'Минуты', seconds: 'Секунды',
       launchingSoon: 'Запуск уже совсем скоро',
     },
+    streak: {
+      title: '🔥 Ежедневная серия', currentStreak: 'Текущая серия', longestStreak: 'Самая длинная серия',
+      totalDays: 'Завершённых дней', totalGames: 'Сыграно игр', badgesTitle: 'Значки',
+      badge_streak3: 'Серия 3 дня', badge_streak7: 'Серия 7 дней',
+      badge_streak30: 'Серия 30 дней', badge_streak100: 'Серия 100 дней',
+      badge_games10: '10 сыгранных игр', badge_games100: '100 сыгранных игр',
+      badge_top100: 'Топ 100 в рейтинге',
+    },
   },
 
   zh: {
@@ -3200,6 +3278,14 @@ const t: Record<Lang, Translations> = {
       tagline: '我们正在打造精彩内容，敬请期待。',
       days: '天', hours: '小时', minutes: '分钟', seconds: '秒',
       launchingSoon: '即将正式上线',
+    },
+    streak: {
+      title: '🔥 每日连胜', currentStreak: '当前连胜', longestStreak: '最长连胜',
+      totalDays: '已完成天数', totalGames: '已玩游戏数', badgesTitle: '徽章',
+      badge_streak3: '连续3天', badge_streak7: '连续7天',
+      badge_streak30: '连续30天', badge_streak100: '连续100天',
+      badge_games10: '玩过10场游戏', badge_games100: '玩过100场游戏',
+      badge_top100: '排行榜前100',
     },
   },
 
@@ -3497,6 +3583,14 @@ const t: Record<Lang, Translations> = {
       days: '日', hours: '時間', minutes: '分', seconds: '秒',
       launchingSoon: 'まもなく公開されます',
     },
+    streak: {
+      title: '🔥 デイリーストリーク', currentStreak: '現在のストリーク', longestStreak: '最長ストリーク',
+      totalDays: '達成日数', totalGames: 'プレイしたゲーム数', badgesTitle: 'バッジ',
+      badge_streak3: '3日間ストリーク', badge_streak7: '7日間ストリーク',
+      badge_streak30: '30日間ストリーク', badge_streak100: '100日間ストリーク',
+      badge_games10: 'ゲーム10回プレイ', badge_games100: 'ゲーム100回プレイ',
+      badge_top100: 'リーダーボード上位100',
+    },
   },
 
   ko: {
@@ -3792,6 +3886,14 @@ const t: Record<Lang, Translations> = {
       tagline: '놀라운 것을 준비하고 있습니다. 곧 공개됩니다.',
       days: '일', hours: '시간', minutes: '분', seconds: '초',
       launchingSoon: '곧 출시됩니다',
+    },
+    streak: {
+      title: '🔥 일일 스트릭', currentStreak: '현재 스트릭', longestStreak: '최장 스트릭',
+      totalDays: '완료한 날', totalGames: '플레이한 게임', badgesTitle: '배지',
+      badge_streak3: '3일 연속', badge_streak7: '7일 연속',
+      badge_streak30: '30일 연속', badge_streak100: '100일 연속',
+      badge_games10: '게임 10회 플레이', badge_games100: '게임 100회 플레이',
+      badge_top100: '리더보드 상위 100',
     },
   },
 
@@ -4089,6 +4191,14 @@ const t: Record<Lang, Translations> = {
       days: 'أيام', hours: 'ساعات', minutes: 'دقائق', seconds: 'ثواني',
       launchingSoon: 'الإطلاق قريب جدًا',
     },
+    streak: {
+      title: '🔥 التتابع اليومي', currentStreak: 'التتابع الحالي', longestStreak: 'أطول تتابع',
+      totalDays: 'الأيام المكتملة', totalGames: 'الألعاب التي تم لعبها', badgesTitle: 'الأوسمة',
+      badge_streak3: 'تتابع 3 أيام', badge_streak7: 'تتابع 7 أيام',
+      badge_streak30: 'تتابع 30 يومًا', badge_streak100: 'تتابع 100 يوم',
+      badge_games10: 'لعب 10 ألعاب', badge_games100: 'لعب 100 لعبة',
+      badge_top100: 'أفضل 100 في لوحة الصدارة',
+    },
   },
 
   hi: {
@@ -4384,6 +4494,14 @@ const t: Record<Lang, Translations> = {
       tagline: 'हम कुछ अद्भुत बना रहे हैं। बहुत जल्द आ रहा है।',
       days: 'दिन', hours: 'घंटे', minutes: 'मिनट', seconds: 'सेकंड',
       launchingSoon: 'लॉन्च बहुत जल्द होने वाला है',
+    },
+    streak: {
+      title: '🔥 दैनिक स्ट्रीक', currentStreak: 'वर्तमान स्ट्रीक', longestStreak: 'सबसे लंबी स्ट्रीक',
+      totalDays: 'पूर्ण किए गए दिन', totalGames: 'खेले गए गेम', badgesTitle: 'बैज',
+      badge_streak3: '3-दिन की स्ट्रीक', badge_streak7: '7-दिन की स्ट्रीक',
+      badge_streak30: '30-दिन की स्ट्रीक', badge_streak100: '100-दिन की स्ट्रीक',
+      badge_games10: '10 गेम खेले', badge_games100: '100 गेम खेले',
+      badge_top100: 'टॉप 100 लीडरबोर्ड',
     },
   },
 };
