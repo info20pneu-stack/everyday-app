@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import { recordGameCompleted } from '../../lib/streak';
+import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
+import AdBanner from './AdBanner';
 
 /* ══════════════════════════════════════════════════════════════
    TYPES
@@ -15,11 +17,6 @@ type HBGameId =
 type TestId = 'reaction' | 'numbermem' | 'visualmem' | 'verbalmem' | 'seqmem' | 'aimtrainer' | 'mentalmath';
 
 interface TestResult { gameId: HBGameId; timeMs: number; score?: number; }
-
-interface LBEntry {
-  id: string; game: HBGameId; name: string; country: string; city: string;
-  timeMs: number; score?: number; date: number;
-}
 
 /* ══════════════════════════════════════════════════════════════
    CONSTANTS
@@ -124,61 +121,24 @@ function Burst({ color }: { color: string }) {
 
 type SubmitPhase = 'idle' | 'form' | 'submitting' | 'done';
 
-function HBLeaderboard({ gameId, color, lowerBetter, scoreLabel }: {
-  gameId: HBGameId; color: string; lowerBetter?: boolean; scoreLabel: string;
-}) {
-  const { lang } = useLang();
-  const [entries, setEntries] = useState<LBEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/leaderboard?game=${gameId}&period=all`)
-      .then(r => r.json() as Promise<{ entries: LBEntry[] }>)
-      .then(d => setEntries(d.entries ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [gameId]);
-
-  function fmtVal(e: LBEntry) {
-    if (lowerBetter) return `${e.timeMs}ms`;
-    if (e.score !== undefined) return String(e.score);
-    return `${e.timeMs}ms`;
-  }
-
-  return (
-    <div style={{ marginTop: '12px' }}>
-      <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>
-        🌍 Global Top {entries.length > 0 ? `— ${entries.length} players` : ''}
-      </div>
-      {loading ? (
-        <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '12px' }}>Loading…</div>
-      ) : entries.length === 0 ? (
-        <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '12px' }}>No records yet. Be the first!</div>
-      ) : (
-        <div style={{ maxHeight: '260px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-          {entries.slice(0, 50).map((e, i) => (
-            <div key={e.id} style={{
-              display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 8px',
-              borderRadius: '7px', background: 'rgba(255,255,255,0.03)',
-            }}>
-              <span style={{ fontSize: '12px', width: '22px', textAlign: 'right', flexShrink: 0, color: 'var(--text3)' }}>
-                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
-              </span>
-              <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.name}</span>
-              {e.country && <span style={{ fontSize: '13px', flexShrink: 0 }} title={e.city || e.country}>{flagEmoji(e.country)}</span>}
-              <span style={{ fontSize: '12px', fontWeight: '700', color, flexShrink: 0, fontFamily: 'monospace' }}>{fmtVal(e)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {/* suppress unused warning */ void scoreLabel}
-    </div>
-  );
+function fmtAimTime(ms: number): string {
+  return `${(ms / 1000).toFixed(4)}s`;
 }
 
-function HBSubmit({ result, color, lowerBetter, onDismiss }: {
-  result: TestResult; color: string; lowerBetter?: boolean; onDismiss: () => void;
+function HBLeaderboard({ gameId, color, lowerBetter, unit }: {
+  gameId: HBGameId; color: string; lowerBetter?: boolean; unit: string;
+}) {
+  function renderValue(e: SharedLBEntry) {
+    if (gameId === 'hb_aimtrainer') return fmtAimTime(e.timeMs);
+    if (lowerBetter) return `${e.timeMs}ms`;
+    if (e.score !== undefined) return `${e.score} ${unit}`;
+    return `${e.timeMs}ms`;
+  }
+  return <LeaderboardPanel game={gameId} accentColor={color} renderValue={renderValue} />;
+}
+
+function HBSubmit({ result, color, onDismiss }: {
+  result: TestResult; color: string; onDismiss: () => void;
 }) {
   const { lang } = useLang();
   const [phase, setPhase] = useState<SubmitPhase>('idle');
@@ -187,7 +147,6 @@ function HBSubmit({ result, color, lowerBetter, onDismiss }: {
   const [city, setCity] = useState(() => hbGet('lb_city', ''));
   const [rank, setRank] = useState<number | null>(null);
   const [err, setErr] = useState('');
-  const [showLB, setShowLB] = useState(false);
 
   const inputSt: React.CSSProperties = {
     width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
@@ -218,15 +177,11 @@ function HBSubmit({ result, color, lowerBetter, onDismiss }: {
   if (phase === 'done') {
     return (
       <div style={{ marginTop: '14px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '14px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <div style={{ textAlign: 'center' }}>
           <span style={{ fontSize: '20px' }}>✅</span>
           <div style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>Added to leaderboard!</div>
           {rank && <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '3px' }}>You are <span style={{ color: '#FFB300', fontWeight: '700' }}>#{rank}</span> globally</div>}
         </div>
-        <button onClick={() => setShowLB(s => !s)} style={{ width: '100%', padding: '8px', borderRadius: '8px', background: showLB ? `${color}22` : 'rgba(255,255,255,0.05)', border: `1px solid ${showLB ? color : 'rgba(255,255,255,0.1)'}`, color: showLB ? color : 'var(--text2)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-          {showLB ? '▲ Hide' : '📊 View leaderboard'}
-        </button>
-        {showLB && <HBLeaderboard gameId={result.gameId} color={color} lowerBetter={lowerBetter} scoreLabel="" />}
       </div>
     );
   }
@@ -240,15 +195,10 @@ function HBSubmit({ result, color, lowerBetter, onDismiss }: {
           fontSize: '13px', fontWeight: '700', cursor: 'pointer',
           boxShadow: `0 0 16px ${color}55`,
         }}>🏅 Submit to leaderboard</button>
-        <button onClick={() => { setShowLB(s => !s); }} style={{
-          flex: 1, padding: '10px', borderRadius: '9px', border: `1px solid rgba(255,255,255,0.12)`,
-          background: 'rgba(255,255,255,0.05)', color: 'var(--text2)', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
-        }}>📊 Scores</button>
         <button onClick={onDismiss} style={{
           flex: 1, padding: '10px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.1)',
           background: 'rgba(255,255,255,0.04)', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer',
         }}>✕</button>
-        {showLB && <div style={{ width: '100%' }}><HBLeaderboard gameId={result.gameId} color={color} lowerBetter={lowerBetter} scoreLabel="" /></div>}
       </div>
     );
   }
@@ -290,11 +240,13 @@ function ResultScreen({ result, meta, onRetry, onBack }: {
   const bestKey = meta.bestKey;
   const oldBest = hbGet<number | null>(bestKey, null);
 
+  const isAimTrainer = result.gameId === 'hb_aimtrainer';
+
   let displayVal: string;
   let isNew = false;
 
   if (meta.lowerBetter) {
-    displayVal = `${result.timeMs}ms`;
+    displayVal = isAimTrainer ? fmtAimTime(result.timeMs) : `${result.timeMs}ms`;
     isNew = oldBest === null || result.timeMs < oldBest;
     if (isNew) hbSet(bestKey, result.timeMs);
   } else {
@@ -321,7 +273,7 @@ function ResultScreen({ result, meta, onRetry, onBack }: {
       )}
       {!isNew && oldBest !== null && (
         <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
-          Best: {meta.lowerBetter ? `${oldBest}ms` : String(oldBest)}
+          Best: {meta.lowerBetter ? (isAimTrainer ? fmtAimTime(oldBest) : `${oldBest}ms`) : String(oldBest)}
         </div>
       )}
 
@@ -335,7 +287,17 @@ function ResultScreen({ result, meta, onRetry, onBack }: {
       </div>
 
       {!submitted && (
-        <HBSubmit result={result} color={meta.color} lowerBetter={meta.lowerBetter} onDismiss={() => setSubmitted(true)} />
+        <HBSubmit result={result} color={meta.color} onDismiss={() => setSubmitted(true)} />
+      )}
+
+      {/* Leaderboard — always visible below the test, auto-switches with the active test */}
+      <HBLeaderboard gameId={result.gameId} color={meta.color} lowerBetter={meta.lowerBetter} unit={meta.unit} />
+
+      {isAimTrainer && (
+        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <AdBanner variant="inline" slot="6666666666" />
+          <AdBanner variant="inline" slot="7777777777" />
+        </div>
       )}
     </div>
   );
@@ -925,7 +887,7 @@ function AimTrainerTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
         )}
         {done && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,4,14,0.8)' }}>
-            <div style={{ fontFamily: 'Poppins', fontSize: '40px', fontWeight: '900', color, lineHeight: 1 }}>{(elapsed / 1000).toFixed(3)}s</div>
+            <div style={{ fontFamily: 'Poppins', fontSize: '40px', fontWeight: '900', color, lineHeight: 1 }}>{fmtAimTime(elapsed)}</div>
             <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>for {AIM_TARGETS} targets</div>
           </div>
         )}

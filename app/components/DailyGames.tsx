@@ -542,7 +542,8 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
   const [game,    setGame]    = useState<GameId>(initialGame);
 
   useEffect(() => { setGame(initialGame); setDeviceFilter('all'); }, [initialGame]);
-  const [period,       setPeriod]      = useState('all');
+  const [season,       setSeason]      = useState<'week' | 'all'>('week');
+  const [expanded,      setExpanded]   = useState(false);
   const [country,      setCountry]     = useState('');
   const [city,         setCity]        = useState('');
   const [entries,      setEntries]     = useState<LBApiEntry[]>([]);
@@ -565,14 +566,15 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
 
   useEffect(() => {
     setLoading(true);
-    const params = new URLSearchParams({ game, period });
+    setExpanded(false);
+    const params = new URLSearchParams({ game, season });
     fetch(`/api/leaderboard?${params}`)
       .then(r => r.json() as Promise<LBApiResponse>)
       .then(d => { setEntries(d.entries ?? []); setCountries(d.countries ?? []); })
       .catch(() => {})
       .finally(() => setLoading(false));
     setCountry(''); setCity('');
-  }, [game, period]);
+  }, [game, season]);
 
   const glGameLabel: Record<GameId, string> = {
     sliding:   `🧩 ${t.games.sliding}`,
@@ -586,11 +588,9 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     felixjump: `🏃 ${t.games.felixJump}`,
     typing:    '⌨️ Typing',
   };
-  const periodOpts = [
-    { v: 'all',   label: t.games.allTime },
-    { v: 'month', label: t.games.month },
-    { v: 'week',  label: t.games.week },
-    { v: 'today', label: t.games.today },
+  const seasonOpts = [
+    { v: 'week' as const, label: t.games.thisWeek },
+    { v: 'all'  as const, label: t.games.allTimeSeason },
   ];
 
   return (
@@ -607,15 +607,15 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
         ))}
       </div>
 
-      {/* Period selector */}
+      {/* Season selector */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
-        {periodOpts.map(p => (
-          <button key={p.v} onClick={() => setPeriod(p.v)} style={{
+        {seasonOpts.map(p => (
+          <button key={p.v} onClick={() => setSeason(p.v)} style={{
             flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '11px', fontWeight: '600',
-            background: p.v === period ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
-            color: p.v === period ? 'var(--purple3)' : 'var(--text3)',
-            outline: p.v === period ? '1px solid rgba(93,76,255,0.4)' : 'none',
+            background: p.v === season ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
+            color: p.v === season ? 'var(--purple3)' : 'var(--text3)',
+            outline: p.v === season ? '1px solid rgba(93,76,255,0.4)' : 'none',
           }}>{p.label}</button>
         ))}
       </div>
@@ -683,8 +683,8 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
           {entries.length === 0 ? t.games.noRecords : t.games.noPlayersArea}
         </div>
       ) : (
-        <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          {filtered.map((e, i) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          {filtered.slice(0, expanded ? 100 : 20).map((e, i) => (
             <div key={e.id} style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               padding: '7px 10px', borderRadius: '8px',
@@ -703,7 +703,10 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
                 <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0, maxWidth: '54px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.city}</span>
               )}
               {/* Score badge — for score-based games */}
-              {(game === 'mathrush' || game === 'stack' || game === 'felixjump') && e.score !== undefined && (
+              {game === 'mathrush' && e.score !== undefined && (
+                <span style={{ fontSize: '13px', color: 'var(--purple3)', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score} · 60s</span>
+              )}
+              {(game === 'stack' || game === 'felixjump') && e.score !== undefined && (
                 <span style={{ fontSize: '13px', color: 'var(--purple3)', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score}</span>
               )}
               {game === 'typing' && e.score !== undefined && (
@@ -734,6 +737,15 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               )}
             </div>
           ))}
+          {filtered.length > 20 && (
+            <button onClick={() => setExpanded(ex => !ex)} style={{
+              marginTop: '6px', width: '100%', padding: '7px', borderRadius: '8px',
+              border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)',
+              color: 'var(--text2)', fontSize: '11px', fontWeight: '600', cursor: 'pointer',
+            }}>
+              {expanded ? t.games.showTop20 : t.games.showTop100}
+            </button>
+          )}
         </div>
       )}
     </div>

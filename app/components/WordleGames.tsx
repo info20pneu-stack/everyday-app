@@ -1,9 +1,33 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
 import { recordGameCompleted } from '../../lib/streak';
+import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
+
+const WORLD_COUNTRIES = [
+  'AF','AL','DZ','AR','AM','AU','AT','AZ','BH','BD','BY','BE','BO','BA','BR','BG','KH','CA',
+  'CL','CN','CO','HR','CZ','DK','EC','EG','EE','ET','FI','FR','GE','DE','GH','GR','HU','IN',
+  'ID','IE','IL','IT','JP','KZ','KE','KW','LV','LT','LU','MY','MX','MA','NL','NZ','NG','NO',
+  'OM','PK','PE','PH','PL','PT','QA','RO','RU','SA','RS','SG','SK','ZA','KR','ES','LK','SE',
+  'CH','TW','TH','TR','UA','AE','GB','US','VN',
+].sort();
+
+function flagEmoji(code: string) {
+  return [...code.toUpperCase()].map(c =>
+    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
+  ).join('');
+}
+
+function countryName(code: string, lang: string) {
+  try { return new Intl.DisplayNames([lang, 'en'], { type: 'region' }).of(code) ?? code; } catch { return code; }
+}
+
+function lsGetStr(key: string, fb: string): string {
+  if (typeof window === 'undefined') return fb;
+  try { return localStorage.getItem(key) ?? fb; } catch { return fb; }
+}
 
 /* ── Word lists per category (5-letter, uppercase) ── */
 const WORDS: Record<string, string[]> = {
@@ -101,14 +125,22 @@ export function Confetti() {
   );
 }
 
+type SubPhase = 'idle' | 'form' | 'submitting' | 'done';
+
+function fmtWordleTime(ms: number): string {
+  return `${(ms / 1000).toFixed(1)}s`;
+}
+
 /* ── Game component ── */
 function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const MODES = getModes(t);
   const mode = MODES.find(m => m.id === modeId)!;
   const target = getTarget(modeId);
   const MAX = 6;
   const lsKey = `wordle_v2_${modeId}`;
+  const lbGameId = `wordle_${modeId}`;
+  const startRef = useRef(performance.now());
 
   const [guesses,   setGuesses]   = useState<string[]>([]);
   const [evals,     setEvals]     = useState<TileState[][]>([]);
@@ -122,6 +154,40 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
   const [streak,    setStreak]    = useState<{ cur: number; best: number; lastDate: number }>(() => {
     try { return JSON.parse(localStorage.getItem(lsKey) || '{"cur":0,"best":0,"lastDate":0}'); } catch { return { cur: 0, best: 0, lastDate: 0 }; }
   });
+
+  const [subPhase, setSubPhase] = useState<SubPhase>('idle');
+  const [nick,     setNick]     = useState(() => lsGetStr('lb_nick', ''));
+  const [country,  setCountry]  = useState(() => lsGetStr('lb_country', ''));
+  const [city,      setCity]    = useState(() => lsGetStr('lb_city', ''));
+  const [rank,      setRank]    = useState<number | null>(null);
+  const [subErr,    setSubErr]  = useState('');
+
+  async function submitScore() {
+    if (!nick.trim() || subPhase === 'submitting') return;
+    setSubPhase('submitting'); setSubErr('');
+    try {
+      try {
+        localStorage.setItem('lb_nick', nick.trim());
+        localStorage.setItem('lb_country', country);
+        localStorage.setItem('lb_city', city.trim());
+      } catch {}
+      const elapsedMs = Math.round(performance.now() - startRef.current);
+      const guessesUsed = guesses.length;
+      const score = MAX + 1 - guessesUsed;
+      const res = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game: lbGameId, name: nick.trim(), country, city: city.trim(), timeMs: elapsedMs, score, moves: guessesUsed }),
+      });
+      const data = await res.json() as Record<string, unknown>;
+      if (res.status === 201 || data.notBetter || data.notInTop) {
+        setRank((data.rank as number) ?? null);
+        setSubPhase('done');
+      } else {
+        setSubErr((data.error as string) || t.games.submitError); setSubPhase('form');
+      }
+    } catch { setSubErr(t.games.connectionError); setSubPhase('form'); }
+  }
 
   // Key colors derived from completed rows
   const keyColors: Record<string, TileState> = {};
@@ -321,6 +387,67 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
           </div>
         </div>
       )}
+
+      {/* Submit to leaderboard — wins only */}
+      {phase === 'won' && subPhase === 'idle' && (
+        <div style={{ textAlign: 'center', marginTop: '12px' }}>
+          <button onClick={() => setSubPhase('form')} style={{
+            background: `linear-gradient(135deg, ${mode.color}, ${mode.color}bb)`,
+            border: 'none', borderRadius: '10px', color: '#000',
+            fontSize: '13px', fontWeight: '700', padding: '9px 22px', cursor: 'pointer',
+            boxShadow: `0 0 16px ${mode.color}55`,
+          }}>🏅 {t.games.submitToLb}</button>
+        </div>
+      )}
+      {phase === 'won' && (subPhase === 'form' || subPhase === 'submitting') && (
+        <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+            <input
+              type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={30}
+              onChange={e => setNick(e.target.value.slice(0, 30))}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', boxSizing: 'border-box' }}
+            />
+            <select value={country} onChange={e => setCountry(e.target.value)} style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}>
+              <option value="">{t.games.countryPlaceholder}</option>
+              {WORLD_COUNTRIES.map(c => <option key={c} value={c}>{flagEmoji(c)} {countryName(c, lang)}</option>)}
+            </select>
+            <input
+              type="text" placeholder={t.games.cityPlaceholder} value={city} maxLength={60}
+              onChange={e => setCity(e.target.value.slice(0, 60))}
+              style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', boxSizing: 'border-box' }}
+            />
+          </div>
+          {subErr && <div style={{ fontSize: '11px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{subErr}</div>}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button onClick={submitScore} disabled={!nick.trim() || subPhase === 'submitting'} style={{
+              flex: 2, padding: '10px', borderRadius: '8px', border: 'none',
+              background: nick.trim() ? `linear-gradient(135deg, ${mode.color}, ${mode.color}bb)` : 'rgba(255,255,255,0.1)',
+              color: nick.trim() ? '#000' : 'var(--text3)', fontSize: '13px', fontWeight: '700',
+              cursor: nick.trim() ? 'pointer' : 'not-allowed',
+            }}>{subPhase === 'submitting' ? '…' : t.games.submitToLb}</button>
+            <button onClick={() => setSubPhase('idle')} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>
+              {t.games.skip}
+            </button>
+          </div>
+        </div>
+      )}
+      {phase === 'won' && subPhase === 'done' && (
+        <div style={{ marginTop: '12px', textAlign: 'center' }}>
+          <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--green2)' }}>✅ {t.games.addedToLb}</div>
+          {rank && (
+            <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '3px' }}>
+              {t.games.rankIs} <span style={{ color: '#FFB300', fontWeight: '700' }}>#{rank}</span> {t.games.rankGlobal}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Leaderboard — always visible below the game, auto-switches with the active mode */}
+      <LeaderboardPanel
+        game={lbGameId}
+        accentColor={mode.color}
+        renderValue={(e: SharedLBEntry) => `${e.moves ?? '?'}/${MAX} · ${fmtWordleTime(e.timeMs)}`}
+      />
 
       <style>{`
         @keyframes wFlipDown { from{transform:scaleY(1)} to{transform:scaleY(0)} }

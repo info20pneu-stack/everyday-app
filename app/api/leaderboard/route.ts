@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
 
 export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing'
-  | 'hb_reaction' | 'hb_numbermem' | 'hb_visualmem' | 'hb_verbalmem' | 'hb_seqmem' | 'hb_aimtrainer' | 'hb_mentalmath';
+  | 'hb_reaction' | 'hb_numbermem' | 'hb_visualmem' | 'hb_verbalmem' | 'hb_seqmem' | 'hb_aimtrainer' | 'hb_mentalmath'
+  | 'wordle_classic' | 'wordle_football' | 'wordle_hockey' | 'wordle_car' | 'wordle_crypto' | 'wordle_animal' | 'wordle_plant' | 'wordle_city';
 
 export interface LBEntry {
   id: string;
@@ -22,12 +23,17 @@ export interface LBEntry {
 export const VALID_GAMES: GameId[] = [
   'sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing',
   'hb_reaction', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_aimtrainer', 'hb_mentalmath',
+  'wordle_classic', 'wordle_football', 'wordle_hockey', 'wordle_car', 'wordle_crypto', 'wordle_animal', 'wordle_plant', 'wordle_city',
 ];
 const MAX_ENTRIES = 1000;
 
 // Score-based games rank by highest score then fastest time.
 // We encode as: (-score * 1e6 + timeMs) so ascending sort = best first.
-const SCORE_BASED: GameId[] = ['flagquiz', 'wordchain', 'mathrush', 'stack', 'felixjump', 'typing', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_mentalmath'];
+// Wordle games submit score = (MAX_GUESSES + 1 - guessesUsed), so fewer guesses also sorts as "higher score".
+const SCORE_BASED: GameId[] = [
+  'flagquiz', 'wordchain', 'mathrush', 'stack', 'felixjump', 'typing', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_mentalmath',
+  'wordle_classic', 'wordle_football', 'wordle_hockey', 'wordle_car', 'wordle_crypto', 'wordle_animal', 'wordle_plant', 'wordle_city',
+];
 
 function toSortScore(game: GameId, timeMs: number, score?: number): number {
   if (SCORE_BASED.includes(game)) return -(score ?? 0) * 1e6 + timeMs;
@@ -36,6 +42,38 @@ function toSortScore(game: GameId, timeMs: number, score?: number): number {
 
 export function lbKey(game: GameId) { return `lb2:${game}`; }
 function ipsKey(game: GameId) { return `lb2:ips:${game}`; }
+
+// ISO-8601 week number (Monday-based, UTC) — e.g. "2026-W42". Resets every Monday 00:00 UTC.
+function isoWeekKey(d: Date): string {
+  const date = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dayNum = date.getUTCDay() || 7; // Mon=1..Sun=7
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum); // nearest Thursday
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+}
+
+function lbWeekKey(game: GameId, weekKey: string) { return `lb2:week:${weekKey}:${game}`; }
+function ipsWeekKey(game: GameId, weekKey: string) { return `lb2:week:${weekKey}:ips:${game}`; }
+
+// Best-effort upsert into this week's season leaderboard. Independent of the all-time dataset/outcome.
+async function upsertWeekly(game: GameId, ipHash: string, sortVal: number, entry: LBEntry) {
+  try {
+    const weekKey = isoWeekKey(new Date());
+    const wLbKey  = lbWeekKey(game, weekKey);
+    const wIpsKey = ipsWeekKey(game, weekKey);
+    interface IpRecord { member: string; sortVal: number; }
+    const existing = await redis.hget<IpRecord>(wIpsKey, ipHash);
+    if (existing && sortVal >= existing.sortVal) return;
+    if (existing) await redis.zrem(wLbKey, existing.member);
+    const member = JSON.stringify(entry);
+    await redis.zadd(wLbKey, { score: sortVal, member });
+    await redis.zremrangebyrank(wLbKey, MAX_ENTRIES, -1);
+    await redis.hset(wIpsKey, { [ipHash]: { member, sortVal } });
+  } catch (err) {
+    console.error('[leaderboard POST] Weekly season write failed:', err);
+  }
+}
 
 function hashIp(ip: string, game: string): string {
   return createHash('sha256').update(ip + 'ea-lb-2025-' + game).digest('hex').slice(0, 24);
@@ -52,6 +90,7 @@ function periodFilter(entry: LBEntry, period: string): boolean {
 export async function GET(req: NextRequest) {
   const sp      = req.nextUrl.searchParams;
   const game    = sp.get('game') as GameId | null;
+  const season  = sp.get('season'); // 'week' | 'all' — new weekly-season leaderboards
   const period  = sp.get('period') ?? 'all';
   const country = sp.get('country') ?? '';
   const city    = sp.get('city') ?? '';
@@ -61,10 +100,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const raw = await redis.zrange<LBEntry[]>(lbKey(game), 0, MAX_ENTRIES - 1);
+    const key = season === 'week' ? lbWeekKey(game, isoWeekKey(new Date())) : lbKey(game);
+    const raw = await redis.zrange<LBEntry[]>(key, 0, MAX_ENTRIES - 1);
     const entries = (raw ?? []).filter((e): e is LBEntry => !!e && typeof e === 'object');
 
-    let filtered = entries.filter(e => periodFilter(e, period));
+    let filtered = season ? entries : entries.filter(e => periodFilter(e, period));
     if (country) filtered = filtered.filter(e => e.country === country);
     if (city)    filtered = filtered.filter(e => e.city === city);
 
@@ -110,25 +150,6 @@ export async function POST(req: NextRequest) {
 
     console.log('[leaderboard POST] Writing entry:', { game, name: name.trim(), roundMs, sortVal, ip: ip.slice(0, 8) + '...' });
 
-    interface IpRecord { member: string; sortVal: number; }
-    const existing = await redis.hget<IpRecord>(ipsKey(game), ipHash);
-
-    if (existing && sortVal >= existing.sortVal) {
-      const rank = await redis.zcount(lbKey(game), '-inf', String(existing.sortVal - 0.0001));
-      return NextResponse.json({ notBetter: true, rank: rank + 1 }, { status: 200 });
-    }
-
-    const currentCard = await redis.zcard(lbKey(game));
-    const betterCount = await redis.zcount(lbKey(game), '-inf', `(${sortVal}`);
-    const adjustedCard = existing ? Math.max(0, currentCard - 1) : currentCard;
-    const rank = betterCount + 1;
-
-    if (adjustedCard >= MAX_ENTRIES && rank > MAX_ENTRIES) {
-      return NextResponse.json({ notInTop: true, rank }, { status: 200 });
-    }
-
-    if (existing) await redis.zrem(lbKey(game), existing.member);
-
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const entry: LBEntry = {
       id, game,
@@ -142,11 +163,34 @@ export async function POST(req: NextRequest) {
       device: device === 'mobile' ? 'mobile' : 'desktop',
       date: Date.now(),
     };
-    const member = JSON.stringify(entry);
 
+    interface IpRecord { member: string; sortVal: number; }
+    const existing = await redis.hget<IpRecord>(ipsKey(game), ipHash);
+
+    if (existing && sortVal >= existing.sortVal) {
+      await upsertWeekly(game, ipHash, sortVal, entry);
+      const rank = await redis.zcount(lbKey(game), '-inf', String(existing.sortVal - 0.0001));
+      return NextResponse.json({ notBetter: true, rank: rank + 1 }, { status: 200 });
+    }
+
+    const currentCard = await redis.zcard(lbKey(game));
+    const betterCount = await redis.zcount(lbKey(game), '-inf', `(${sortVal}`);
+    const adjustedCard = existing ? Math.max(0, currentCard - 1) : currentCard;
+    const rank = betterCount + 1;
+
+    if (adjustedCard >= MAX_ENTRIES && rank > MAX_ENTRIES) {
+      await upsertWeekly(game, ipHash, sortVal, entry);
+      return NextResponse.json({ notInTop: true, rank }, { status: 200 });
+    }
+
+    if (existing) await redis.zrem(lbKey(game), existing.member);
+
+    const member = JSON.stringify(entry);
     await redis.zadd(lbKey(game), { score: sortVal, member });
     await redis.zremrangebyrank(lbKey(game), MAX_ENTRIES, -1);
     await redis.hset(ipsKey(game), { [ipHash]: { member, sortVal } });
+
+    await upsertWeekly(game, ipHash, sortVal, entry);
 
     console.log('[leaderboard POST] Success, rank:', rank);
     return NextResponse.json({ success: true, entry }, { status: 201 });
