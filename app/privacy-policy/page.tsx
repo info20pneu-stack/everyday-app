@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Privacy Policy | EVERY DAY',
     description: 'Privacy Policy for EVERY DAY — how we collect, use and protect your data.',
-    url: 'https://everyday-app.vercel.app/privacy-policy',
+    url: 'https://www.everyday1234567.com/privacy-policy',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

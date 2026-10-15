@@ -1,4 +1,4 @@
-const BASE = 'https://everyday-app.vercel.app';
+const BASE = 'https://www.everyday1234567.com';
 
 export default function StructuredData() {
   const schema = {

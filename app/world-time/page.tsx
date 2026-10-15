@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'World Time Clocks | EVERY DAY',
     description: 'Live world clocks — current time in New York, London, Tokyo, Dubai and 40+ cities worldwide.',
-    url: 'https://everyday-app.vercel.app/world-time',
+    url: 'https://www.everyday1234567.com/world-time',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

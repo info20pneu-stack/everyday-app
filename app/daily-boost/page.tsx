@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Daily Boost | EVERY DAY',
     description: 'Daily motivation, word of the day, fun fact and a fresh daily challenge.',
-    url: 'https://everyday-app.vercel.app/daily-boost',
+    url: 'https://www.everyday1234567.com/daily-boost',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

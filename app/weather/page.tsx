@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Weather Forecast | EVERY DAY',
     description: 'Current weather and 7-day forecast — temperature, humidity, wind and precipitation.',
-    url: 'https://everyday-app.vercel.app/weather',
+    url: 'https://www.everyday1234567.com/weather',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

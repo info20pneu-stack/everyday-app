@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Sunrise & Sunset Times | EVERY DAY',
     description: 'Sunrise, sunset, golden hour and day length for your location.',
-    url: 'https://everyday-app.vercel.app/sunrise-sunset',
+    url: 'https://www.everyday1234567.com/sunrise-sunset',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

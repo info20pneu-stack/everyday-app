@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /admin
 
-Sitemap: https://everyday-app.vercel.app/sitemap.xml
+Sitemap: https://www.everyday1234567.com/sitemap.xml

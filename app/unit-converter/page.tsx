@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Unit Converter | EVERY DAY',
     description: 'Instant unit conversion — length, weight, temperature, volume, speed and area. 50+ units.',
-    url: 'https://everyday-app.vercel.app/unit-converter',
+    url: 'https://www.everyday1234567.com/unit-converter',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

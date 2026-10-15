@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Crypto Prices | EVERY DAY',
     description: 'Live crypto prices — Bitcoin, Ethereum and top altcoins with 24h change and market cap.',
-    url: 'https://everyday-app.vercel.app/crypto',
+    url: 'https://www.everyday1234567.com/crypto',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

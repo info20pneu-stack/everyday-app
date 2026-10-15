@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Suggest & Vote | EVERY DAY',
     description: 'Suggest a new feature or vote for existing ideas. Help us improve EVERY DAY.',
-    url: 'https://everyday-app.vercel.app/suggest',
+    url: 'https://www.everyday1234567.com/suggest',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

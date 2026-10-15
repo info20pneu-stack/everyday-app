@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Date Counter & Countdown | EVERY DAY',
     description: 'Days between dates, event countdowns and time difference calculator.',
-    url: 'https://everyday-app.vercel.app/date-counter',
+    url: 'https://www.everyday1234567.com/date-counter',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

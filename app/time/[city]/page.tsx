@@ -68,7 +68,7 @@ export async function generateMetadata(
     openGraph: {
       title,
       description,
-      url: `https://everyday-app.vercel.app/time/${city}`,
+      url: `https://www.everyday1234567.com/time/${city}`,
       siteName: 'EVERY DAY',
       images: [{ url: '/og-image.png', width: 1200, height: 630 }],
       type: 'website',

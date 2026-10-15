@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Markets & Trending | EVERY DAY',
     description: 'Top stocks, market movers, AI leaderboard and Billboard charts — updated daily.',
-    url: 'https://everyday-app.vercel.app/markets',
+    url: 'https://www.everyday1234567.com/markets',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

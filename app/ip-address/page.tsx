@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'My IP Address | EVERY DAY',
     description: 'Instantly find your public IP, location, ISP and network details.',
-    url: 'https://everyday-app.vercel.app/ip-address',
+    url: 'https://www.everyday1234567.com/ip-address',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Daily Games | EVERY DAY',
     description: 'Wordle, Connections, Mini Crossword, Quordle and more — today\'s daily games in one place.',
-    url: 'https://everyday-app.vercel.app/daily-games',
+    url: 'https://www.everyday1234567.com/daily-games',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

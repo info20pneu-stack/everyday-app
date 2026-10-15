@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Age Calculator | EVERY DAY',
     description: 'Calculate your exact age down to the second. Zodiac sign, birth weekday and birthday countdown.',
-    url: 'https://everyday-app.vercel.app/age-calculator',
+    url: 'https://www.everyday1234567.com/age-calculator',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',

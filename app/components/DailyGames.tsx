@@ -1270,7 +1270,7 @@ type Question  = { correct: Country; options: Country[] };
 type FQRecord  = { score: number; time: number; date: number; diff: FQDiff; variant: FQVariant };
 
 const TOTAL_Q = 10;
-const SHARE_URL = 'everyday-app.vercel.app';
+const SHARE_URL = 'www.everyday1234567.com';
 
 const CONFETTI_COLORS = ['#5D4CFF','#FFB300','#4ade80','#f87171','#60a5fa','#e879f9','#fb923c'];
 

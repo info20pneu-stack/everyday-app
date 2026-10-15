@@ -64,7 +64,7 @@ export default function PrivacyPolicyContent() {
           <p style={S.p}>
             Vítejte na <strong style={b}>EVERY DAY</strong> ("my", "nás", "naše"). Tyto Zásady ochrany osobních
             údajů vysvětlují, jak shromažďujeme, používáme, zveřejňujeme a chráníme vaše informace při návštěvě
-            našeho webu na adrese <a href="https://everyday-app.vercel.app" style={S.a}>everyday-app.vercel.app</a>{' '}
+            našeho webu na adrese <a href="https://www.everyday1234567.com" style={S.a}>www.everyday1234567.com</a>{' '}
             ("Služba"). Přečtěte si prosím tyto zásady pozorně. Pokud s jejich obsahem nesouhlasíte, přestaňte
             prosím Službu používat.
           </p>
@@ -198,7 +198,7 @@ export default function PrivacyPolicyContent() {
             <strong style={b}>E-mail:</strong>{' '}
             <a href="mailto:info20pneu@gmail.com" style={S.a}>info20pneu@gmail.com</a><br />
             <strong style={b}>Web:</strong>{' '}
-            <a href="https://everyday-app.vercel.app" style={S.a}>everyday-app.vercel.app</a>
+            <a href="https://www.everyday1234567.com" style={S.a}>www.everyday1234567.com</a>
           </p>
         </>
       ) : (
@@ -206,7 +206,7 @@ export default function PrivacyPolicyContent() {
           <p style={S.p}>
             Welcome to <strong style={b}>EVERY DAY</strong> ("we", "our", "us"). This Privacy Policy
             explains how we collect, use, disclose and safeguard your information when you visit our website at{' '}
-            <a href="https://everyday-app.vercel.app" style={S.a}>everyday-app.vercel.app</a> (the "Service").
+            <a href="https://www.everyday1234567.com" style={S.a}>www.everyday1234567.com</a> (the "Service").
             Please read this policy carefully. If you disagree with its terms, please discontinue use of the Service.
           </p>
 
@@ -341,7 +341,7 @@ export default function PrivacyPolicyContent() {
             <strong style={b}>Email:</strong>{' '}
             <a href="mailto:info20pneu@gmail.com" style={S.a}>info20pneu@gmail.com</a><br />
             <strong style={b}>Website:</strong>{' '}
-            <a href="https://everyday-app.vercel.app" style={S.a}>everyday-app.vercel.app</a>
+            <a href="https://www.everyday1234567.com" style={S.a}>www.everyday1234567.com</a>
           </p>
         </>
       )}

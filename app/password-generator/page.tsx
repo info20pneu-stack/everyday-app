@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Password Generator | EVERY DAY',
     description: 'Generate secure passwords with custom options — 100% private, runs in your browser.',
-    url: 'https://everyday-app.vercel.app/password-generator',
+    url: 'https://www.everyday1234567.com/password-generator',
     siteName: 'EVERY DAY',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',
