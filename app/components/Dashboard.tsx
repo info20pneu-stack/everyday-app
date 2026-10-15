@@ -9,6 +9,7 @@ import { useTheme } from '../../lib/ThemeContext';
 import { useReveal } from '../../lib/useReveal';
 import type { Translations } from '../../lib/i18n';
 import MyDay from './MyDay';
+import DailyPuzzle from './DailyPuzzle';
 
 const GlobeHero = dynamic(() => import('./GlobeHero'), { ssr: false });
 
@@ -219,6 +220,7 @@ export default function Dashboard() {
         </div>
       )}
       <MyDay />
+      <DailyPuzzle />
 
       <div className="dash-grid">{items}</div>
 

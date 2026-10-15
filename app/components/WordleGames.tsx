@@ -30,7 +30,7 @@ function getModes(t: Translations) {
   ];
 }
 
-type TileState = 'correct' | 'present' | 'absent' | 'empty' | 'typed';
+export type TileState = 'correct' | 'present' | 'absent' | 'empty' | 'typed';
 
 function dateSeed(): number {
   const d = new Date();
@@ -42,7 +42,7 @@ function getTarget(modeId: string): string {
   return list[dateSeed() % list.length];
 }
 
-function evaluate(guess: string, target: string): TileState[] {
+export function evaluate(guess: string, target: string): TileState[] {
   const result: TileState[] = Array(5).fill('absent');
   const remaining = target.split('');
   for (let i = 0; i < 5; i++) {
@@ -57,20 +57,20 @@ function evaluate(guess: string, target: string): TileState[] {
   return result;
 }
 
-function tileBg(state: TileState, modeColor: string): string {
+export function tileBg(state: TileState, modeColor: string): string {
   if (state === 'correct') return modeColor;
   if (state === 'present') return '#b59f3b';
   if (state === 'absent')  return '#3a3a3c';
   return 'transparent';
 }
 
-function tileBorder(state: TileState, modeColor: string): string {
+export function tileBorder(state: TileState, modeColor: string): string {
   if (state === 'correct' || state === 'present' || state === 'absent') return 'none';
   if (state === 'typed') return '2px solid rgba(255,255,255,0.5)';
   return '2px solid rgba(255,255,255,0.12)';
 }
 
-const KB_ROWS = [
+export const KB_ROWS = [
   ['Q','W','E','R','T','Y','U','I','O','P'],
   ['A','S','D','F','G','H','J','K','L'],
   ['ENTER','Z','X','C','V','B','N','M','⌫'],
@@ -78,7 +78,7 @@ const KB_ROWS = [
 
 /* ── Confetti ── */
 const CONFETTI_COLORS = ['#22c55e','#3b82f6','#f59e0b','#ef4444','#a78bfa','#ec4899'];
-function Confetti() {
+export function Confetti() {
   const pieces = Array.from({ length: 24 }, (_, i) => ({
     x: 5 + (i % 12) * 8,
     delay: (i % 6) * 120,

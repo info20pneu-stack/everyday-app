@@ -256,6 +256,12 @@ export type Translations = {
     birthdayTitle: string; birthdayEmpty: string; birthdayDaysLeft: string; birthdayToday: string;
     challengeTitle: string; challengeDone: string; streakDays: string;
   };
+  dailyPuzzle: {
+    title: string; subtitle: string; notEnoughLetters: string; guessInstruction: string;
+    genius: string; magnificent: string; impressive: string; splendid: string; great: string; phew: string;
+    answer: string; shareResult: string; copied: string; nextPuzzleIn: string;
+    statsTitle: string; played: string; winRate: string; currentStreak: string; maxStreak: string; distribution: string;
+  };
 };
 
 const t: Record<Lang, Translations> = {
@@ -571,6 +577,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: 'Birthday', birthdayEmpty: 'Set your birthday in Age Calculator', birthdayDaysLeft: 'days until your birthday', birthdayToday: 'Happy Birthday! 🎉',
       challengeTitle: "Today's Challenge", challengeDone: 'activities done', streakDays: 'day streak',
     },
+    dailyPuzzle: {
+      title: "Today's Puzzle", subtitle: 'One puzzle a day. Same for the whole world.',
+      notEnoughLetters: 'Not enough letters', guessInstruction: 'Guess the 5-letter word in 6 tries',
+      genius: '🧠 Genius!', magnificent: '✨ Magnificent!', impressive: '🌟 Impressive!',
+      splendid: '🎉 Splendid!', great: '👏 Great!', phew: '😅 Phew!',
+      answer: 'Answer: {word}', shareResult: '📋 Share Result', copied: '✓ Copied!',
+      nextPuzzleIn: 'Next puzzle in', statsTitle: 'Statistics', played: 'Played',
+      winRate: 'Win rate', currentStreak: 'Current streak', maxStreak: 'Max streak', distribution: 'Guess distribution',
+    },
   },
 
   de: {
@@ -884,6 +899,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: 'Meine Münze', cryptoSelect: 'Münze wählen', cryptoEmpty: 'Wähle eine Münze zur Beobachtung',
       birthdayTitle: 'Geburtstag', birthdayEmpty: 'Geburtstag im Alters-Rechner festlegen', birthdayDaysLeft: 'Tage bis zum Geburtstag', birthdayToday: 'Alles Gute zum Geburtstag! 🎉',
       challengeTitle: 'Heutige Challenge', challengeDone: 'Aktivitäten erledigt', streakDays: 'Tage-Serie',
+    },
+    dailyPuzzle: {
+      title: 'Heutiges Rätsel', subtitle: 'Ein Rätsel pro Tag. Gleich für die ganze Welt.',
+      notEnoughLetters: 'Nicht genug Buchstaben', guessInstruction: 'Errate das 5-Buchstaben-Wort in 6 Versuchen',
+      genius: '🧠 Genial!', magnificent: '✨ Großartig!', impressive: '🌟 Beeindruckend!',
+      splendid: '🎉 Fantastisch!', great: '👏 Gut!', phew: '😅 Geschafft!',
+      answer: 'Antwort: {word}', shareResult: '📋 Ergebnis teilen', copied: '✓ Kopiert!',
+      nextPuzzleIn: 'Nächstes Rätsel in', statsTitle: 'Statistik', played: 'Gespielt',
+      winRate: 'Gewinnrate', currentStreak: 'Aktuelle Serie', maxStreak: 'Längste Serie', distribution: 'Verteilung der Versuche',
     },
   },
 
@@ -1199,6 +1223,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: 'Compleanno', birthdayEmpty: 'Imposta il compleanno nel Calcolatore Età', birthdayDaysLeft: 'giorni al tuo compleanno', birthdayToday: 'Buon Compleanno! 🎉',
       challengeTitle: 'Sfida di Oggi', challengeDone: 'attività completate', streakDays: 'serie di giorni',
     },
+    dailyPuzzle: {
+      title: 'Indovinello di Oggi', subtitle: 'Un indovinello al giorno. Uguale per tutto il mondo.',
+      notEnoughLetters: 'Non abbastanza lettere', guessInstruction: 'Indovina la parola di 5 lettere in 6 tentativi',
+      genius: '🧠 Geniale!', magnificent: '✨ Magnifico!', impressive: '🌟 Impressionante!',
+      splendid: '🎉 Splendido!', great: '👏 Ottimo!', phew: '😅 Per un pelo!',
+      answer: 'Risposta: {word}', shareResult: '📋 Condividi Risultato', copied: '✓ Copiato!',
+      nextPuzzleIn: 'Prossimo indovinello in', statsTitle: 'Statistiche', played: 'Giocati',
+      winRate: 'Percentuale vittorie', currentStreak: 'Serie attuale', maxStreak: 'Serie più lunga', distribution: 'Distribuzione tentativi',
+    },
   },
 
   fr: {
@@ -1512,6 +1545,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: 'Ma Crypto', cryptoSelect: 'Choisir une crypto', cryptoEmpty: 'Choisis une crypto à suivre',
       birthdayTitle: 'Anniversaire', birthdayEmpty: "Définis ta date de naissance dans l'Âge Calculateur", birthdayDaysLeft: "jours avant ton anniversaire", birthdayToday: 'Joyeux anniversaire ! 🎉',
       challengeTitle: 'Défi du Jour', challengeDone: 'activités terminées', streakDays: 'jours de série',
+    },
+    dailyPuzzle: {
+      title: "Devinette du Jour", subtitle: 'Une devinette par jour. Identique pour le monde entier.',
+      notEnoughLetters: 'Pas assez de lettres', guessInstruction: 'Devine le mot de 5 lettres en 6 essais',
+      genius: '🧠 Génial !', magnificent: '✨ Magnifique !', impressive: '🌟 Impressionnant !',
+      splendid: '🎉 Splendide !', great: '👏 Bravo !', phew: '😅 Ouf !',
+      answer: 'Réponse : {word}', shareResult: '📋 Partager le Résultat', copied: '✓ Copié !',
+      nextPuzzleIn: 'Prochaine devinette dans', statsTitle: 'Statistiques', played: 'Parties',
+      winRate: 'Taux de victoire', currentStreak: 'Série actuelle', maxStreak: 'Plus longue série', distribution: 'Répartition des essais',
     },
   },
 
@@ -1827,6 +1869,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: 'Narozeniny', birthdayEmpty: 'Nastav datum narození ve Věkové kalkulačce', birthdayDaysLeft: 'dní do narozenin', birthdayToday: 'Všechno nejlepší k narozeninám! 🎉',
       challengeTitle: 'Dnešní Výzva', challengeDone: 'aktivit splněno', streakDays: 'dní v řadě',
     },
+    dailyPuzzle: {
+      title: 'Dnešní hádanka', subtitle: 'Jedna hádanka denně. Stejná pro celý svět.',
+      notEnoughLetters: 'Málo písmen', guessInstruction: 'Uhodni pětipísmenné slovo na 6 pokusů',
+      genius: '🧠 Geniální!', magnificent: '✨ Nádherné!', impressive: '🌟 Působivé!',
+      splendid: '🎉 Skvělé!', great: '👏 Dobré!', phew: '😅 Uf!',
+      answer: 'Odpověď: {word}', shareResult: '📋 Sdílet výsledek', copied: '✓ Zkopírováno!',
+      nextPuzzleIn: 'Další hádanka za', statsTitle: 'Statistiky', played: 'Odehráno',
+      winRate: 'Úspěšnost', currentStreak: 'Aktuální série', maxStreak: 'Nejdelší série', distribution: 'Rozložení pokusů',
+    },
   },
 
   es: {
@@ -2140,6 +2191,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: 'Mi Cripto', cryptoSelect: 'Elige una cripto', cryptoEmpty: 'Elige una cripto para seguir',
       birthdayTitle: 'Cumpleaños', birthdayEmpty: 'Establece tu fecha de nacimiento en la Calculadora de Edad', birthdayDaysLeft: 'días para tu cumpleaños', birthdayToday: '¡Feliz cumpleaños! 🎉',
       challengeTitle: 'Reto de Hoy', challengeDone: 'actividades completadas', streakDays: 'días de racha',
+    },
+    dailyPuzzle: {
+      title: 'Acertijo de Hoy', subtitle: 'Un acertijo al día. Igual para todo el mundo.',
+      notEnoughLetters: 'Faltan letras', guessInstruction: 'Adivina la palabra de 5 letras en 6 intentos',
+      genius: '🧠 ¡Genial!', magnificent: '✨ ¡Magnífico!', impressive: '🌟 ¡Impresionante!',
+      splendid: '🎉 ¡Espléndido!', great: '👏 ¡Genial!', phew: '😅 ¡Uf!',
+      answer: 'Respuesta: {word}', shareResult: '📋 Compartir Resultado', copied: '✓ ¡Copiado!',
+      nextPuzzleIn: 'Próximo acertijo en', statsTitle: 'Estadísticas', played: 'Jugados',
+      winRate: 'Tasa de victorias', currentStreak: 'Racha actual', maxStreak: 'Racha más larga', distribution: 'Distribución de intentos',
     },
   },
 
@@ -2455,6 +2515,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: 'Urodziny', birthdayEmpty: 'Ustaw datę urodzenia w Kalkulatorze Wieku', birthdayDaysLeft: 'dni do urodzin', birthdayToday: 'Wszystkiego najlepszego! 🎉',
       challengeTitle: 'Dzisiejsze Wyzwanie', challengeDone: 'ukończonych aktywności', streakDays: 'dni serii',
     },
+    dailyPuzzle: {
+      title: 'Dzisiejsza Zagadka', subtitle: 'Jedna zagadka dziennie. Taka sama dla całego świata.',
+      notEnoughLetters: 'Za mało liter', guessInstruction: 'Odgadnij 5-literowe słowo w 6 próbach',
+      genius: '🧠 Genialnie!', magnificent: '✨ Wspaniale!', impressive: '🌟 Imponująco!',
+      splendid: '🎉 Świetnie!', great: '👏 Dobrze!', phew: '😅 Uff!',
+      answer: 'Odpowiedź: {word}', shareResult: '📋 Udostępnij Wynik', copied: '✓ Skopiowano!',
+      nextPuzzleIn: 'Następna zagadka za', statsTitle: 'Statystyki', played: 'Rozegrane',
+      winRate: 'Procent wygranych', currentStreak: 'Aktualna seria', maxStreak: 'Najdłuższa seria', distribution: 'Rozkład prób',
+    },
   },
 
   pt: {
@@ -2768,6 +2837,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: 'Minha Cripto', cryptoSelect: 'Escolha uma cripto', cryptoEmpty: 'Escolha uma cripto para acompanhar',
       birthdayTitle: 'Aniversário', birthdayEmpty: 'Defina a data de nascimento na Calculadora de Idade', birthdayDaysLeft: 'dias até o seu aniversário', birthdayToday: 'Feliz Aniversário! 🎉',
       challengeTitle: 'Desafio de Hoje', challengeDone: 'atividades concluídas', streakDays: 'dias de sequência',
+    },
+    dailyPuzzle: {
+      title: 'Desafio de Hoje', subtitle: 'Um desafio por dia. Igual para o mundo todo.',
+      notEnoughLetters: 'Letras insuficientes', guessInstruction: 'Adivinhe a palavra de 5 letras em 6 tentativas',
+      genius: '🧠 Genial!', magnificent: '✨ Magnífico!', impressive: '🌟 Impressionante!',
+      splendid: '🎉 Esplêndido!', great: '👏 Ótimo!', phew: '😅 Ufa!',
+      answer: 'Resposta: {word}', shareResult: '📋 Compartilhar Resultado', copied: '✓ Copiado!',
+      nextPuzzleIn: 'Próximo desafio em', statsTitle: 'Estatísticas', played: 'Jogados',
+      winRate: 'Taxa de vitórias', currentStreak: 'Sequência atual', maxStreak: 'Sequência mais longa', distribution: 'Distribuição de tentativas',
     },
   },
 
@@ -3083,6 +3161,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: 'День рождения', birthdayEmpty: 'Укажите дату рождения в Калькуляторе возраста', birthdayDaysLeft: 'дней до дня рождения', birthdayToday: 'С днём рождения! 🎉',
       challengeTitle: 'Задача на сегодня', challengeDone: 'активностей выполнено', streakDays: 'дней подряд',
     },
+    dailyPuzzle: {
+      title: 'Загадка дня', subtitle: 'Одна загадка в день. Одинаковая для всего мира.',
+      notEnoughLetters: 'Недостаточно букв', guessInstruction: 'Угадайте слово из 5 букв за 6 попыток',
+      genius: '🧠 Гениально!', magnificent: '✨ Великолепно!', impressive: '🌟 Впечатляюще!',
+      splendid: '🎉 Отлично!', great: '👏 Хорошо!', phew: '😅 Фух!',
+      answer: 'Ответ: {word}', shareResult: '📋 Поделиться результатом', copied: '✓ Скопировано!',
+      nextPuzzleIn: 'Следующая загадка через', statsTitle: 'Статистика', played: 'Сыграно',
+      winRate: 'Процент побед', currentStreak: 'Текущая серия', maxStreak: 'Самая длинная серия', distribution: 'Распределение попыток',
+    },
   },
 
   zh: {
@@ -3396,6 +3483,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: '我的币种', cryptoSelect: '选择一种币', cryptoEmpty: '选择要关注的币种',
       birthdayTitle: '生日', birthdayEmpty: '在年龄计算器中设置你的生日', birthdayDaysLeft: '天后是你的生日', birthdayToday: '生日快乐！🎉',
       challengeTitle: '今日挑战', challengeDone: '项活动已完成', streakDays: '天连胜',
+    },
+    dailyPuzzle: {
+      title: '今日谜题', subtitle: '每日一题，全世界相同。',
+      notEnoughLetters: '字母不足', guessInstruction: '在6次尝试内猜出5个字母的单词',
+      genius: '🧠 天才！', magnificent: '✨ 太棒了！', impressive: '🌟 真厉害！',
+      splendid: '🎉 精彩！', great: '👏 不错！', phew: '😅 好险！',
+      answer: '答案：{word}', shareResult: '📋 分享结果', copied: '✓ 已复制！',
+      nextPuzzleIn: '下一题还有', statsTitle: '统计数据', played: '已玩',
+      winRate: '胜率', currentStreak: '当前连胜', maxStreak: '最长连胜', distribution: '尝试次数分布',
     },
   },
 
@@ -3711,6 +3807,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: '誕生日', birthdayEmpty: '年齢計算機で誕生日を設定', birthdayDaysLeft: '日で誕生日', birthdayToday: 'お誕生日おめでとう！🎉',
       challengeTitle: '今日のチャレンジ', challengeDone: '件のアクティビティ完了', streakDays: '日間の連続記録',
     },
+    dailyPuzzle: {
+      title: '今日のパズル', subtitle: '1日1パズル。世界共通。',
+      notEnoughLetters: '文字が足りません', guessInstruction: '6回の試行で5文字の単語を当てよう',
+      genius: '🧠 天才的！', magnificent: '✨ 見事！', impressive: '🌟 素晴らしい！',
+      splendid: '🎉 最高！', great: '👏 いいね！', phew: '😅 ギリギリ！',
+      answer: '答え: {word}', shareResult: '📋 結果をシェア', copied: '✓ コピーしました！',
+      nextPuzzleIn: '次のパズルまで', statsTitle: '統計', played: 'プレイ数',
+      winRate: '勝率', currentStreak: '現在の連続記録', maxStreak: '最長連続記録', distribution: '試行回数の分布',
+    },
   },
 
   ko: {
@@ -4024,6 +4129,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: '내 코인', cryptoSelect: '코인 선택', cryptoEmpty: '추적할 코인을 선택하세요',
       birthdayTitle: '생일', birthdayEmpty: '나이 계산기에서 생일을 설정하세요', birthdayDaysLeft: '일 남음 (생일까지)', birthdayToday: '생일 축하합니다! 🎉',
       challengeTitle: '오늘의 도전', challengeDone: '개 활동 완료', streakDays: '일 연속',
+    },
+    dailyPuzzle: {
+      title: '오늘의 퍼즐', subtitle: '하루 하나의 퍼즐. 전 세계가 동일합니다.',
+      notEnoughLetters: '글자가 부족합니다', guessInstruction: '6번의 시도로 5글자 단어를 맞춰보세요',
+      genius: '🧠 천재적!', magnificent: '✨ 훌륭해요!', impressive: '🌟 인상적이에요!',
+      splendid: '🎉 멋져요!', great: '👏 좋아요!', phew: '😅 휴!',
+      answer: '정답: {word}', shareResult: '📋 결과 공유', copied: '✓ 복사됨!',
+      nextPuzzleIn: '다음 퍼즐까지', statsTitle: '통계', played: '플레이 수',
+      winRate: '승률', currentStreak: '현재 연속 기록', maxStreak: '최장 연속 기록', distribution: '시도 횟수 분포',
     },
   },
 
@@ -4339,6 +4453,15 @@ const t: Record<Lang, Translations> = {
       birthdayTitle: 'عيد الميلاد', birthdayEmpty: 'حدد تاريخ ميلادك في حاسبة العمر', birthdayDaysLeft: 'أيام حتى عيد ميلادك', birthdayToday: 'عيد ميلاد سعيد! 🎉',
       challengeTitle: 'تحدي اليوم', challengeDone: 'أنشطة مكتملة', streakDays: 'أيام متتالية',
     },
+    dailyPuzzle: {
+      title: 'لغز اليوم', subtitle: 'لغز واحد يوميًا. نفسه لكل العالم.',
+      notEnoughLetters: 'لا توجد حروف كافية', guessInstruction: 'خمّن الكلمة المكونة من 5 حروف في 6 محاولات',
+      genius: '🧠 عبقري!', magnificent: '✨ رائع!', impressive: '🌟 مثير للإعجاب!',
+      splendid: '🎉 مذهل!', great: '👏 جيد!', phew: '😅 بالكاد!',
+      answer: 'الإجابة: {word}', shareResult: '📋 مشاركة النتيجة', copied: '✓ تم النسخ!',
+      nextPuzzleIn: 'اللغز التالي خلال', statsTitle: 'الإحصائيات', played: 'عدد المرات',
+      winRate: 'معدل الفوز', currentStreak: 'التتابع الحالي', maxStreak: 'أطول تتابع', distribution: 'توزيع المحاولات',
+    },
   },
 
   hi: {
@@ -4652,6 +4775,15 @@ const t: Record<Lang, Translations> = {
       cryptoTitle: 'मेरी क्रिप्टो', cryptoSelect: 'क्रिप्टो चुनें', cryptoEmpty: 'ट्रैक करने के लिए क्रिप्टो चुनें',
       birthdayTitle: 'जन्मदिन', birthdayEmpty: 'एज कैलकुलेटर में अपनी जन्मतिथि सेट करें', birthdayDaysLeft: 'दिन आपके जन्मदिन तक', birthdayToday: 'जन्मदिन मुबारक हो! 🎉',
       challengeTitle: 'आज की चुनौती', challengeDone: 'गतिविधियाँ पूरी हुईं', streakDays: 'दिनों की स्ट्रीक',
+    },
+    dailyPuzzle: {
+      title: 'आज की पहेली', subtitle: 'रोज एक पहेली। पूरी दुनिया के लिए एक समान।',
+      notEnoughLetters: 'पर्याप्त अक्षर नहीं', guessInstruction: '6 प्रयासों में 5 अक्षरों का शब्द अनुमान लगाएं',
+      genius: '🧠 जीनियस!', magnificent: '✨ शानदार!', impressive: '🌟 प्रभावशाली!',
+      splendid: '🎉 बेहतरीन!', great: '👏 बढ़िया!', phew: '😅 उफ़!',
+      answer: 'उत्तर: {word}', shareResult: '📋 परिणाम साझा करें', copied: '✓ कॉपी हो गया!',
+      nextPuzzleIn: 'अगली पहेली', statsTitle: 'आंकड़े', played: 'खेले गए',
+      winRate: 'जीत दर', currentStreak: 'वर्तमान स्ट्रीक', maxStreak: 'सबसे लंबी स्ट्रीक', distribution: 'प्रयासों का वितरण',
     },
   },
 };
