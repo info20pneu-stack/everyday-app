@@ -911,7 +911,7 @@ a:focus-visible {
 ───────────────────────────────────────── */
 .globe-hero {
   position: relative;
-  height: 460px;
+  height: 320px;
   border-radius: 20px;
   overflow: hidden;
   background:
@@ -1025,16 +1025,13 @@ a:focus-visible {
 }
 
 @media (max-width: 768px) {
-  .globe-hero {
-    height: 400px;
-  }
   .globe-hero-title {
     font-size: 2rem;
   }
 }
 @media (max-width: 480px) {
   .globe-hero {
-    height: 380px;
+    height: 220px;
   }
   .globe-hero-title {
     font-size: 1.75rem;

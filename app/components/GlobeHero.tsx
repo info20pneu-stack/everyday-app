@@ -11,28 +11,63 @@ import { GLOBE_CITIES, GLOBE_ARCS, type GlobeCity } from '../../lib/globeCities'
 // NASA night-lights composite, bundled as an example asset of the three-globe package.
 const NIGHT_IMG = 'https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg';
 
-// Globe is temporarily disabled while we tune it further — code stays intact,
-// just gated off. Flip back to true to re-enable rendering.
-const GLOBE_ENABLED = false;
-
 type ArcDatum = { startLat: number; startLng: number; endLat: number; endLng: number };
+
+function detectWebGL(): boolean {
+  if (typeof document === 'undefined') return false;
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+  } catch {
+    return false;
+  }
+}
+
+// Heuristic only — low core count or low device memory suggests the 3D globe
+// (Three.js + bloom postprocessing) would hurt rather than impress.
+function isLikelyWeakDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  if (typeof mem === 'number' && mem > 0 && mem <= 2) return true;
+  const cores = navigator.hardwareConcurrency;
+  if (typeof cores === 'number' && cores > 0 && cores <= 2) return true;
+  return false;
+}
 
 export default function GlobeHero() {
   const { t, lang } = useLang();
   const { canInstall, promptInstall } = useInstallPrompt();
+  const heroRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<GlobeCity | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [now, setNow] = useState(() => new Date());
+  const [canRender3D] = useState(() => detectWebGL() && !isLikelyWeakDevice());
+  const [inView, setInView] = useState(false);
+
+  // Lazy-load: only start the heavy 3D init once the hero has actually
+  // scrolled into view, so it never competes with the initial page render.
+  useEffect(() => {
+    if (!canRender3D) return;
+    const el = heroRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setInView(true); return; }
+    const io = new IntersectionObserver(entries => {
+      if (entries[0]?.isIntersecting) { setInView(true); io.disconnect(); }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [canRender3D]);
+
+  const shouldRender3D = canRender3D && inView;
 
   useEffect(() => {
-    if (!GLOBE_ENABLED) return;
+    if (!shouldRender3D) return;
     const tick = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(tick);
-  }, []);
+  }, [shouldRender3D]);
 
   useEffect(() => {
-    if (!GLOBE_ENABLED) return;
+    if (!shouldRender3D) return;
     const el = containerRef.current;
     if (!el) return;
 
@@ -100,7 +135,7 @@ export default function GlobeHero() {
       globe._destructor();
       el.innerHTML = '';
     };
-  }, []);
+  }, [shouldRender3D]);
 
   function cityTime(tz: string) {
     return new Intl.DateTimeFormat(lang, {
@@ -118,8 +153,8 @@ export default function GlobeHero() {
 
   return (
     <>
-      <div className="globe-hero hero-section">
-        {GLOBE_ENABLED && <div ref={containerRef} className="globe-hero-canvas" />}
+      <div ref={heroRef} className="globe-hero hero-section">
+        {shouldRender3D && <div ref={containerRef} className="globe-hero-canvas" />}
 
         <div className="globe-hero-overlay">
           <h1 className="globe-hero-title">EVERY <span>DAY</span></h1>
@@ -136,7 +171,7 @@ export default function GlobeHero() {
           </div>
         </div>
 
-        {GLOBE_ENABLED && hovered && (
+        {shouldRender3D && hovered && (
           <div className="globe-tooltip" style={{ left: mousePos.x + 18, top: mousePos.y + 18 }}>
             <span className="globe-tooltip-flag">{hovered.flag}</span>
             <div>
