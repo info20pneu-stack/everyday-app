@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
@@ -186,6 +186,14 @@ function getTabLabels(t: Translations): Record<Tab, string> {
 }
 
 const EMPTY: Record<Tab, TickerData[]> = { indices: [], forex: [], commodities: [] };
+const MARKETS_WATCHLIST_KEY = 'markets_watchlist_v1';
+
+function loadMarketsWatchlist(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(MARKETS_WATCHLIST_KEY) ?? '[]'); } catch { return []; }
+}
+
+function tickerKey(tab: Tab, symbol: string): string { return `${tab}:${symbol}`; }
 
 export default function Markets() {
   const { t } = useLang();
@@ -196,6 +204,17 @@ export default function Markets() {
   const [data,    setData]    = useState<Record<Tab, TickerData[]>>(EMPTY);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [detail,  setDetail]  = useState<TickerData | null>(null);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+
+  useEffect(() => { setWatchlist(loadMarketsWatchlist()); }, []);
+
+  function toggleWatch(key: string) {
+    setWatchlist(prev => {
+      const next = prev.includes(key) ? prev.filter(x => x !== key) : [...prev, key];
+      try { localStorage.setItem(MARKETS_WATCHLIST_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetch('/api/markets')
@@ -230,6 +249,19 @@ export default function Markets() {
 
   const tickers = isFinite(listLimit) ? data[tab].slice(0, listLimit) : data[tab];
 
+  const allTickers = useMemo(() =>
+    (Object.keys(data) as Tab[]).flatMap(tabId => data[tabId].map(tk => ({ tab: tabId, ticker: tk }))),
+    [data]
+  );
+  const { topGainers, topLosers } = useMemo(() => {
+    const sorted = [...allTickers].sort((a, b) => b.ticker.changePct - a.ticker.changePct);
+    return { topGainers: sorted.slice(0, 3), topLosers: sorted.slice(-3).reverse() };
+  }, [allTickers]);
+  const watchedTickers = useMemo(() =>
+    allTickers.filter(({ tab: tabId, ticker: tk }) => watchlist.includes(tickerKey(tabId, tk.symbol))),
+    [allTickers, watchlist]
+  );
+
   return (
     <div className="card" style={{ background: 'rgba(15,20,40,0.92)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 'var(--card-radius)', padding: '1.25rem', boxShadow: 'var(--card-shadow)' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -255,11 +287,65 @@ export default function Markets() {
         ))}
       </div>
 
+      {/* Watchlist */}
+      {watchedTickers.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+            {t.markets.watchlist}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {watchedTickers.map(({ ticker: tk }) => {
+              const up = tk.changePct >= 0;
+              return (
+                <div key={tickerKey(tab, tk.symbol)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '10px', padding: '6px 10px' }}>
+                  <span style={{ color: '#FFB300' }}>★</span>
+                  <span style={{ flex: 1, fontSize: '12px', color: '#fff', fontWeight: '500' }}>{tk.symbol}</span>
+                  <span style={{ fontSize: '11px', fontWeight: '600', color: up ? '#4ade80' : '#f87171' }}>
+                    {up ? '▲' : '▼'} {Math.abs(tk.changePct).toFixed(2)}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Biggest movers (across all tabs) */}
+      {allTickers.length >= 3 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+            {t.markets.biggestMovers}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '10px', color: '#4ade80', marginBottom: '4px' }}>▲ {t.markets.topGainers}</div>
+              {topGainers.map(({ ticker: tk }) => (
+                <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                  <span style={{ color: '#fff' }}>{tk.symbol}</span>
+                  <span style={{ color: '#4ade80', fontWeight: '600' }}>+{tk.changePct.toFixed(2)}%</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: '10px', color: '#f87171', marginBottom: '4px' }}>▼ {t.markets.topLosers}</div>
+              {topLosers.map(({ ticker: tk }) => (
+                <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                  <span style={{ color: '#fff' }}>{tk.symbol}</span>
+                  <span style={{ color: '#f87171', fontWeight: '600' }}>{tk.changePct.toFixed(2)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Ticker list */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {tickers.map(ticker => {
           const up    = ticker.changePct >= 0;
           const color = up ? '#4ade80' : '#f87171';
+          const wKey  = tickerKey(tab, ticker.symbol);
+          const isWatched = watchlist.includes(wKey);
           return (
             <div key={ticker.symbol} onClick={() => setDetail(ticker)} style={{
               display: 'flex', alignItems: 'center', gap: '8px',
@@ -270,6 +356,12 @@ export default function Markets() {
             onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(93,76,255,0.08)'}
             onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)'}
             >
+              {/* Watchlist star */}
+              <button
+                onClick={e => { e.stopPropagation(); toggleWatch(wKey); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: isWatched ? '#FFB300' : 'var(--text3)', padding: 0, flexShrink: 0 }}
+              >{isWatched ? '★' : '☆'}</button>
+
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', lineHeight: 1.2 }}>{ticker.symbol}</div>

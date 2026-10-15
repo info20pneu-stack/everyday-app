@@ -115,3 +115,61 @@ export const LEAGUE_META: Record<League, { label: string; emoji: string; sportPa
   nba: { label: 'NBA', emoji: '🏀', sportPath: 'basketball/nba' },
   nfl: { label: 'NFL', emoji: '🏈', sportPath: 'football/nfl' },
 };
+
+/* ═══════════════════════ "My Team" — shared selection + match lookup ═══════════════════════ */
+
+export type MyTeam = { league: League; abbr: string };
+export const MY_TEAM_KEY = 'myday_team_v1';
+
+export type MatchInfo = { dateStr: string; homeAway: 'vs' | '@'; oppName: string; score: string | null };
+
+export function formatTeamMatch(event: any, myAbbr: string): MatchInfo | null {
+  const comp = event?.competitions?.[0];
+  const competitors = comp?.competitors ?? [];
+  const me  = competitors.find((c: any) => c.team?.abbreviation === myAbbr);
+  const opp = competitors.find((c: any) => c.team?.abbreviation !== myAbbr);
+  if (!me || !opp) return null;
+  const dateStr = new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const homeAway = me.homeAway === 'home' ? 'vs' : '@';
+  const oppName = opp.team?.shortDisplayName ?? opp.team?.abbreviation ?? '?';
+  const score = me.score != null && opp.score != null ? `${me.score}-${opp.score}` : null;
+  return { dateStr, homeAway, oppName, score };
+}
+
+export async function fetchMyTeamMatches(league: League, abbr: string): Promise<{ last: MatchInfo | null; next: MatchInfo | null }> {
+  const res = await fetch(`/api/sports/${league}?team=${abbr}`);
+  if (!res.ok) throw new Error('sports fetch failed');
+  const data = await res.json();
+  const events: any[] = data.events ?? [];
+  const now = Date.now();
+  let lastEvent: any = null;
+  let nextEvent: any = null;
+  for (const e of events) {
+    const statusName = e.competitions?.[0]?.status?.type?.name ?? '';
+    const time = new Date(e.date).getTime();
+    if (statusName === 'STATUS_FINAL') {
+      if (!lastEvent || time > new Date(lastEvent.date).getTime()) lastEvent = e;
+    } else if (time >= now) {
+      if (!nextEvent || time < new Date(nextEvent.date).getTime()) nextEvent = e;
+    }
+  }
+  return {
+    last: lastEvent ? formatTeamMatch(lastEvent, abbr) : null,
+    next: nextEvent ? formatTeamMatch(nextEvent, abbr) : null,
+  };
+}
+
+export function loadMyTeam(): MyTeam | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(MY_TEAM_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function saveMyTeam(team: MyTeam | null) {
+  try {
+    if (team) localStorage.setItem(MY_TEAM_KEY, JSON.stringify(team));
+    else localStorage.removeItem(MY_TEAM_KEY);
+  } catch {}
+}

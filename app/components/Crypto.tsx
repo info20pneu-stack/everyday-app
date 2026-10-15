@@ -88,11 +88,13 @@ function Sparkline({ prices, positive, id }: { prices: number[]; positive: boole
 
 /* ═══════════════════════ COIN ROW ═══════════════════════ */
 
-const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: {
+const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, watched, onToggleWatch }: {
   coin: Coin;
   expanded: boolean;
   onToggle: () => void;
   showCharts: boolean;
+  watched: boolean;
+  onToggleWatch: () => void;
 }) {
   const { t } = useLang();
   const positive = coin.price_change_percentage_24h >= 0;
@@ -107,8 +109,8 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
         style={{
           display: 'grid',
           gridTemplateColumns: showCharts
-            ? '24px 1fr 80px 60px 70px 76px'
-            : '24px 1fr 80px 60px',
+            ? '18px 24px 1fr 80px 60px 70px 76px'
+            : '18px 24px 1fr 80px 60px',
           gap: '6px',
           alignItems: 'center',
           background: expanded ? 'rgba(93,76,255,0.07)' : 'rgba(255,255,255,0.02)',
@@ -118,6 +120,13 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts }: 
           cursor: 'pointer',
         }}
       >
+        {/* Watchlist star */}
+        <button
+          onClick={e => { e.stopPropagation(); onToggleWatch(); }}
+          title={watched ? t.crypto.watchlist : t.crypto.watchlist}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: watched ? '#FFB300' : 'var(--text3)', padding: 0 }}
+        >{watched ? '★' : '☆'}</button>
+
         {/* Rank */}
         <div style={{ fontSize: '11px', color: coin.market_cap_rank <= 3 ? 'var(--purple3)' : 'var(--text3)', fontWeight: '600', textAlign: 'center' }}>
           {coin.market_cap_rank}
@@ -286,6 +295,13 @@ function mapCoinCapToCoins(assets: any[]): Coin[] {
   }));
 }
 
+const WATCHLIST_KEY = 'crypto_watchlist_v1';
+
+function loadWatchlist(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(WATCHLIST_KEY) ?? '[]'); } catch { return []; }
+}
+
 export default function Crypto() {
   const { t } = useLang();
   const { listLimit, showCharts, isMobile } = useDeviceDetect();
@@ -295,6 +311,17 @@ export default function Crypto() {
   const [search, setSearch]     = useState('');
   const [expandedId, setExpanded] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+
+  useEffect(() => { setWatchlist(loadWatchlist()); }, []);
+
+  const toggleWatch = useCallback((id: string) => {
+    setWatchlist(prev => {
+      const next = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+      try { localStorage.setItem(WATCHLIST_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setState('loading');
@@ -334,6 +361,11 @@ export default function Crypto() {
       : coins,
     [coins, search]
   );
+
+  const { topGainers, topLosers } = useMemo(() => {
+    const sorted = [...coins].sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+    return { topGainers: sorted.slice(0, 3), topLosers: sorted.slice(-3).reverse() };
+  }, [coins]);
 
   const cardStyle: React.CSSProperties = {
     background: 'rgba(15,20,40,0.92)',
@@ -376,7 +408,8 @@ export default function Crypto() {
 
       {/* Column headers */}
       {state === 'ok' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '24px 1fr 80px 60px 70px 76px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '18px 24px 1fr 80px 60px 70px 76px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
+          <span />
           <span style={{ textAlign: 'center' }}>#</span>
           <span>{t.crypto.col_name}</span>
           <span style={{ textAlign: 'right' }}>{t.crypto.col_price}</span>
@@ -423,6 +456,56 @@ export default function Crypto() {
         </div>
       )}
 
+      {/* Watchlist */}
+      {state === 'ok' && watchlist.length > 0 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+            {t.crypto.watchlist}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {coins.filter(c => watchlist.includes(c.id)).map(c => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '10px', padding: '6px 10px' }}>
+                <span style={{ color: '#FFB300' }}>★</span>
+                <span style={{ flex: 1, fontSize: '12px', color: '#fff', fontWeight: '500' }}>{c.name}</span>
+                <span style={{ fontSize: '12px', fontFamily: 'Poppins', color: '#fff' }}>{fmtPrice(c.current_price)}</span>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: c.price_change_percentage_24h >= 0 ? 'var(--green2)' : '#EF4444' }}>
+                  {fmtPct(c.price_change_percentage_24h)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Biggest movers */}
+      {state === 'ok' && coins.length >= 3 && (
+        <div style={{ marginBottom: '1rem' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+            {t.crypto.biggestMovers}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div>
+              <div style={{ fontSize: '10px', color: 'var(--green2)', marginBottom: '4px' }}>▲ {t.crypto.topGainers}</div>
+              {topGainers.map(c => (
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                  <span style={{ color: '#fff' }}>{c.symbol.toUpperCase()}</span>
+                  <span style={{ color: 'var(--green2)', fontWeight: '600' }}>{fmtPct(c.price_change_percentage_24h)}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: '10px', color: '#EF4444', marginBottom: '4px' }}>▼ {t.crypto.topLosers}</div>
+              {topLosers.map(c => (
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                  <span style={{ color: '#fff' }}>{c.symbol.toUpperCase()}</span>
+                  <span style={{ color: '#EF4444', fontWeight: '600' }}>{fmtPct(c.price_change_percentage_24h)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Coin list */}
       {state === 'ok' && (
         <>
@@ -439,6 +522,8 @@ export default function Crypto() {
                   expanded={expandedId === coin.id}
                   onToggle={() => setExpanded(prev => prev === coin.id ? null : coin.id)}
                   showCharts={showCharts}
+                  watched={watchlist.includes(coin.id)}
+                  onToggleWatch={() => toggleWatch(coin.id)}
                 />
               ))}
               {isMobile && !search && filtered.length > listLimit && (

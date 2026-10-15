@@ -123,6 +123,10 @@ export type Translations = {
     challengeFriend: string; challengeCopied: string; youVs: string;
     challengeWon: string; challengeLost: string; challengeTie: string; shareChallengeLink: string;
   };
+  humanBenchmark: {
+    myBrainTitle: string; myBrainDesc: string; noHistory: string;
+    improvement: string; attemptsUnit: string; bestScore: string;
+  };
   ageCalculator: {
     title: string; dateOfBirth: string; yourAge: string; nextBirthday: string;
     happyBirthday: string; daysLabel: string; zodiac: string; dayOfBirth: string;
@@ -162,6 +166,7 @@ export type Translations = {
     detail_high24h: string; detail_low24h: string; detail_change24h: string;
     detail_volume24h: string; detail_circulating: string; detail_priceHistory: string;
     detail_min: string; detail_max: string;
+    watchlist: string; biggestMovers: string; topGainers: string; topLosers: string;
   };
   dailyBoost: {
     title: string; todaysChallenges: string; markAsDone: string; done: string;
@@ -200,6 +205,7 @@ export type Translations = {
     title: string; tab_indices: string; tab_forex: string; tab_commodities: string;
     simulatedNote: string; detail_7d: string; detail_1m: string; detail_1y: string;
     failedToLoad: string; tryAgain: string;
+    watchlist: string; biggestMovers: string; topGainers: string; topLosers: string;
   };
   news: {
     title: string; refresh: string; source: string; refreshNote: string;
@@ -402,6 +408,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Challenge a friend', challengeCopied: '✓ Link copied!', youVs: 'You vs {name}',
       challengeWon: 'You won! 🎉', challengeLost: 'You lost', challengeTie: "It's a tie!", shareChallengeLink: 'Share challenge link',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 My Brain', myBrainDesc: 'History and improvement over time',
+      noHistory: 'No results yet. Play a test to start your history!',
+      improvement: 'Improvement', attemptsUnit: 'attempts', bestScore: 'Best',
+    },
     ageCalculator: {
       title: '🎂 Age Calculator', dateOfBirth: 'Date of birth', yourAge: 'Your age',
       nextBirthday: 'Next birthday', happyBirthday: '🎉 Happy Birthday!', daysLabel: 'days',
@@ -464,6 +475,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24h High', detail_low24h: '24h Low', detail_change24h: '24h Change',
       detail_volume24h: '24h Volume', detail_circulating: 'Circulating',
       detail_priceHistory: '7-day price history', detail_min: 'Min:', detail_max: 'Max:',
+      watchlist: '⭐ Watchlist', biggestMovers: "Today's Biggest Movers", topGainers: 'Top Gainers', topLosers: 'Top Losers',
     },
     dailyBoost: {
       title: '🌅 Daily Boost', todaysChallenges: "Today's challenges",
@@ -513,6 +525,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Simulated data · updates every 15 s · click for detail',
       detail_7d: '7 Days', detail_1m: '1 Month', detail_1y: '1 Year',
       failedToLoad: 'Failed to load market data.', tryAgain: 'Try again',
+      watchlist: '⭐ Watchlist', biggestMovers: "Today's Biggest Movers", topGainers: 'Top Gainers', topLosers: 'Top Losers',
     },
     news: {
       title: "📰 Today's News", refresh: '↺ Refresh', source: 'Source:',
@@ -735,6 +748,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Freund herausfordern', challengeCopied: '✓ Link kopiert!', youVs: 'Du vs {name}',
       challengeWon: 'Du hast gewonnen! 🎉', challengeLost: 'Du hast verloren', challengeTie: 'Unentschieden!', shareChallengeLink: 'Herausforderungslink teilen',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Mein Gehirn', myBrainDesc: 'Verlauf und Verbesserung über die Zeit',
+      noHistory: 'Noch keine Ergebnisse. Spiele einen Test, um deinen Verlauf zu starten!',
+      improvement: 'Verbesserung', attemptsUnit: 'Versuche', bestScore: 'Bestwert',
+    },
     ageCalculator: {
       title: '🎂 Altersrechner', dateOfBirth: 'Geburtsdatum', yourAge: 'Dein Alter',
       nextBirthday: 'Nächster Geburtstag', happyBirthday: '🎉 Alles Gute zum Geburtstag!', daysLabel: 'Tage',
@@ -797,6 +815,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24-Std.-Hoch', detail_low24h: '24-Std.-Tief', detail_change24h: '24-Std.-Änderung',
       detail_volume24h: '24-Std.-Volumen', detail_circulating: 'Im Umlauf',
       detail_priceHistory: '7-Tage-Preisverlauf', detail_min: 'Min:', detail_max: 'Max:',
+      watchlist: '⭐ Beobachtungsliste', biggestMovers: 'Größte Bewegungen heute', topGainers: 'Top-Gewinner', topLosers: 'Top-Verlierer',
     },
     dailyBoost: {
       title: '🌅 Tagesboost', todaysChallenges: 'Heutige Challenges',
@@ -846,6 +865,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Simulierte Daten · Aktualisierung alle 15 s · für Details klicken',
       detail_7d: '7 Tage', detail_1m: '1 Monat', detail_1y: '1 Jahr',
       failedToLoad: 'Marktdaten konnten nicht geladen werden.', tryAgain: 'Erneut versuchen',
+      watchlist: '⭐ Beobachtungsliste', biggestMovers: 'Größte Bewegungen heute', topGainers: 'Top-Gewinner', topLosers: 'Top-Verlierer',
     },
     news: {
       title: '📰 Heutige Nachrichten', refresh: '↺ Aktualisieren', source: 'Quelle:',
@@ -1068,6 +1088,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Sfida un amico', challengeCopied: '✓ Link copiato!', youVs: 'Tu vs {name}',
       challengeWon: 'Hai vinto! 🎉', challengeLost: 'Hai perso', challengeTie: 'Pareggio!', shareChallengeLink: 'Condividi link sfida',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Il Mio Cervello', myBrainDesc: 'Storico e miglioramento nel tempo',
+      noHistory: 'Nessun risultato ancora. Gioca un test per iniziare la tua storia!',
+      improvement: 'Miglioramento', attemptsUnit: 'tentativi', bestScore: 'Migliore',
+    },
     ageCalculator: {
       title: '🎂 Calcolatore di età', dateOfBirth: 'Data di nascita', yourAge: 'La tua età',
       nextBirthday: 'Prossimo compleanno', happyBirthday: '🎉 Buon compleanno!', daysLabel: 'giorni',
@@ -1130,6 +1155,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'Massimo 24h', detail_low24h: 'Minimo 24h', detail_change24h: 'Variazione 24h',
       detail_volume24h: 'Volume 24h', detail_circulating: 'In circolazione',
       detail_priceHistory: 'Storico prezzi a 7 giorni', detail_min: 'Min:', detail_max: 'Max:',
+      watchlist: '⭐ Watchlist', biggestMovers: 'I Maggiori Movimenti di Oggi', topGainers: 'Top Rialzi', topLosers: 'Top Ribassi',
     },
     dailyBoost: {
       title: '🌅 Boost quotidiano', todaysChallenges: 'Sfide di oggi',
@@ -1179,6 +1205,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Dati simulati · aggiornamento ogni 15 s · clicca per i dettagli',
       detail_7d: '7 Giorni', detail_1m: '1 Mese', detail_1y: '1 Anno',
       failedToLoad: 'Impossibile caricare i dati di mercato.', tryAgain: 'Riprova',
+      watchlist: '⭐ Watchlist', biggestMovers: 'I Maggiori Movimenti di Oggi', topGainers: 'Top Rialzi', topLosers: 'Top Ribassi',
     },
     news: {
       title: '📰 Notizie di oggi', refresh: '↺ Aggiorna', source: 'Fonte:',
@@ -1401,6 +1428,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Défier un ami', challengeCopied: '✓ Lien copié !', youVs: 'Toi vs {name}',
       challengeWon: 'Tu as gagné ! 🎉', challengeLost: 'Tu as perdu', challengeTie: 'Égalité !', shareChallengeLink: 'Partager le lien du défi',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Mon Cerveau', myBrainDesc: 'Historique et progression au fil du temps',
+      noHistory: "Pas encore de résultats. Fais un test pour démarrer ton historique !",
+      improvement: 'Progression', attemptsUnit: 'tentatives', bestScore: 'Meilleur',
+    },
     ageCalculator: {
       title: "🎂 Calculateur d'âge", dateOfBirth: 'Date de naissance', yourAge: 'Votre âge',
       nextBirthday: 'Prochain anniversaire', happyBirthday: '🎉 Joyeux anniversaire !', daysLabel: 'jours',
@@ -1463,6 +1495,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'Haut 24h', detail_low24h: 'Bas 24h', detail_change24h: 'Variation 24h',
       detail_volume24h: 'Volume 24h', detail_circulating: 'En circulation',
       detail_priceHistory: 'Historique des prix (7 jours)', detail_min: 'Min :', detail_max: 'Max :',
+      watchlist: '⭐ Liste de suivi', biggestMovers: 'Plus Grands Mouvements du Jour', topGainers: 'Plus Fortes Hausses', topLosers: 'Plus Fortes Baisses',
     },
     dailyBoost: {
       title: '🌅 Boost quotidien', todaysChallenges: 'Défis du jour',
@@ -1512,6 +1545,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Données simulées · mise à jour toutes les 15 s · cliquez pour le détail',
       detail_7d: '7 jours', detail_1m: '1 mois', detail_1y: '1 an',
       failedToLoad: 'Échec du chargement des données de marché.', tryAgain: 'Réessayer',
+      watchlist: '⭐ Liste de suivi', biggestMovers: "Plus Grands Mouvements du Jour", topGainers: 'Plus Fortes Hausses', topLosers: 'Plus Fortes Baisses',
     },
     news: {
       title: '📰 Actualités du jour', refresh: '↺ Actualiser', source: 'Source :',
@@ -1734,6 +1768,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Vyzvi kamaráda', challengeCopied: '✓ Odkaz zkopírován!', youVs: 'Ty vs {name}',
       challengeWon: 'Vyhrál jsi! 🎉', challengeLost: 'Prohrál jsi', challengeTie: 'Je to remíza!', shareChallengeLink: 'Sdílet odkaz na výzvu',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Můj mozek', myBrainDesc: 'Historie výsledků a zlepšení v čase',
+      noHistory: 'Zatím žádné výsledky. Zahraj si test a začni svou historii!',
+      improvement: 'Zlepšení', attemptsUnit: 'pokusů', bestScore: 'Nejlepší',
+    },
     ageCalculator: {
       title: '🎂 Věková kalkulačka', dateOfBirth: 'Datum narození', yourAge: 'Váš věk',
       nextBirthday: 'Příští narozeniny', happyBirthday: '🎉 Všechno nejlepší!', daysLabel: 'dní',
@@ -1796,6 +1835,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24h maximum', detail_low24h: '24h minimum', detail_change24h: '24h změna',
       detail_volume24h: '24h objem', detail_circulating: 'V oběhu',
       detail_priceHistory: '7denní vývoj ceny', detail_min: 'Min:', detail_max: 'Max:',
+      watchlist: '⭐ Sledované', biggestMovers: 'Dnešní největší pohyby', topGainers: 'Největší růst', topLosers: 'Největší pokles',
     },
     dailyBoost: {
       title: '🌅 Denní boost', todaysChallenges: 'Dnešní výzvy',
@@ -1845,6 +1885,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Simulovaná data · aktualizace každých 15 s · klikněte pro detail',
       detail_7d: '7 dní', detail_1m: '1 měsíc', detail_1y: '1 rok',
       failedToLoad: 'Nepodařilo se načíst data trhů.', tryAgain: 'Zkusit znovu',
+      watchlist: '⭐ Sledované', biggestMovers: 'Dnešní největší pohyby', topGainers: 'Největší růst', topLosers: 'Největší pokles',
     },
     news: {
       title: '📰 Dnešní zprávy', refresh: '↺ Obnovit', source: 'Zdroj:',
@@ -2067,6 +2108,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Desafiar a un amigo', challengeCopied: '✓ ¡Enlace copiado!', youVs: 'Tú vs {name}',
       challengeWon: '¡Ganaste! 🎉', challengeLost: 'Perdiste', challengeTie: '¡Es un empate!', shareChallengeLink: 'Compartir enlace del desafío',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Mi Cerebro', myBrainDesc: 'Historial y mejora a lo largo del tiempo',
+      noHistory: '¡Aún no hay resultados. Juega una prueba para empezar tu historial!',
+      improvement: 'Mejora', attemptsUnit: 'intentos', bestScore: 'Mejor',
+    },
     ageCalculator: {
       title: '🎂 Calculadora de edad', dateOfBirth: 'Fecha de nacimiento', yourAge: 'Tu edad',
       nextBirthday: 'Próximo cumpleaños', happyBirthday: '🎉 ¡Feliz cumpleaños!', daysLabel: 'días',
@@ -2129,6 +2175,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'Máximo 24h', detail_low24h: 'Mínimo 24h', detail_change24h: 'Variación 24h',
       detail_volume24h: 'Volumen 24h', detail_circulating: 'En circulación',
       detail_priceHistory: 'Historial de precios (7 días)', detail_min: 'Mín:', detail_max: 'Máx:',
+      watchlist: '⭐ Lista de seguimiento', biggestMovers: 'Mayores Movimientos de Hoy', topGainers: 'Mayores Subidas', topLosers: 'Mayores Bajadas',
     },
     dailyBoost: {
       title: '🌅 Impulso diario', todaysChallenges: 'Retos de hoy',
@@ -2178,6 +2225,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Datos simulados · se actualiza cada 15 s · haz clic para más detalles',
       detail_7d: '7 días', detail_1m: '1 mes', detail_1y: '1 año',
       failedToLoad: 'Error al cargar los datos del mercado.', tryAgain: 'Reintentar',
+      watchlist: '⭐ Lista de seguimiento', biggestMovers: 'Mayores Movimientos de Hoy', topGainers: 'Mayores Subidas', topLosers: 'Mayores Bajadas',
     },
     news: {
       title: '📰 Noticias de hoy', refresh: '↺ Actualizar', source: 'Fuente:',
@@ -2400,6 +2448,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Wyzwij przyjaciela', challengeCopied: '✓ Link skopiowany!', youVs: 'Ty vs {name}',
       challengeWon: 'Wygrałeś! 🎉', challengeLost: 'Przegrałeś', challengeTie: 'Remis!', shareChallengeLink: 'Udostępnij link wyzwania',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Mój Mózg', myBrainDesc: 'Historia wyników i postępy w czasie',
+      noHistory: 'Brak wyników. Zagraj w test, aby zacząć swoją historię!',
+      improvement: 'Postęp', attemptsUnit: 'prób', bestScore: 'Najlepszy',
+    },
     ageCalculator: {
       title: '🎂 Kalkulator wieku', dateOfBirth: 'Data urodzenia', yourAge: 'Twój wiek',
       nextBirthday: 'Następne urodziny', happyBirthday: '🎉 Wszystkiego najlepszego!', daysLabel: 'dni',
@@ -2462,6 +2515,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'Maks. 24h', detail_low24h: 'Min. 24h', detail_change24h: 'Zmiana 24h',
       detail_volume24h: 'Wolumen 24h', detail_circulating: 'W obiegu',
       detail_priceHistory: 'Historia cen z 7 dni', detail_min: 'Min:', detail_max: 'Maks:',
+      watchlist: '⭐ Obserwowane', biggestMovers: 'Największe Zmiany Dnia', topGainers: 'Największe Wzrosty', topLosers: 'Największe Spadki',
     },
     dailyBoost: {
       title: '🌅 Codzienny boost', todaysChallenges: 'Dzisiejsze wyzwania',
@@ -2511,6 +2565,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Dane symulowane · aktualizacja co 15 s · kliknij, aby zobaczyć szczegóły',
       detail_7d: '7 dni', detail_1m: '1 miesiąc', detail_1y: '1 rok',
       failedToLoad: 'Nie udało się załadować danych rynkowych.', tryAgain: 'Spróbuj ponownie',
+      watchlist: '⭐ Obserwowane', biggestMovers: 'Największe Zmiany Dnia', topGainers: 'Największe Wzrosty', topLosers: 'Największe Spadki',
     },
     news: {
       title: '📰 Dzisiejsze wiadomości', refresh: '↺ Odśwież', source: 'Źródło:',
@@ -2733,6 +2788,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Desafiar um amigo', challengeCopied: '✓ Link copiado!', youVs: 'Você vs {name}',
       challengeWon: 'Você venceu! 🎉', challengeLost: 'Você perdeu', challengeTie: 'Empate!', shareChallengeLink: 'Compartilhar link do desafio',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Meu Cérebro', myBrainDesc: 'Histórico e melhoria ao longo do tempo',
+      noHistory: 'Ainda sem resultados. Jogue um teste para começar seu histórico!',
+      improvement: 'Melhoria', attemptsUnit: 'tentativas', bestScore: 'Melhor',
+    },
     ageCalculator: {
       title: '🎂 Calculadora de idade', dateOfBirth: 'Data de nascimento', yourAge: 'Sua idade',
       nextBirthday: 'Próximo aniversário', happyBirthday: '🎉 Feliz aniversário!', daysLabel: 'dias',
@@ -2795,6 +2855,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'Máxima 24h', detail_low24h: 'Mínima 24h', detail_change24h: 'Variação 24h',
       detail_volume24h: 'Volume 24h', detail_circulating: 'Em circulação',
       detail_priceHistory: 'Histórico de preços (7 dias)', detail_min: 'Mín:', detail_max: 'Máx:',
+      watchlist: '⭐ Lista de observação', biggestMovers: 'Maiores Movimentos de Hoje', topGainers: 'Maiores Altas', topLosers: 'Maiores Baixas',
     },
     dailyBoost: {
       title: '🌅 Impulso diário', todaysChallenges: 'Desafios de hoje',
@@ -2844,6 +2905,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Dados simulados · atualiza a cada 15 s · clique para detalhes',
       detail_7d: '7 Dias', detail_1m: '1 Mês', detail_1y: '1 Ano',
       failedToLoad: 'Falha ao carregar dados de mercado.', tryAgain: 'Tentar novamente',
+      watchlist: '⭐ Lista de observação', biggestMovers: 'Maiores Movimentos de Hoje', topGainers: 'Maiores Altas', topLosers: 'Maiores Baixas',
     },
     news: {
       title: '📰 Notícias de hoje', refresh: '↺ Atualizar', source: 'Fonte:',
@@ -3066,6 +3128,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 Вызвать друга', challengeCopied: '✓ Ссылка скопирована!', youVs: 'Ты vs {name}',
       challengeWon: 'Ты выиграл! 🎉', challengeLost: 'Ты проиграл', challengeTie: 'Это ничья!', shareChallengeLink: 'Поделиться ссылкой на вызов',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 Мой мозг', myBrainDesc: 'История результатов и улучшение со временем',
+      noHistory: 'Пока нет результатов. Пройдите тест, чтобы начать историю!',
+      improvement: 'Улучшение', attemptsUnit: 'попыток', bestScore: 'Лучший',
+    },
     ageCalculator: {
       title: '🎂 Калькулятор возраста', dateOfBirth: 'Дата рождения', yourAge: 'Ваш возраст',
       nextBirthday: 'Следующий день рождения', happyBirthday: '🎉 С днём рождения!', daysLabel: 'дней',
@@ -3128,6 +3195,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'Макс. за 24ч', detail_low24h: 'Мин. за 24ч', detail_change24h: 'Изменение за 24ч',
       detail_volume24h: 'Объём за 24ч', detail_circulating: 'В обращении',
       detail_priceHistory: 'История цен за 7 дней', detail_min: 'Мин:', detail_max: 'Макс:',
+      watchlist: '⭐ Отслеживаемые', biggestMovers: 'Крупнейшие движения дня', topGainers: 'Лидеры роста', topLosers: 'Лидеры падения',
     },
     dailyBoost: {
       title: '🌅 Ежедневный буст', todaysChallenges: 'Задания на сегодня',
@@ -3177,6 +3245,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'Смоделированные данные · обновление каждые 15 с · нажмите для деталей',
       detail_7d: '7 дней', detail_1m: '1 месяц', detail_1y: '1 год',
       failedToLoad: 'Не удалось загрузить рыночные данные.', tryAgain: 'Повторить',
+      watchlist: '⭐ Отслеживаемые', biggestMovers: 'Крупнейшие движения дня', topGainers: 'Лидеры роста', topLosers: 'Лидеры падения',
     },
     news: {
       title: '📰 Новости сегодня', refresh: '↺ Обновить', source: 'Источник:',
@@ -3399,6 +3468,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 挑战朋友', challengeCopied: '✓ 链接已复制！', youVs: '你 vs {name}',
       challengeWon: '你赢了！🎉', challengeLost: '你输了', challengeTie: '平局！', shareChallengeLink: '分享挑战链接',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 我的大脑', myBrainDesc: '历史记录与随时间的进步',
+      noHistory: '暂无记录。做一次测试即可开始记录历史！',
+      improvement: '进步', attemptsUnit: '次', bestScore: '最佳',
+    },
     ageCalculator: {
       title: '🎂 年龄计算器', dateOfBirth: '出生日期', yourAge: '你的年龄',
       nextBirthday: '下次生日', happyBirthday: '🎉 生日快乐！', daysLabel: '天',
@@ -3461,6 +3535,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24小时最高', detail_low24h: '24小时最低', detail_change24h: '24小时涨跌',
       detail_volume24h: '24小时成交量', detail_circulating: '流通量',
       detail_priceHistory: '7日价格走势', detail_min: '最低：', detail_max: '最高：',
+      watchlist: '⭐ 关注列表', biggestMovers: '今日最大涨跌', topGainers: '涨幅榜', topLosers: '跌幅榜',
     },
     dailyBoost: {
       title: '🌅 每日激励', todaysChallenges: '今日挑战',
@@ -3510,6 +3585,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: '模拟数据 · 每15秒更新一次 · 点击查看详情',
       detail_7d: '7天', detail_1m: '1个月', detail_1y: '1年',
       failedToLoad: '市场数据加载失败。', tryAgain: '重试',
+      watchlist: '⭐ 关注列表', biggestMovers: '今日最大涨跌', topGainers: '涨幅榜', topLosers: '跌幅榜',
     },
     news: {
       title: '📰 今日新闻', refresh: '↺ 刷新', source: '来源：',
@@ -3732,6 +3808,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 友達に挑戦', challengeCopied: '✓ リンクをコピーしました！', youVs: 'あなた vs {name}',
       challengeWon: '勝ちました！🎉', challengeLost: '負けました', challengeTie: '引き分けです！', shareChallengeLink: '挑戦リンクを共有',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 マイブレイン', myBrainDesc: '履歴と時間経過による成長',
+      noHistory: 'まだ結果がありません。テストをプレイして履歴を始めましょう！',
+      improvement: '成長', attemptsUnit: '回', bestScore: 'ベスト',
+    },
     ageCalculator: {
       title: '🎂 年齢計算機', dateOfBirth: '生年月日', yourAge: 'あなたの年齢',
       nextBirthday: '次の誕生日', happyBirthday: '🎉 お誕生日おめでとう！', daysLabel: '日',
@@ -3794,6 +3875,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24時間高値', detail_low24h: '24時間安値', detail_change24h: '24時間変動',
       detail_volume24h: '24時間出来高', detail_circulating: '流通量',
       detail_priceHistory: '7日間の価格推移', detail_min: '最小：', detail_max: '最大：',
+      watchlist: '⭐ ウォッチリスト', biggestMovers: '本日の主な変動', topGainers: '上昇率トップ', topLosers: '下落率トップ',
     },
     dailyBoost: {
       title: '🌅 デイリーブースト', todaysChallenges: '今日のチャレンジ',
@@ -3843,6 +3925,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'シミュレーションデータ · 15秒ごとに更新 · クリックで詳細',
       detail_7d: '7日間', detail_1m: '1ヶ月', detail_1y: '1年',
       failedToLoad: '市場データの読み込みに失敗しました。', tryAgain: '再試行',
+      watchlist: '⭐ ウォッチリスト', biggestMovers: '本日の主な変動', topGainers: '上昇率トップ', topLosers: '下落率トップ',
     },
     news: {
       title: '📰 今日のニュース', refresh: '↺ 更新', source: 'ソース：',
@@ -4065,6 +4148,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 친구에게 도전하기', challengeCopied: '✓ 링크가 복사되었습니다!', youVs: '당신 vs {name}',
       challengeWon: '승리했습니다! 🎉', challengeLost: '패배했습니다', challengeTie: '무승부입니다!', shareChallengeLink: '도전 링크 공유',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 내 두뇌', myBrainDesc: '기록 및 시간에 따른 향상',
+      noHistory: '아직 결과가 없습니다. 테스트를 플레이해 기록을 시작하세요!',
+      improvement: '향상도', attemptsUnit: '회', bestScore: '최고',
+    },
     ageCalculator: {
       title: '🎂 나이 계산기', dateOfBirth: '생년월일', yourAge: '나이',
       nextBirthday: '다음 생일', happyBirthday: '🎉 생일 축하합니다!', daysLabel: '일',
@@ -4127,6 +4215,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24시간 최고가', detail_low24h: '24시간 최저가', detail_change24h: '24시간 변동',
       detail_volume24h: '24시간 거래량', detail_circulating: '유통량',
       detail_priceHistory: '7일 가격 추이', detail_min: '최소:', detail_max: '최대:',
+      watchlist: '⭐ 관심 목록', biggestMovers: '오늘의 주요 변동', topGainers: '상승률 상위', topLosers: '하락률 상위',
     },
     dailyBoost: {
       title: '🌅 데일리 부스트', todaysChallenges: '오늘의 챌린지',
@@ -4176,6 +4265,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: '시뮬레이션 데이터 · 15초마다 업데이트 · 클릭하여 상세 보기',
       detail_7d: '7일', detail_1m: '1개월', detail_1y: '1년',
       failedToLoad: '시장 데이터 로딩 실패.', tryAgain: '다시 시도',
+      watchlist: '⭐ 관심 목록', biggestMovers: '오늘의 주요 변동', topGainers: '상승률 상위', topLosers: '하락률 상위',
     },
     news: {
       title: '📰 오늘의 뉴스', refresh: '↺ 새로 고침', source: '출처:',
@@ -4398,6 +4488,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 تحدي صديق', challengeCopied: '✓ تم نسخ الرابط!', youVs: 'أنت ضد {name}',
       challengeWon: 'لقد فزت! 🎉', challengeLost: 'لقد خسرت', challengeTie: 'إنها تعادل!', shareChallengeLink: 'مشاركة رابط التحدي',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 عقلي', myBrainDesc: 'السجل والتحسن مع مرور الوقت',
+      noHistory: 'لا توجد نتائج حتى الآن. جرّب اختبارًا لبدء سجلك!',
+      improvement: 'التحسن', attemptsUnit: 'محاولات', bestScore: 'الأفضل',
+    },
     ageCalculator: {
       title: '🎂 حاسبة العمر', dateOfBirth: 'تاريخ الميلاد', yourAge: 'عمرك',
       nextBirthday: 'عيد الميلاد القادم', happyBirthday: '🎉 عيد ميلاد سعيد!', daysLabel: 'أيام',
@@ -4460,6 +4555,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: 'أعلى سعر 24 ساعة', detail_low24h: 'أدنى سعر 24 ساعة', detail_change24h: 'تغيّر 24 ساعة',
       detail_volume24h: 'حجم التداول 24 ساعة', detail_circulating: 'المعروض المتداول',
       detail_priceHistory: 'تاريخ الأسعار لـ7 أيام', detail_min: 'الأدنى:', detail_max: 'الأعلى:',
+      watchlist: '⭐ قائمة المتابعة', biggestMovers: 'أكبر تحركات اليوم', topGainers: 'الأكثر ارتفاعًا', topLosers: 'الأكثر انخفاضًا',
     },
     dailyBoost: {
       title: '🌅 دفعة يومية', todaysChallenges: 'تحديات اليوم',
@@ -4509,6 +4605,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'بيانات محاكاة · تحديث كل 15 ثانية · انقر لعرض التفاصيل',
       detail_7d: '7 أيام', detail_1m: 'شهر واحد', detail_1y: 'سنة واحدة',
       failedToLoad: 'فشل تحميل بيانات السوق.', tryAgain: 'إعادة المحاولة',
+      watchlist: '⭐ قائمة المتابعة', biggestMovers: 'أكبر تحركات اليوم', topGainers: 'الأكثر ارتفاعًا', topLosers: 'الأكثر انخفاضًا',
     },
     news: {
       title: '📰 أخبار اليوم', refresh: '↺ تحديث', source: 'المصدر:',
@@ -4731,6 +4828,11 @@ const t: Record<Lang, Translations> = {
       challengeFriend: '🔗 दोस्त को चुनौती दें', challengeCopied: '✓ लिंक कॉपी हो गया!', youVs: 'आप vs {name}',
       challengeWon: 'आप जीत गए! 🎉', challengeLost: 'आप हार गए', challengeTie: 'यह बराबरी है!', shareChallengeLink: 'चुनौती लिंक साझा करें',
     },
+    humanBenchmark: {
+      myBrainTitle: '🧠 मेरा मस्तिष्क', myBrainDesc: 'इतिहास और समय के साथ सुधार',
+      noHistory: 'अभी तक कोई परिणाम नहीं। इतिहास शुरू करने के लिए एक टेस्ट खेलें!',
+      improvement: 'सुधार', attemptsUnit: 'प्रयास', bestScore: 'सर्वश्रेष्ठ',
+    },
     ageCalculator: {
       title: '🎂 आयु कैलकुलेटर', dateOfBirth: 'जन्म तिथि', yourAge: 'आपकी आयु',
       nextBirthday: 'अगला जन्मदिन', happyBirthday: '🎉 जन्मदिन मुबारक हो!', daysLabel: 'दिन',
@@ -4793,6 +4895,7 @@ const t: Record<Lang, Translations> = {
       detail_high24h: '24 घंटे का उच्चतम', detail_low24h: '24 घंटे का न्यूनतम', detail_change24h: '24 घंटे का बदलाव',
       detail_volume24h: '24 घंटे का वॉल्यूम', detail_circulating: 'प्रचलन में',
       detail_priceHistory: '7 दिन का मूल्य इतिहास', detail_min: 'न्यूनतम:', detail_max: 'अधिकतम:',
+      watchlist: '⭐ वॉचलिस्ट', biggestMovers: 'आज के सबसे बड़े बदलाव', topGainers: 'सबसे ज़्यादा बढ़त', topLosers: 'सबसे ज़्यादा गिरावट',
     },
     dailyBoost: {
       title: '🌅 दैनिक बूस्ट', todaysChallenges: 'आज की चुनौतियां',
@@ -4842,6 +4945,7 @@ const t: Record<Lang, Translations> = {
       simulatedNote: 'सिम्युलेटेड डेटा · हर 15 सेकंड में अपडेट · विवरण के लिए क्लिक करें',
       detail_7d: '7 दिन', detail_1m: '1 महीना', detail_1y: '1 वर्ष',
       failedToLoad: 'बाज़ार डेटा लोड करने में विफल।', tryAgain: 'पुनः प्रयास करें',
+      watchlist: '⭐ वॉचलिस्ट', biggestMovers: 'आज के सबसे बड़े बदलाव', topGainers: 'सबसे ज़्यादा बढ़त', topLosers: 'सबसे ज़्यादा गिरावट',
     },
     news: {
       title: '📰 आज की खबरें', refresh: '↺ ताज़ा करें', source: 'स्रोत:',

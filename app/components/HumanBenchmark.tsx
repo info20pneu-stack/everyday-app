@@ -67,6 +67,23 @@ function hbGet<T>(key: string, fb: T): T {
 }
 function hbSet(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }
 
+/* ── "My Brain" history: last 50 results per test ── */
+type HistoryEntry = { date: number; value: number };
+const HB_HISTORY_MAX = 50;
+
+function hbHistoryKey(testId: TestId): string { return `hb_history_${testId}`; }
+
+function hbPushHistory(testId: TestId, value: number) {
+  const key = hbHistoryKey(testId);
+  const prev = hbGet<HistoryEntry[]>(key, []);
+  const next = [...prev, { date: Date.now(), value }].slice(-HB_HISTORY_MAX);
+  hbSet(key, next);
+}
+
+function hbGetHistory(testId: TestId): HistoryEntry[] {
+  return hbGet<HistoryEntry[]>(hbHistoryKey(testId), []);
+}
+
 function flagEmoji(code: string) {
   return [...code.toUpperCase()].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join('');
 }
@@ -230,9 +247,10 @@ function HBSubmit({ result, color, onDismiss }: {
    RESULT WRAPPER — shared result display + submit
 ══════════════════════════════════════════════════════════════ */
 
-function ResultScreen({ result, meta, onRetry, onBack }: {
+function ResultScreen({ result, meta, testId, onRetry, onBack }: {
   result: TestResult;
   meta: typeof TEST_META[TestId];
+  testId: TestId;
   onRetry: () => void;
   onBack: () => void;
 }) {
@@ -244,6 +262,7 @@ function ResultScreen({ result, meta, onRetry, onBack }: {
 
   let displayVal: string;
   let isNew = false;
+  const rawValue = meta.lowerBetter ? result.timeMs : (result.score ?? 0);
 
   if (meta.lowerBetter) {
     displayVal = isAimTrainer ? fmtAimTime(result.timeMs) : `${result.timeMs}ms`;
@@ -255,6 +274,13 @@ function ResultScreen({ result, meta, onRetry, onBack }: {
     isNew = oldBest === null || sc > oldBest;
     if (isNew) hbSet(bestKey, sc);
   }
+
+  const historyLoggedRef = useRef(false);
+  useEffect(() => {
+    if (historyLoggedRef.current) return;
+    historyLoggedRef.current = true;
+    hbPushHistory(testId, rawValue);
+  }, [testId, rawValue]);
 
   return (
     <div style={{ textAlign: 'center' }}>
@@ -1041,7 +1067,7 @@ function TestRunner({ testId, onBack }: { testId: TestId; onBack: () => void }) 
           </div>
         </div>
         <ResultScreen
-          result={result} meta={meta}
+          result={result} meta={meta} testId={testId}
           onRetry={() => { setResult(null); setKey(k => k + 1); }}
           onBack={onBack}
         />
@@ -1075,8 +1101,84 @@ const TEST_NAMES: Record<TestId, string> = {
   verbalmem: 'Verbal Memory', seqmem: 'Sequence Memory', aimtrainer: 'Aim Trainer', mentalmath: 'Mental Math',
 };
 
+/* ── My Brain profile ── */
+function MiniSparkline({ entries, color, lowerBetter }: { entries: HistoryEntry[]; color: string; lowerBetter?: boolean }) {
+  if (entries.length < 2) return <div style={{ width: 90, height: 28 }} />;
+  const W = 90, H = 28;
+  const values = entries.map(e => e.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => ({
+    x: (i / (values.length - 1)) * W,
+    y: H - 2 - ((v - min) / range) * (H - 4),
+  }));
+  const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  void lowerBetter;
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ display: 'block', flexShrink: 0 }}>
+      <path d={line} fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="2.4" fill={color} />
+    </svg>
+  );
+}
+
+function MyBrainProfile({ onBack }: { onBack: () => void }) {
+  const { t } = useLang();
+  const [histories, setHistories] = useState<Record<string, HistoryEntry[]>>({});
+
+  useEffect(() => {
+    const h: Record<string, HistoryEntry[]> = {};
+    (Object.keys(TEST_META) as TestId[]).forEach(id => { h[id] = hbGetHistory(id); });
+    setHistories(h);
+  }, []);
+
+  const anyHistory = Object.values(histories).some(h => h.length > 0);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+        <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer' }}>✕</button>
+        <div>
+          <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff' }}>{t.humanBenchmark.myBrainTitle}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.humanBenchmark.myBrainDesc}</div>
+        </div>
+      </div>
+
+      {!anyHistory ? (
+        <div style={{ textAlign: 'center', padding: '2rem 0', color: 'var(--text3)', fontSize: '13px' }}>
+          {t.humanBenchmark.noHistory}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {(Object.keys(TEST_META) as TestId[]).map(id => {
+            const m = TEST_META[id];
+            const h = histories[id] ?? [];
+            if (h.length === 0) return null;
+            const best = hbGet<number | null>(m.bestKey, null);
+            return (
+              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '10px 12px' }}>
+                <span style={{ fontSize: '20px' }}>{m.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '12px', fontWeight: '700', color: '#fff' }}>{TEST_NAMES[id]}</div>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>
+                    {h.length} {t.humanBenchmark.attemptsUnit}
+                    {best !== null && ` · ${t.humanBenchmark.bestScore}: ${m.lowerBetter ? `${best}ms` : best}`}
+                  </div>
+                </div>
+                <MiniSparkline entries={h} color={m.color} lowerBetter={m.lowerBetter} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
-  const [active, setActive] = useState<TestId | null>(null);
+  const { t } = useLang();
+  const [active, setActive] = useState<TestId | 'mybrain' | null>(null);
   const [bests, setBests] = useState<Record<string, number | null>>({});
 
   useEffect(() => {
@@ -1093,6 +1195,15 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
     boxShadow: '0 4px 32px rgba(0,0,0,0.5)',
   };
 
+  if (active === 'mybrain') {
+    return (
+      <div style={CARD_BG_STYLE}>
+        <MyBrainProfile onBack={() => setActive(null)} />
+        <HBStyles />
+      </div>
+    );
+  }
+
   if (active) {
     return (
       <div style={CARD_BG_STYLE}>
@@ -1107,10 +1218,16 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
       <div style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ fontSize: '26px' }}>🧠</div>
-          <div>
+          <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontFamily: 'Poppins', fontSize: '16px', fontWeight: '800', color: '#fff' }}>Human Benchmark</h2>
             <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '1px' }}>Measure your cognitive abilities</div>
           </div>
+          <button onClick={() => setActive('mybrain')} style={{
+            background: 'linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.08))',
+            border: '1px solid rgba(167,139,250,0.4)', borderRadius: '9px',
+            color: '#a78bfa', fontSize: '11px', fontWeight: '700', padding: '6px 10px', cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}>{t.humanBenchmark.myBrainTitle}</button>
         </div>
       </div>
 

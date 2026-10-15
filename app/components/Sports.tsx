@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import WC2026 from './WC2026';
+import { useLang } from '../../lib/LanguageContext';
+import {
+  TEAMS_BY_LEAGUE, LEAGUE_META as TEAM_LEAGUE_META, type League as TeamLeague,
+  type MyTeam, loadMyTeam, saveMyTeam, type MatchInfo, fetchMyTeamMatches,
+} from '../../lib/teams';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
@@ -581,9 +586,90 @@ const SectionLabel = memo(function SectionLabel({ label, count }: { label: strin
   );
 });
 
+/* ═══════════════════════ MY TEAM ═══════════════════════ */
+
+function MyTeamCard({ team, onPick, onClear }: {
+  team: MyTeam | null; onPick: (league: TeamLeague, abbr: string) => void; onClear: () => void;
+}) {
+  const { t } = useLang();
+  const [editing, setEditing] = useState(false);
+  const [draftLeague, setDraftLeague] = useState<TeamLeague>(team?.league ?? 'nhl');
+  const [matches, setMatches] = useState<{ last: MatchInfo | null; next: MatchInfo | null } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!team) { setMatches(null); return; }
+    setLoading(true);
+    fetchMyTeamMatches(team.league, team.abbr)
+      .then(setMatches)
+      .catch(() => setMatches(null))
+      .finally(() => setLoading(false));
+  }, [team]);
+
+  return (
+    <div style={{
+      marginBottom: '1rem', background: 'linear-gradient(135deg, rgba(234,88,12,0.14), rgba(93,76,255,0.1))',
+      border: '1px solid rgba(234,88,12,0.3)', borderRadius: '14px', padding: '12px 14px',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+        <span style={{ fontSize: '10.5px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--amber)' }}>
+          🏆 {t.myDay.teamTitle}
+        </span>
+        <button onClick={() => setEditing(e => !e)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)' }}>⚙️</button>
+      </div>
+
+      {editing ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <select value={draftLeague} onChange={e => setDraftLeague(e.target.value as TeamLeague)} style={{
+            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px',
+            color: '#fff', fontSize: '12px', padding: '5px 7px', outline: 'none',
+          }}>
+            {(Object.keys(TEAM_LEAGUE_META) as TeamLeague[]).map(l => (
+              <option key={l} value={l}>{TEAM_LEAGUE_META[l].emoji} {TEAM_LEAGUE_META[l].label}</option>
+            ))}
+          </select>
+          <select defaultValue="" onChange={e => { if (e.target.value) { onPick(draftLeague, e.target.value); setEditing(false); } }} style={{
+            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px',
+            color: '#fff', fontSize: '12px', padding: '5px 7px', outline: 'none',
+          }}>
+            <option value="">{t.myDay.teamSelectTeam}</option>
+            {TEAMS_BY_LEAGUE[draftLeague].map(tm => <option key={tm.abbr} value={tm.abbr}>{tm.name}</option>)}
+          </select>
+          {team && (
+            <button onClick={() => { onClear(); setEditing(false); }} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--text3)' }}>
+              ✕ {team.abbr}
+            </button>
+          )}
+        </div>
+      ) : !team ? (
+        <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{t.myDay.teamEmpty}</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+          <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '800', color: '#fff' }}>
+            {TEAM_LEAGUE_META[team.league].emoji} {team.abbr}
+          </div>
+          {loading ? (
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>…</div>
+          ) : (
+            <div style={{ display: 'flex', gap: '14px', fontSize: '12px', flexWrap: 'wrap' }}>
+              {matches?.last && (
+                <span style={{ color: 'var(--text2)' }}>{t.myDay.teamLast}: {matches.last.homeAway} {matches.last.oppName} {matches.last.score ?? ''}</span>
+              )}
+              {matches?.next && (
+                <span style={{ color: 'var(--text2)' }}>{t.myDay.teamNext}: {matches.next.homeAway} {matches.next.oppName} · {matches.next.dateStr}</span>
+              )}
+              {!matches?.last && !matches?.next && <span style={{ color: 'var(--text3)' }}>{t.myDay.teamNone}</span>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
-const LEAGUE_IDS: LeagueId[] = ['nhl', 'nba', 'nfl', 'wc2026'];
+const CORE_LEAGUE_IDS: LeagueId[] = ['nhl', 'nba', 'nfl'];
 const LEAGUE_META: Record<LeagueId, { emoji: string; label: string }> = {
   nhl:    { emoji: '🏒', label: 'NHL' },
   nba:    { emoji: '🏀', label: 'NBA' },
@@ -596,6 +682,16 @@ export default function Sports() {
   const [view, setView] = useState<'games' | 'standings'>('games');
   const [nhlView, setNhlView] = useState<NhlView>('league');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [myTeam, setMyTeam] = useState<MyTeam | null>(null);
+  const [myTeamMounted, setMyTeamMounted] = useState(false);
+
+  useEffect(() => { setMyTeam(loadMyTeam()); setMyTeamMounted(true); }, []);
+  const pickMyTeam = useCallback((league: TeamLeague, abbr: string) => {
+    const next = { league, abbr };
+    saveMyTeam(next);
+    setMyTeam(next);
+  }, []);
+  const clearMyTeam = useCallback(() => { saveMyTeam(null); setMyTeam(null); }, []);
 
   const [leagueCache, setLeagueCache] = useState<Record<string, LeagueCache>>({
     nhl: { games: [], state: 'idle' },
@@ -696,9 +792,30 @@ export default function Sports() {
         >↺</button>
       </div>
 
+      {/* My Team */}
+      {myTeamMounted && <MyTeamCard team={myTeam} onPick={pickMyTeam} onClear={clearMyTeam} />}
+
+      {/* WC 2026 — featured tab */}
+      <button
+        onClick={() => switchLeague('wc2026')}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+          width: '100%', marginBottom: '8px', padding: '10px', borderRadius: '12px', cursor: 'pointer',
+          border: leagueId === 'wc2026' ? 'none' : '1px solid rgba(255,215,0,0.35)',
+          background: leagueId === 'wc2026'
+            ? 'linear-gradient(135deg, #1a7a3c, #0c4a94)'
+            : 'linear-gradient(135deg, rgba(26,122,60,0.18), rgba(12,74,148,0.18))',
+          boxShadow: leagueId === 'wc2026' ? '0 0 18px rgba(255,215,0,0.25)' : 'none',
+          color: '#fff', fontWeight: '800', fontSize: '13px',
+        }}
+      >
+        <span style={{ fontSize: '16px' }}>⚽🏆</span>
+        <span>{LEAGUE_META.wc2026.label}</span>
+      </button>
+
       {/* League tabs */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        {LEAGUE_IDS.map(id => (
+        {CORE_LEAGUE_IDS.map(id => (
           <button key={id} onClick={() => switchLeague(id)} style={{ ...tabBtn(id === leagueId), fontSize: '11px', flex: 'none', padding: '6px 10px' }}>
             <span>{LEAGUE_META[id].emoji}</span>
             <span>{LEAGUE_META[id].label}</span>

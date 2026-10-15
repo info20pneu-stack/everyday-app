@@ -6,14 +6,14 @@ import { ALL_CITIES, WORLDTIME_FAVORITES_KEY, type City } from './WorldTime';
 import { AGE_CALCULATOR_DOB_KEY, loadStoredDob } from './AgeCalculator';
 import { DAILY_BOOST_DONE_PREFIX, DAILY_BOOST_ACTIVITY_COUNT, todayKey } from './DailyBoost';
 import { getDisplayState, STREAK_UPDATED_EVENT } from '../../lib/streak';
-import { TEAMS_BY_LEAGUE, LEAGUE_META, type League, type TeamOption } from '../../lib/teams';
+import {
+  TEAMS_BY_LEAGUE, LEAGUE_META, type League, type TeamOption,
+  type MyTeam, loadMyTeam, saveMyTeam, type MatchInfo, fetchMyTeamMatches,
+} from '../../lib/teams';
 
 /* ═══════════════════════ localStorage keys ═══════════════════════ */
 
-const TEAM_KEY  = 'myday_team_v1';
 const COIN_KEY  = 'myday_coin_v1';
-
-type MyTeam = { league: League; abbr: string };
 
 const COIN_OPTIONS: { id: string; symbol: string; name: string }[] = [
   { id: 'bitcoin',     symbol: 'BTC',  name: 'Bitcoin' },
@@ -69,44 +69,6 @@ function daysUntilNextBirthday(day: number, month: number): { days: number; isTo
   if (next < todayMid) next = new Date(now.getFullYear() + 1, month - 1, day);
   const days = Math.round((next.getTime() - todayMid.getTime()) / 86400000);
   return { days, isToday: days === 0 };
-}
-
-type MatchInfo = { dateStr: string; homeAway: 'vs' | '@'; oppName: string; score: string | null };
-
-function formatMatch(event: any, myAbbr: string): MatchInfo | null {
-  const comp = event?.competitions?.[0];
-  const competitors = comp?.competitors ?? [];
-  const me  = competitors.find((c: any) => c.team?.abbreviation === myAbbr);
-  const opp = competitors.find((c: any) => c.team?.abbreviation !== myAbbr);
-  if (!me || !opp) return null;
-  const dateStr = new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const homeAway = me.homeAway === 'home' ? 'vs' : '@';
-  const oppName = opp.team?.shortDisplayName ?? opp.team?.abbreviation ?? '?';
-  const score = me.score != null && opp.score != null ? `${me.score}-${opp.score}` : null;
-  return { dateStr, homeAway, oppName, score };
-}
-
-async function fetchTeamMatches(league: League, abbr: string): Promise<{ last: MatchInfo | null; next: MatchInfo | null }> {
-  const res = await fetch(`/api/sports/${league}?team=${abbr}`);
-  if (!res.ok) throw new Error('sports fetch failed');
-  const data = await res.json();
-  const events: any[] = data.events ?? [];
-  const now = Date.now();
-  let lastEvent: any = null;
-  let nextEvent: any = null;
-  for (const e of events) {
-    const statusName = e.competitions?.[0]?.status?.type?.name ?? '';
-    const time = new Date(e.date).getTime();
-    if (statusName === 'STATUS_FINAL') {
-      if (!lastEvent || time > new Date(lastEvent.date).getTime()) lastEvent = e;
-    } else if (time >= now) {
-      if (!nextEvent || time < new Date(nextEvent.date).getTime()) nextEvent = e;
-    }
-  }
-  return {
-    last: lastEvent ? formatMatch(lastEvent, abbr) : null,
-    next: nextEvent ? formatMatch(nextEvent, abbr) : null,
-  };
 }
 
 /* ═══════════════════════ styles ═══════════════════════ */
@@ -172,7 +134,7 @@ export default function MyDay() {
   useEffect(() => {
     setMounted(true);
     setFavCities(loadFavCities());
-    setTeam(lsGet<MyTeam | null>(TEAM_KEY, null));
+    setTeam(loadMyTeam());
     setCoinId(lsGet<string | null>(COIN_KEY, null));
     setDob(loadStoredDob());
     setBoostDone(lsGet<boolean[]>(`${DAILY_BOOST_DONE_PREFIX}${todayKey()}`, Array(DAILY_BOOST_ACTIVITY_COUNT).fill(false)).filter(Boolean).length);
@@ -221,7 +183,7 @@ export default function MyDay() {
   useEffect(() => {
     if (!team) { setTeamMatches(null); return; }
     setTeamLoading(true);
-    fetchTeamMatches(team.league, team.abbr)
+    fetchMyTeamMatches(team.league, team.abbr)
       .then(setTeamMatches)
       .catch(() => setTeamMatches(null))
       .finally(() => setTeamLoading(false));
@@ -259,12 +221,12 @@ export default function MyDay() {
 
   function pickTeam(abbr: string) {
     const next = { league: draftLeague, abbr };
-    lsSet(TEAM_KEY, next);
+    saveMyTeam(next);
     setTeam(next);
     setEditing(null);
   }
   function clearTeam() {
-    lsSet(TEAM_KEY, null);
+    saveMyTeam(null);
     setTeam(null);
   }
 
