@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLang } from '../../lib/LanguageContext';
+import type { Translations } from '../../lib/i18n';
 
 /* ── WMO weather code → label + emoji ── */
 const WMO: Record<number, [string, string]> = {
@@ -54,11 +56,41 @@ type DayForecast = {
   precip: number;
 };
 
+type HourForecast = {
+  time: string;
+  temp: number;
+  code: number;
+  precip: number;
+};
+
 type WeatherData = {
   city: string;
   current: Current;
   forecast: DayForecast[];
+  hourly: HourForecast[];
 };
+
+const RAIN_CODES = new Set([51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99]);
+const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86]);
+
+function getOutfitRecs(t: Translations, tempC: number, code: number): string[] {
+  const recs: string[] = [];
+  if (tempC < 0) recs.push(t.weather.outfit_freezing);
+  else if (tempC < 10) recs.push(t.weather.outfit_cold);
+  else if (tempC < 16) recs.push(t.weather.outfit_cool);
+  else if (tempC < 22) recs.push(t.weather.outfit_mild);
+  else if (tempC < 28) recs.push(t.weather.outfit_warm);
+  else recs.push(t.weather.outfit_hot);
+
+  if (RAIN_CODES.has(code)) recs.push(t.weather.outfit_umbrella);
+  if (SNOW_CODES.has(code)) recs.push(t.weather.outfit_snowBoots);
+  return recs;
+}
+
+function fmtHour(iso: string): string {
+  try { return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', hour12: false }); }
+  catch { return '--'; }
+}
 
 type Status = 'idle' | 'locating' | 'loading' | 'ok' | 'error';
 type DataSource = 'open-meteo' | 'weatherapi';
@@ -128,6 +160,7 @@ async function fetchWeatherFallback(lat: number, lon: number): Promise<WeatherDa
       code: weatherApiCodeToWmo(c.condition.code),
     },
     forecast,
+    hourly: [],
   };
 }
 
@@ -137,8 +170,9 @@ async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
     longitude: lon.toFixed(4),
     current: 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure,uv_index',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
+    hourly: 'temperature_2m,weather_code,precipitation_probability',
     timezone: 'auto',
-    forecast_days: '5',
+    forecast_days: '2',
     wind_speed_unit: 'kmh',
   });
 
@@ -159,6 +193,17 @@ async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
     precip: d.daily.precipitation_probability_max[i] ?? 0,
   }));
 
+  const hourlyTimes: string[] = d.hourly?.time ?? [];
+  const nowMs = Date.now();
+  let startIdx = hourlyTimes.findIndex(hTime => new Date(hTime).getTime() >= nowMs);
+  if (startIdx === -1) startIdx = 0;
+  const hourly: HourForecast[] = hourlyTimes.slice(startIdx, startIdx + 24).map((time, i) => ({
+    time,
+    temp: Math.round(d.hourly.temperature_2m[startIdx + i]),
+    code: d.hourly.weather_code[startIdx + i],
+    precip: d.hourly.precipitation_probability[startIdx + i] ?? 0,
+  }));
+
   return {
     city,
     current: {
@@ -171,6 +216,7 @@ async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
       code: c.weather_code,
     },
     forecast,
+    hourly,
   };
 }
 
@@ -189,6 +235,7 @@ const statBox: React.CSSProperties = {
 };
 
 export default function Weather() {
+  const { t } = useLang();
   const [status, setStatus] = useState<Status>('idle');
   const [data, setData] = useState<WeatherData | null>(null);
   const [error, setError] = useState('');
@@ -296,9 +343,10 @@ export default function Weather() {
   }
 
   /* ── Main view ── */
-  const { city, current, forecast } = data!;
+  const { city, current, forecast, hourly } = data!;
   const [desc, emoji] = wmo(current.code);
   const uv = uvLabel(current.uv);
+  const outfitRecs = getOutfitRecs(t, current.temp, current.code);
 
   return (
     <div style={card}>
@@ -342,6 +390,44 @@ export default function Weather() {
           </div>
         </div>
       </div>
+
+      {/* What to wear */}
+      <div style={{ ...statBox, marginBottom: '.75rem' }}>
+        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+          {t.weather.outfitTitle}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {outfitRecs.map(rec => (
+            <div key={rec} style={{ fontSize: '13px', color: '#fff' }}>{rec}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* Hourly forecast */}
+      {hourly.length > 0 && (
+        <div style={{ marginBottom: '.75rem' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
+            {t.weather.hourlyForecast}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {hourly.map(h => {
+              const [, hEmoji] = wmo(h.code);
+              return (
+                <div key={h.time} style={{
+                  flexShrink: 0, minWidth: '46px', textAlign: 'center',
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: '10px', padding: '6px 4px',
+                }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{fmtHour(h.time)}</div>
+                  <div style={{ fontSize: '16px', margin: '3px 0' }}>{hEmoji}</div>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>{h.temp}°</div>
+                  {h.precip > 0 && <div style={{ fontSize: '9px', color: 'var(--blue2)' }}>{h.precip}%</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>

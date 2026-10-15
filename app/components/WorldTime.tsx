@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
+import { useLang } from '../../lib/LanguageContext';
 
 export type City = {
   name: string;
@@ -151,6 +152,13 @@ function getOffsetLabel(tz: string): string {
   return `UTC${sign}${absH}${absM ? ':' + String(absM).padStart(2, '0') : ''}`;
 }
 
+function minutesToHHMM(totalMin: number): string {
+  const m = ((totalMin % 1440) + 1440) % 1440;
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
 function formatRelDiff(diffMin: number): { label: string; color: string } {
   if (diffMin === 0) return { label: 'you', color: 'var(--text3)' };
   const sign = diffMin > 0 ? '+' : '-';
@@ -180,6 +188,7 @@ const LS_KEY  = WORLDTIME_FAVORITES_KEY;
 
 export default function WorldTime() {
   const { listLimit, isMobile } = useDeviceDetect();
+  const { t } = useLang();
 
   const [times,        setTimes]        = useState<Record<string, string>>({});
   const [search,       setSearch]       = useState('');
@@ -190,6 +199,10 @@ export default function WorldTime() {
   const [suggestions,  setSuggestions]  = useState<City[]>([]);
   const [showSugg,     setShowSugg]     = useState(false);
   const [userOffMin,   setUserOffMin]   = useState(0);
+  const [plannerMin,   setPlannerMin]   = useState(() => {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes();
+  });
 
   const searchWrap = useRef<HTMLDivElement>(null);
 
@@ -372,6 +385,47 @@ export default function WorldTime() {
             borderRadius: '12px', padding: '0 10px',
           }}>
             {favCities.map(c => renderRow(c, 'fav-'))}
+          </div>
+
+          {/* Meeting planner */}
+          <div style={{
+            marginTop: '10px', background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '10px 14px',
+          }}>
+            <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
+              {t.worldTime.meetingPlanner}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.worldTime.myTime}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: '700', color: '#fff', marginLeft: 'auto' }}>
+                {minutesToHHMM(plannerMin)}
+              </span>
+            </div>
+            <input
+              type="range" min={0} max={1439} step={15} value={plannerMin}
+              onChange={e => setPlannerMin(Number(e.target.value))}
+              style={{ width: '100%', marginBottom: '10px', accentColor: 'var(--purple3)' }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {favCities.map(c => {
+                const cityOffMin = getUTCOffsetMin(c.tz);
+                const diff = cityOffMin - userOffMin;
+                const total = plannerMin + diff;
+                const dayOffset = Math.floor(total / 1440);
+                return (
+                  <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                    <span>{c.flag}</span>
+                    <span style={{ color: 'var(--text2)', flex: 1 }}>{c.name}</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: '700', color: 'var(--purple3)' }}>
+                      {minutesToHHMM(total)}
+                    </span>
+                    {dayOffset !== 0 && (
+                      <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{dayOffset > 0 ? '+1d' : '-1d'}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

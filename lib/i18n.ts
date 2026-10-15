@@ -53,11 +53,14 @@ export type Translations = {
     allContinents: string; cities: string; showingOf: string;
     showAll: string; showLess: string; addFavorite: string;
     removeFavorite: string; maxFavorites: string; youLabel: string;
+    meetingPlanner: string; myTime: string;
   };
   currency: {
     title: string; youSend: string; youReceive: string;
     liveLabel: string; staticLabel: string; liveError: string;
     liveBadge: string; staticBadge: string; refresh: string;
+    chart30d: string; chartUnavailable: string; favorites: string;
+    addFavorite: string; removeFavorite: string; noFavorites: string;
   };
   weather: {
     title: string; locating: string; loading: string; feelsLike: string;
@@ -75,6 +78,10 @@ export type Translations = {
     wmoUnknown: string;
     daySun: string; dayMon: string; dayTue: string; dayWed: string;
     dayThu: string; dayFri: string; daySat: string;
+    hourlyForecast: string; outfitTitle: string;
+    outfit_freezing: string; outfit_cold: string; outfit_cool: string;
+    outfit_mild: string; outfit_warm: string; outfit_hot: string;
+    outfit_umbrella: string; outfit_snowBoots: string;
   };
   sports: {
     title: string; refresh: string; games: string; standings: string;
@@ -316,12 +323,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Show all cities ({n}) ↓', showLess: 'Show less ↑',
       addFavorite: 'Add to My Cities', removeFavorite: 'Remove from My Cities',
       maxFavorites: 'Max {n} favorites', youLabel: 'you',
+      meetingPlanner: '🕑 Meeting Planner', myTime: 'My time',
     },
     currency: {
       title: 'Currency Converter', youSend: 'You send', youReceive: 'You receive',
       liveLabel: '● Live (frankfurter.app)', staticLabel: '● Static data (backup)',
       liveError: '⚠️ Live rates unavailable · showing backup data',
       liveBadge: 'live', staticBadge: 'static', refresh: 'Refresh rates',
+      chart30d: '30-Day Chart', chartUnavailable: 'Chart unavailable', favorites: 'Favorite pairs',
+      addFavorite: 'Add to favorites', removeFavorite: 'Remove from favorites', noFavorites: 'No favorite pairs yet',
     },
     weather: {
       title: 'Weather', locating: '📍 Locating...', loading: '🌐 Loading...', feelsLike: 'Feels like',
@@ -339,6 +349,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Heavy snow showers', wmo95: 'Thunderstorm', wmo96: 'Thunderstorm with hail',
       wmo99: 'Heavy thunderstorm with hail', wmoUnknown: 'Unknown',
       daySun: 'Sun', dayMon: 'Mon', dayTue: 'Tue', dayWed: 'Wed', dayThu: 'Thu', dayFri: 'Fri', daySat: 'Sat',
+      hourlyForecast: '24-Hour Forecast', outfitTitle: 'What to Wear',
+      outfit_freezing: '🧥 Heavy coat, hat & gloves', outfit_cold: '🧥 Warm coat & scarf', outfit_cool: '🧥 Light jacket',
+      outfit_mild: '👔 Light layers', outfit_warm: '👕 T-shirt & light clothing', outfit_hot: '🩳 Shorts & sunscreen',
+      outfit_umbrella: "☔ Don't forget an umbrella", outfit_snowBoots: '❄️ Wear waterproof boots',
     },
     sports: {
       title: 'Sports', refresh: 'Refresh', games: '📅 Games', standings: '📊 Standings',
@@ -642,12 +656,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Alle Städte anzeigen ({n}) ↓', showLess: 'Weniger anzeigen ↑',
       addFavorite: 'Zu Meine Städte hinzufügen', removeFavorite: 'Aus Meine Städte entfernen',
       maxFavorites: 'Max. {n} Favoriten', youLabel: 'du',
+      meetingPlanner: '🕑 Besprechungsplaner', myTime: 'Meine Zeit',
     },
     currency: {
       title: 'Währungsrechner', youSend: 'Sie senden', youReceive: 'Sie erhalten',
       liveLabel: '● Live (frankfurter.app)', staticLabel: '● Statische Daten (Backup)',
       liveError: '⚠️ Live-Kurse nicht verfügbar · Backup-Daten angezeigt',
       liveBadge: 'live', staticBadge: 'statisch', refresh: 'Kurse aktualisieren',
+      chart30d: '30-Tage-Chart', chartUnavailable: 'Chart nicht verfügbar', favorites: 'Favoritenpaare',
+      addFavorite: 'Zu Favoriten hinzufügen', removeFavorite: 'Aus Favoriten entfernen', noFavorites: 'Noch keine Favoritenpaare',
     },
     weather: {
       title: 'Wetter', locating: '📍 Standort ermitteln...', loading: '🌐 Laden...', feelsLike: 'Gefühlt',
@@ -665,6 +682,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Starke Schneeschauer', wmo95: 'Gewitter', wmo96: 'Gewitter mit Hagel',
       wmo99: 'Heftiges Gewitter mit Hagel', wmoUnknown: 'Unbekannt',
       daySun: 'So', dayMon: 'Mo', dayTue: 'Di', dayWed: 'Mi', dayThu: 'Do', dayFri: 'Fr', daySat: 'Sa',
+      hourlyForecast: '24-Stunden-Vorhersage', outfitTitle: 'Was anziehen',
+      outfit_freezing: '🧥 Dicker Mantel, Mütze & Handschuhe', outfit_cold: '🧥 Warmer Mantel & Schal', outfit_cool: '🧥 Leichte Jacke',
+      outfit_mild: '👔 Leichte Schichten', outfit_warm: '👕 T-Shirt & leichte Kleidung', outfit_hot: '🩳 Shorts & Sonnencreme',
+      outfit_umbrella: '☔ Schirm nicht vergessen', outfit_snowBoots: '❄️ Wasserdichte Stiefel tragen',
     },
     sports: {
       title: 'Sport', refresh: 'Aktualisieren', games: '📅 Spiele', standings: '📊 Tabelle',
@@ -968,12 +989,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Mostra tutte le città ({n}) ↓', showLess: 'Mostra meno ↑',
       addFavorite: 'Aggiungi alle mie città', removeFavorite: 'Rimuovi dalle mie città',
       maxFavorites: 'Max {n} preferiti', youLabel: 'tu',
+      meetingPlanner: '🕑 Pianificatore Riunioni', myTime: 'La mia ora',
     },
     currency: {
       title: 'Convertitore valuta', youSend: 'Stai inviando', youReceive: 'Riceverai',
       liveLabel: '● Live (frankfurter.app)', staticLabel: '● Dati statici (backup)',
       liveError: '⚠️ Tassi live non disponibili · mostrando dati di backup',
       liveBadge: 'live', staticBadge: 'statico', refresh: 'Aggiorna tassi',
+      chart30d: 'Grafico 30 Giorni', chartUnavailable: 'Grafico non disponibile', favorites: 'Coppie preferite',
+      addFavorite: 'Aggiungi ai preferiti', removeFavorite: 'Rimuovi dai preferiti', noFavorites: 'Nessuna coppia preferita',
     },
     weather: {
       title: 'Meteo', locating: '📍 Localizzazione...', loading: '🌐 Caricamento...', feelsLike: 'Percepita',
@@ -991,6 +1015,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Rovesci di neve intensi', wmo95: 'Temporale', wmo96: 'Temporale con grandine',
       wmo99: 'Forte temporale con grandine', wmoUnknown: 'Sconosciuto',
       daySun: 'Dom', dayMon: 'Lun', dayTue: 'Mar', dayWed: 'Mer', dayThu: 'Gio', dayFri: 'Ven', daySat: 'Sab',
+      hourlyForecast: 'Previsioni 24 Ore', outfitTitle: 'Cosa Indossare',
+      outfit_freezing: '🧥 Cappotto pesante, cappello e guanti', outfit_cold: '🧥 Cappotto caldo e sciarpa', outfit_cool: '🧥 Giacca leggera',
+      outfit_mild: '👔 Strati leggeri', outfit_warm: '👕 Maglietta e abiti leggeri', outfit_hot: '🩳 Pantaloncini e protezione solare',
+      outfit_umbrella: "☔ Non dimenticare l'ombrello", outfit_snowBoots: '❄️ Indossa stivali impermeabili',
     },
     sports: {
       title: 'Sport', refresh: 'Aggiorna', games: '📅 Partite', standings: '📊 Classifica',
@@ -1294,12 +1322,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Voir toutes les villes ({n}) ↓', showLess: 'Voir moins ↑',
       addFavorite: 'Ajouter à mes villes', removeFavorite: 'Retirer de mes villes',
       maxFavorites: 'Max {n} favoris', youLabel: 'vous',
+      meetingPlanner: '🕑 Planificateur de Réunions', myTime: 'Mon heure',
     },
     currency: {
       title: 'Convertisseur de devises', youSend: 'Vous envoyez', youReceive: 'Vous recevez',
       liveLabel: '● En direct (frankfurter.app)', staticLabel: '● Données statiques (sauvegarde)',
       liveError: '⚠️ Taux en direct indisponibles · affichage des données de sauvegarde',
       liveBadge: 'direct', staticBadge: 'statique', refresh: 'Actualiser les taux',
+      chart30d: 'Graphique 30 Jours', chartUnavailable: 'Graphique indisponible', favorites: 'Paires favorites',
+      addFavorite: 'Ajouter aux favoris', removeFavorite: 'Retirer des favoris', noFavorites: 'Aucune paire favorite',
     },
     weather: {
       title: 'Météo', locating: '📍 Localisation...', loading: '🌐 Chargement...', feelsLike: 'Ressenti',
@@ -1317,6 +1348,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Fortes averses de neige', wmo95: 'Orage', wmo96: 'Orage avec grêle',
       wmo99: 'Fort orage avec grêle', wmoUnknown: 'Inconnu',
       daySun: 'Dim', dayMon: 'Lun', dayTue: 'Mar', dayWed: 'Mer', dayThu: 'Jeu', dayFri: 'Ven', daySat: 'Sam',
+      hourlyForecast: 'Prévisions sur 24 h', outfitTitle: 'Que Porter',
+      outfit_freezing: '🧥 Manteau chaud, bonnet et gants', outfit_cold: '🧥 Manteau chaud et écharpe', outfit_cool: '🧥 Veste légère',
+      outfit_mild: '👔 Couches légères', outfit_warm: '👕 T-shirt et vêtements légers', outfit_hot: '🩳 Short et crème solaire',
+      outfit_umbrella: "☔ N'oublie pas ton parapluie", outfit_snowBoots: '❄️ Porte des bottes imperméables',
     },
     sports: {
       title: 'Sports', refresh: 'Actualiser', games: '📅 Matchs', standings: '📊 Classement',
@@ -1620,12 +1655,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Zobrazit všechna města ({n}) ↓', showLess: 'Zobrazit méně ↑',
       addFavorite: 'Přidat do Moje města', removeFavorite: 'Odebrat z Moje města',
       maxFavorites: 'Max {n} oblíbených', youLabel: 'ty',
+      meetingPlanner: '🕑 Plánovač schůzek', myTime: 'Můj čas',
     },
     currency: {
       title: 'Převodník měn', youSend: 'Odesíláte', youReceive: 'Obdržíte',
       liveLabel: '● Živá data (frankfurter.app)', staticLabel: '● Statická data (záloha)',
       liveError: '⚠️ Live kurzy nedostupné · zobrazuji záložní data',
       liveBadge: 'live', staticBadge: 'statická', refresh: 'Obnovit kurzy',
+      chart30d: 'Graf za 30 dní', chartUnavailable: 'Graf není dostupný', favorites: 'Oblíbené páry',
+      addFavorite: 'Přidat do oblíbených', removeFavorite: 'Odebrat z oblíbených', noFavorites: 'Zatím žádné oblíbené páry',
     },
     weather: {
       title: 'Počasí', locating: '📍 Zjišťuji polohu…', loading: '🌐 Načítám…', feelsLike: 'Pocitově',
@@ -1643,6 +1681,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Silné sněhové přeháňky', wmo95: 'Bouřka', wmo96: 'Bouřka s krupobitím',
       wmo99: 'Silná bouřka s krupobitím', wmoUnknown: 'Neznámo',
       daySun: 'Ne', dayMon: 'Po', dayTue: 'Út', dayWed: 'St', dayThu: 'Čt', dayFri: 'Pá', daySat: 'So',
+      hourlyForecast: 'Předpověď na 24 h', outfitTitle: 'Co si obléct',
+      outfit_freezing: '🧥 Zimní kabát, čepice a rukavice', outfit_cold: '🧥 Teplý kabát a šátek', outfit_cool: '🧥 Lehká bunda',
+      outfit_mild: '👔 Lehké vrstvy', outfit_warm: '👕 Tričko a lehké oblečení', outfit_hot: '🩳 Kraťasy a opalovací krém',
+      outfit_umbrella: '☔ Nezapomeň na deštník', outfit_snowBoots: '❄️ Vezmi si nepromokavé boty',
     },
     sports: {
       title: 'Sporty', refresh: 'Obnovit', games: '📅 Zápasy', standings: '📊 Tabulka',
@@ -1946,12 +1988,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Ver todas las ciudades ({n}) ↓', showLess: 'Ver menos ↑',
       addFavorite: 'Añadir a mis ciudades', removeFavorite: 'Eliminar de mis ciudades',
       maxFavorites: 'Máx. {n} favoritos', youLabel: 'tú',
+      meetingPlanner: '🕑 Planificador de Reuniones', myTime: 'Mi hora',
     },
     currency: {
       title: 'Conversor de divisas', youSend: 'Envías', youReceive: 'Recibes',
       liveLabel: '● En vivo (frankfurter.app)', staticLabel: '● Datos estáticos (copia)',
       liveError: '⚠️ Tasas en vivo no disponibles · mostrando datos de respaldo',
       liveBadge: 'vivo', staticBadge: 'estático', refresh: 'Actualizar tasas',
+      chart30d: 'Gráfico de 30 Días', chartUnavailable: 'Gráfico no disponible', favorites: 'Pares favoritos',
+      addFavorite: 'Añadir a favoritos', removeFavorite: 'Quitar de favoritos', noFavorites: 'Aún no hay pares favoritos',
     },
     weather: {
       title: 'Tiempo', locating: '📍 Localizando...', loading: '🌐 Cargando...', feelsLike: 'Sensación',
@@ -1969,6 +2014,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Chubascos de nieve fuertes', wmo95: 'Tormenta', wmo96: 'Tormenta con granizo',
       wmo99: 'Tormenta fuerte con granizo', wmoUnknown: 'Desconocido',
       daySun: 'Dom', dayMon: 'Lun', dayTue: 'Mar', dayWed: 'Mié', dayThu: 'Jue', dayFri: 'Vie', daySat: 'Sáb',
+      hourlyForecast: 'Pronóstico de 24 h', outfitTitle: 'Qué Ponerse',
+      outfit_freezing: '🧥 Abrigo grueso, gorro y guantes', outfit_cold: '🧥 Abrigo cálido y bufanda', outfit_cool: '🧥 Chaqueta ligera',
+      outfit_mild: '👔 Capas ligeras', outfit_warm: '👕 Camiseta y ropa ligera', outfit_hot: '🩳 Pantalón corto y protector solar',
+      outfit_umbrella: '☔ No olvides el paraguas', outfit_snowBoots: '❄️ Usa botas impermeables',
     },
     sports: {
       title: 'Deportes', refresh: 'Actualizar', games: '📅 Partidos', standings: '📊 Clasificación',
@@ -2272,12 +2321,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Pokaż wszystkie miasta ({n}) ↓', showLess: 'Pokaż mniej ↑',
       addFavorite: 'Dodaj do moich miast', removeFavorite: 'Usuń z moich miast',
       maxFavorites: 'Maks. {n} ulubionych', youLabel: 'ty',
+      meetingPlanner: '🕑 Planer Spotkań', myTime: 'Mój czas',
     },
     currency: {
       title: 'Przelicznik walut', youSend: 'Wysyłasz', youReceive: 'Otrzymujesz',
       liveLabel: '● Na żywo (frankfurter.app)', staticLabel: '● Dane statyczne (kopia)',
       liveError: '⚠️ Kursy na żywo niedostępne · wyświetlam dane zapasowe',
       liveBadge: 'na żywo', staticBadge: 'statyczne', refresh: 'Odśwież kursy',
+      chart30d: 'Wykres 30-dniowy', chartUnavailable: 'Wykres niedostępny', favorites: 'Ulubione pary',
+      addFavorite: 'Dodaj do ulubionych', removeFavorite: 'Usuń z ulubionych', noFavorites: 'Brak ulubionych par',
     },
     weather: {
       title: 'Pogoda', locating: '📍 Ustalanie lokalizacji...', loading: '🌐 Ładowanie...', feelsLike: 'Odczuwalna',
@@ -2295,6 +2347,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Intensywne przelotne opady śniegu', wmo95: 'Burza', wmo96: 'Burza z gradem',
       wmo99: 'Silna burza z gradem', wmoUnknown: 'Nieznane',
       daySun: 'Nd', dayMon: 'Pn', dayTue: 'Wt', dayWed: 'Śr', dayThu: 'Cz', dayFri: 'Pt', daySat: 'So',
+      hourlyForecast: 'Prognoza 24-godzinna', outfitTitle: 'Co Założyć',
+      outfit_freezing: '🧥 Ciepły płaszcz, czapka i rękawiczki', outfit_cold: '🧥 Ciepły płaszcz i szalik', outfit_cool: '🧥 Lekka kurtka',
+      outfit_mild: '👔 Lekkie warstwy', outfit_warm: '👕 T-shirt i lekkie ubranie', outfit_hot: '🩳 Szorty i krem z filtrem',
+      outfit_umbrella: '☔ Nie zapomnij parasola', outfit_snowBoots: '❄️ Załóż wodoodporne buty',
     },
     sports: {
       title: 'Sport', refresh: 'Odśwież', games: '📅 Mecze', standings: '📊 Tabela',
@@ -2598,12 +2654,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Ver todas as cidades ({n}) ↓', showLess: 'Ver menos ↑',
       addFavorite: 'Adicionar às minhas cidades', removeFavorite: 'Remover das minhas cidades',
       maxFavorites: 'Máx. {n} favoritos', youLabel: 'você',
+      meetingPlanner: '🕑 Planejador de Reuniões', myTime: 'Minha hora',
     },
     currency: {
       title: 'Conversor de moedas', youSend: 'Você envia', youReceive: 'Você recebe',
       liveLabel: '● Ao vivo (frankfurter.app)', staticLabel: '● Dados estáticos (cópia)',
       liveError: '⚠️ Taxas ao vivo indisponíveis · exibindo dados de backup',
       liveBadge: 'ao vivo', staticBadge: 'estático', refresh: 'Atualizar taxas',
+      chart30d: 'Gráfico de 30 Dias', chartUnavailable: 'Gráfico indisponível', favorites: 'Pares favoritos',
+      addFavorite: 'Adicionar aos favoritos', removeFavorite: 'Remover dos favoritos', noFavorites: 'Ainda sem pares favoritos',
     },
     weather: {
       title: 'Tempo', locating: '📍 Localizando...', loading: '🌐 Carregando...', feelsLike: 'Sensação',
@@ -2621,6 +2680,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Pancadas de neve fortes', wmo95: 'Trovoada', wmo96: 'Trovoada com granizo',
       wmo99: 'Forte trovoada com granizo', wmoUnknown: 'Desconhecido',
       daySun: 'Dom', dayMon: 'Seg', dayTue: 'Ter', dayWed: 'Qua', dayThu: 'Qui', dayFri: 'Sex', daySat: 'Sáb',
+      hourlyForecast: 'Previsão de 24 h', outfitTitle: 'O Que Vestir',
+      outfit_freezing: '🧥 Casaco grosso, gorro e luvas', outfit_cold: '🧥 Casaco quente e cachecol', outfit_cool: '🧥 Jaqueta leve',
+      outfit_mild: '👔 Camadas leves', outfit_warm: '👕 Camiseta e roupa leve', outfit_hot: '🩳 Shorts e protetor solar',
+      outfit_umbrella: '☔ Não esqueça o guarda-chuva', outfit_snowBoots: '❄️ Use botas impermeáveis',
     },
     sports: {
       title: 'Esportes', refresh: 'Atualizar', games: '📅 Jogos', standings: '📊 Classificação',
@@ -2924,12 +2987,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'Показать все города ({n}) ↓', showLess: 'Показать меньше ↑',
       addFavorite: 'Добавить в мои города', removeFavorite: 'Убрать из моих городов',
       maxFavorites: 'Макс. {n} избранных', youLabel: 'вы',
+      meetingPlanner: '🕑 Планировщик встреч', myTime: 'Моё время',
     },
     currency: {
       title: 'Конвертер валют', youSend: 'Вы отправляете', youReceive: 'Вы получаете',
       liveLabel: '● В реальном времени (frankfurter.app)', staticLabel: '● Статические данные (резерв)',
       liveError: '⚠️ Курсы недоступны · показываю резервные данные',
       liveBadge: 'онлайн', staticBadge: 'статика', refresh: 'Обновить курсы',
+      chart30d: 'График за 30 дней', chartUnavailable: 'График недоступен', favorites: 'Избранные пары',
+      addFavorite: 'Добавить в избранное', removeFavorite: 'Удалить из избранного', noFavorites: 'Пока нет избранных пар',
     },
     weather: {
       title: 'Погода', locating: '📍 Определяю местоположение…', loading: '🌐 Загрузка…', feelsLike: 'Ощущается',
@@ -2947,6 +3013,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'Сильный снежный ливень', wmo95: 'Гроза', wmo96: 'Гроза с градом',
       wmo99: 'Сильная гроза с градом', wmoUnknown: 'Неизвестно',
       daySun: 'Вс', dayMon: 'Пн', dayTue: 'Вт', dayWed: 'Ср', dayThu: 'Чт', dayFri: 'Пт', daySat: 'Сб',
+      hourlyForecast: 'Прогноз на 24 часа', outfitTitle: 'Что надеть',
+      outfit_freezing: '🧥 Тёплое пальто, шапка и перчатки', outfit_cold: '🧥 Тёплое пальто и шарф', outfit_cool: '🧥 Лёгкая куртка',
+      outfit_mild: '👔 Лёгкие слои одежды', outfit_warm: '👕 Футболка и лёгкая одежда', outfit_hot: '🩳 Шорты и солнцезащитный крем',
+      outfit_umbrella: '☔ Не забудьте зонт', outfit_snowBoots: '❄️ Наденьте непромокаемую обувь',
     },
     sports: {
       title: 'Спорт', refresh: 'Обновить', games: '📅 Матчи', standings: '📊 Таблица',
@@ -3250,12 +3320,15 @@ const t: Record<Lang, Translations> = {
       showAll: '显示所有城市 ({n}) ↓', showLess: '收起 ↑',
       addFavorite: '添加到我的城市', removeFavorite: '从我的城市中移除',
       maxFavorites: '最多 {n} 个收藏', youLabel: '你',
+      meetingPlanner: '🕑 会议规划器', myTime: '我的时间',
     },
     currency: {
       title: '货币转换器', youSend: '你发送', youReceive: '你收到',
       liveLabel: '● 实时 (frankfurter.app)', staticLabel: '● 静态数据（备用）',
       liveError: '⚠️ 实时汇率不可用 · 显示备用数据',
       liveBadge: '实时', staticBadge: '静态', refresh: '刷新汇率',
+      chart30d: '30天走势图', chartUnavailable: '图表不可用', favorites: '收藏货币对',
+      addFavorite: '加入收藏', removeFavorite: '取消收藏', noFavorites: '暂无收藏的货币对',
     },
     weather: {
       title: '天气', locating: '📍 定位中...', loading: '🌐 加载中...', feelsLike: '体感温度',
@@ -3273,6 +3346,10 @@ const t: Record<Lang, Translations> = {
       wmo86: '大阵雪', wmo95: '雷暴', wmo96: '冰雹雷暴',
       wmo99: '大冰雹雷暴', wmoUnknown: '未知',
       daySun: '日', dayMon: '月', dayTue: '火', dayWed: '水', dayThu: '木', dayFri: '金', daySat: '土',
+      hourlyForecast: '24小时预报', outfitTitle: '穿衣建议',
+      outfit_freezing: '🧥 厚外套、帽子和手套', outfit_cold: '🧥 保暖外套和围巾', outfit_cool: '🧥 薄外套',
+      outfit_mild: '👔 轻薄多层穿搭', outfit_warm: '👕 T恤和轻便衣物', outfit_hot: '🩳 短裤和防晒霜',
+      outfit_umbrella: '☔ 别忘了带伞', outfit_snowBoots: '❄️ 穿防水靴',
     },
     sports: {
       title: '体育', refresh: '刷新', games: '📅 比赛', standings: '📊 积分榜',
@@ -3576,12 +3653,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'すべての都市を表示 ({n}) ↓', showLess: '表示を減らす ↑',
       addFavorite: 'マイシティに追加', removeFavorite: 'マイシティから削除',
       maxFavorites: '最大{n}件まで登録可能', youLabel: 'あなた',
+      meetingPlanner: '🕑 会議プランナー', myTime: '自分の時間',
     },
     currency: {
       title: '通貨コンバーター', youSend: '送金額', youReceive: '受取額',
       liveLabel: '● ライブ (frankfurter.app)', staticLabel: '● 静的データ（バックアップ）',
       liveError: '⚠️ ライブレートが利用できません · バックアップデータを表示中',
       liveBadge: 'ライブ', staticBadge: '静的', refresh: 'レートを更新',
+      chart30d: '30日間チャート', chartUnavailable: 'チャートを利用できません', favorites: 'お気に入りペア',
+      addFavorite: 'お気に入りに追加', removeFavorite: 'お気に入りから削除', noFavorites: 'お気に入りペアはまだありません',
     },
     weather: {
       title: '天気', locating: '📍 位置情報取得中...', loading: '🌐 読み込み中...', feelsLike: '体感温度',
@@ -3599,6 +3679,10 @@ const t: Record<Lang, Translations> = {
       wmo86: '大みぞれ', wmo95: '雷雨', wmo96: '雹を伴う雷雨',
       wmo99: '激しい雹を伴う雷雨', wmoUnknown: '不明',
       daySun: '日', dayMon: '月', dayTue: '火', dayWed: '水', dayThu: '木', dayFri: '金', daySat: '土',
+      hourlyForecast: '24時間予報', outfitTitle: '服装の目安',
+      outfit_freezing: '🧥 厚手のコート・帽子・手袋', outfit_cold: '🧥 暖かいコートとマフラー', outfit_cool: '🧥 薄手のジャケット',
+      outfit_mild: '👔 軽いレイヤード', outfit_warm: '👕 Tシャツなど薄着', outfit_hot: '🩳 ショートパンツと日焼け止め',
+      outfit_umbrella: '☔ 傘を忘れずに', outfit_snowBoots: '❄️ 防水ブーツを履きましょう',
     },
     sports: {
       title: 'スポーツ', refresh: '更新', games: '📅 試合', standings: '📊 順位表',
@@ -3902,12 +3986,15 @@ const t: Record<Lang, Translations> = {
       showAll: '모든 도시 보기 ({n}) ↓', showLess: '간략히 보기 ↑',
       addFavorite: '내 도시에 추가', removeFavorite: '내 도시에서 제거',
       maxFavorites: '최대 {n}개 즐겨찾기', youLabel: '나',
+      meetingPlanner: '🕑 회의 플래너', myTime: '내 시간',
     },
     currency: {
       title: '환율 변환기', youSend: '보내는 금액', youReceive: '받는 금액',
       liveLabel: '● 실시간 (frankfurter.app)', staticLabel: '● 정적 데이터 (백업)',
       liveError: '⚠️ 실시간 환율을 사용할 수 없음 · 백업 데이터 표시 중',
       liveBadge: '실시간', staticBadge: '정적', refresh: '환율 새로 고침',
+      chart30d: '30일 차트', chartUnavailable: '차트를 사용할 수 없습니다', favorites: '즐겨찾는 환율 쌍',
+      addFavorite: '즐겨찾기에 추가', removeFavorite: '즐겨찾기에서 제거', noFavorites: '아직 즐겨찾는 환율 쌍이 없습니다',
     },
     weather: {
       title: '날씨', locating: '📍 위치 확인 중...', loading: '🌐 로딩 중...', feelsLike: '체감 온도',
@@ -3925,6 +4012,10 @@ const t: Record<Lang, Translations> = {
       wmo86: '강한 눈 소나기', wmo95: '뇌우', wmo96: '우박 동반 뇌우',
       wmo99: '강한 우박 동반 뇌우', wmoUnknown: '알 수 없음',
       daySun: '일', dayMon: '월', dayTue: '화', dayWed: '수', dayThu: '목', dayFri: '금', daySat: '토',
+      hourlyForecast: '24시간 예보', outfitTitle: '옷차림 추천',
+      outfit_freezing: '🧥 두꺼운 코트, 모자, 장갑', outfit_cold: '🧥 따뜻한 코트와 목도리', outfit_cool: '🧥 가벼운 재킷',
+      outfit_mild: '👔 가벼운 레이어드', outfit_warm: '👕 티셔츠와 가벼운 옷', outfit_hot: '🩳 반바지와 자외선 차단제',
+      outfit_umbrella: '☔ 우산을 잊지 마세요', outfit_snowBoots: '❄️ 방수 신발을 신으세요',
     },
     sports: {
       title: '스포츠', refresh: '새로 고침', games: '📅 경기', standings: '📊 순위',
@@ -4228,12 +4319,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'عرض جميع المدن ({n}) ↓', showLess: 'عرض أقل ↑',
       addFavorite: 'إضافة إلى مدنيّ', removeFavorite: 'إزالة من مدنيّ',
       maxFavorites: 'الحد الأقصى {n} مفضلة', youLabel: 'أنت',
+      meetingPlanner: '🕑 مخطط الاجتماعات', myTime: 'وقتي',
     },
     currency: {
       title: 'محوّل العملات', youSend: 'أنت ترسل', youReceive: 'أنت تستلم',
       liveLabel: '● مباشر (frankfurter.app)', staticLabel: '● بيانات ثابتة (احتياطي)',
       liveError: '⚠️ الأسعار المباشرة غير متاحة · عرض البيانات الاحتياطية',
       liveBadge: 'مباشر', staticBadge: 'ثابت', refresh: 'تحديث الأسعار',
+      chart30d: 'رسم بياني 30 يومًا', chartUnavailable: 'الرسم البياني غير متوفر', favorites: 'الأزواج المفضلة',
+      addFavorite: 'إضافة إلى المفضلة', removeFavorite: 'إزالة من المفضلة', noFavorites: 'لا توجد أزواج مفضلة حتى الآن',
     },
     weather: {
       title: 'الطقس', locating: '📍 تحديد الموقع...', loading: '🌐 جارٍ التحميل...', feelsLike: 'الإحساس',
@@ -4251,6 +4345,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'زخات ثلجية قوية', wmo95: 'عاصفة رعدية', wmo96: 'عاصفة رعدية مع بَرَد',
       wmo99: 'عاصفة رعدية شديدة مع بَرَد', wmoUnknown: 'غير معروف',
       daySun: 'أح', dayMon: 'إث', dayTue: 'ثل', dayWed: 'أر', dayThu: 'خم', dayFri: 'جم', daySat: 'سب',
+      hourlyForecast: 'توقعات 24 ساعة', outfitTitle: 'ماذا ترتدي',
+      outfit_freezing: '🧥 معطف ثقيل وقبعة وقفازات', outfit_cold: '🧥 معطف دافئ ووشاح', outfit_cool: '🧥 سترة خفيفة',
+      outfit_mild: '👔 طبقات خفيفة', outfit_warm: '👕 قميص وملابس خفيفة', outfit_hot: '🩳 شورت وواقي شمس',
+      outfit_umbrella: '☔ لا تنس المظلة', outfit_snowBoots: '❄️ ارتدِ حذاءً مقاومًا للماء',
     },
     sports: {
       title: 'الرياضة', refresh: 'تحديث', games: '📅 مباريات', standings: '📊 ترتيب',
@@ -4554,12 +4652,15 @@ const t: Record<Lang, Translations> = {
       showAll: 'सभी शहर दिखाएं ({n}) ↓', showLess: 'कम दिखाएं ↑',
       addFavorite: 'मेरे शहरों में जोड़ें', removeFavorite: 'मेरे शहरों से हटाएं',
       maxFavorites: 'अधिकतम {n} पसंदीदा', youLabel: 'आप',
+      meetingPlanner: '🕑 मीटिंग प्लानर', myTime: 'मेरा समय',
     },
     currency: {
       title: 'मुद्रा परिवर्तक', youSend: 'आप भेज रहे हैं', youReceive: 'आप प्राप्त कर रहे हैं',
       liveLabel: '● लाइव (frankfurter.app)', staticLabel: '● स्थिर डेटा (बैकअप)',
       liveError: '⚠️ लाइव दरें उपलब्ध नहीं · बैकअप डेटा दिखाया जा रहा है',
       liveBadge: 'लाइव', staticBadge: 'स्थिर', refresh: 'दरें ताज़ा करें',
+      chart30d: '30-दिन का चार्ट', chartUnavailable: 'चार्ट उपलब्ध नहीं है', favorites: 'पसंदीदा जोड़े',
+      addFavorite: 'पसंदीदा में जोड़ें', removeFavorite: 'पसंदीदा से हटाएं', noFavorites: 'अभी तक कोई पसंदीदा जोड़ा नहीं है',
     },
     weather: {
       title: 'मौसम', locating: '📍 स्थान खोज रहे हैं...', loading: '🌐 लोड हो रहा है...', feelsLike: 'महसूस होता है',
@@ -4577,6 +4678,10 @@ const t: Record<Lang, Translations> = {
       wmo86: 'भारी बर्फ की बौछार', wmo95: 'तूफान', wmo96: 'ओलों के साथ तूफान',
       wmo99: 'भारी ओलों के साथ तूफान', wmoUnknown: 'अज्ञात',
       daySun: 'रवि', dayMon: 'सोम', dayTue: 'मंगल', dayWed: 'बुध', dayThu: 'गुरु', dayFri: 'शुक्र', daySat: 'शनि',
+      hourlyForecast: '24 घंटे का पूर्वानुमान', outfitTitle: 'क्या पहनें',
+      outfit_freezing: '🧥 भारी कोट, टोपी और दस्ताने', outfit_cold: '🧥 गर्म कोट और मफलर', outfit_cool: '🧥 हल्की जैकेट',
+      outfit_mild: '👔 हल्की लेयर्स', outfit_warm: '👕 टी-शर्ट और हल्के कपड़े', outfit_hot: '🩳 शॉर्ट्स और सनस्क्रीन',
+      outfit_umbrella: '☔ छत्री मत भूलिए', outfit_snowBoots: '❄️ वाटरप्रूफ बूट पहनें',
     },
     sports: {
       title: 'खेल', refresh: 'ताज़ा करें', games: '📅 मैच', standings: '📊 अंक तालिका',
