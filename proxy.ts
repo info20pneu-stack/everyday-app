@@ -11,6 +11,11 @@ function todayKey() {
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  if (process.env.NEXT_PUBLIC_MAINTENANCE === 'true' && pathname !== '/maintenance') {
+    return NextResponse.rewrite(new URL('/maintenance', req.url));
+  }
+
   const country = req.headers.get('x-vercel-ip-country') || 'XX';
   const existingVid = req.cookies.get(VISITOR_COOKIE)?.value;
   const vid = existingVid || crypto.randomUUID();
