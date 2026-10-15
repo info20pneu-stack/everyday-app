@@ -8,6 +8,7 @@ import { useLang } from '../../lib/LanguageContext';
 import { useTheme } from '../../lib/ThemeContext';
 import { useReveal } from '../../lib/useReveal';
 import type { Translations } from '../../lib/i18n';
+import MyDay from './MyDay';
 
 const GlobeHero = dynamic(() => import('./GlobeHero'), { ssr: false });
 
@@ -217,6 +218,8 @@ export default function Dashboard() {
           <GlobeHero />
         </div>
       )}
+      <MyDay />
+
       <div className="dash-grid">{items}</div>
 
       <div className="trending-section">

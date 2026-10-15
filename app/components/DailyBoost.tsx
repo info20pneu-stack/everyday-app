@@ -66,10 +66,13 @@ function dateSeed(d = new Date()) {
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
-function todayKey() {
+export function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+export const DAILY_BOOST_DONE_PREFIX = 'db_done_';
+export const DAILY_BOOST_ACTIVITY_COUNT = 4;
 
 function fmtTime(s: number) {
   const m = Math.floor(s / 60);
@@ -302,7 +305,7 @@ export default function DailyBoost() {
   const [completed, setCompleted] = useState<boolean[]>(() => {
     if (typeof window === 'undefined') return [false, false, false, false];
     try {
-      const raw = localStorage.getItem(`db_done_${today}`);
+      const raw = localStorage.getItem(`${DAILY_BOOST_DONE_PREFIX}${today}`);
       return raw ? JSON.parse(raw) : [false, false, false, false];
     } catch { return [false, false, false, false]; }
   });
@@ -318,7 +321,7 @@ export default function DailyBoost() {
 
   // Save completed to localStorage
   useEffect(() => {
-    try { localStorage.setItem(`db_done_${today}`, JSON.stringify(completed)); } catch {}
+    try { localStorage.setItem(`${DAILY_BOOST_DONE_PREFIX}${today}`, JSON.stringify(completed)); } catch {}
   }, [completed, today]);
 
   // Update streak when all completed

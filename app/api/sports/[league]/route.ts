@@ -12,6 +12,12 @@ const SUMMARY: Record<string, string> = {
   nfl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary',
 };
 
+const TEAM_SCHEDULE: Record<string, string> = {
+  nhl: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams',
+  nba: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams',
+  nfl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams',
+};
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ league: string }> },
@@ -22,7 +28,12 @@ export async function GET(
   }
 
   const eventId = req.nextUrl.searchParams.get('event');
-  const url = eventId ? `${SUMMARY[league]}?event=${eventId}` : SCOREBOARD[league];
+  const team = req.nextUrl.searchParams.get('team');
+  const url = eventId
+    ? `${SUMMARY[league]}?event=${eventId}`
+    : team
+    ? `${TEAM_SCHEDULE[league]}/${team}/schedule`
+    : SCOREBOARD[league];
 
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) return NextResponse.json({ error: `ESPN ${res.status}` }, { status: 502 });

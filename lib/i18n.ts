@@ -246,6 +246,16 @@ export type Translations = {
     badge_streak3: string; badge_streak7: string; badge_streak30: string; badge_streak100: string;
     badge_games10: string; badge_games100: string; badge_top100: string;
   };
+  myDay: {
+    title: string; setupPrompt: string; configure: string; save: string; cancel: string;
+    citiesTitle: string; citiesEmpty: string;
+    weatherTitle: string; weatherLocating: string; weatherDenied: string;
+    teamTitle: string; teamSelectLeague: string; teamSelectTeam: string;
+    teamLast: string; teamNext: string; teamNone: string; teamEmpty: string;
+    cryptoTitle: string; cryptoSelect: string; cryptoEmpty: string;
+    birthdayTitle: string; birthdayEmpty: string; birthdayDaysLeft: string; birthdayToday: string;
+    challengeTitle: string; challengeDone: string; streakDays: string;
+  };
 };
 
 const t: Record<Lang, Translations> = {
@@ -551,6 +561,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: '10 Games Played', badge_games100: '100 Games Played',
       badge_top100: 'Top 100 Leaderboard',
     },
+    myDay: {
+      title: '🌤️ My Day', setupPrompt: 'Set up your day', configure: '⚙️', save: 'Save', cancel: 'Cancel',
+      citiesTitle: 'My Cities', citiesEmpty: 'Add favorite cities in World Time',
+      weatherTitle: 'Weather', weatherLocating: 'Locating…', weatherDenied: 'Location access denied',
+      teamTitle: 'My Team', teamSelectLeague: 'League', teamSelectTeam: 'Team',
+      teamLast: 'Last match', teamNext: 'Next match', teamNone: 'No match found', teamEmpty: 'Choose your favorite team',
+      cryptoTitle: 'My Coin', cryptoSelect: 'Choose a coin', cryptoEmpty: 'Choose a coin to track',
+      birthdayTitle: 'Birthday', birthdayEmpty: 'Set your birthday in Age Calculator', birthdayDaysLeft: 'days until your birthday', birthdayToday: 'Happy Birthday! 🎉',
+      challengeTitle: "Today's Challenge", challengeDone: 'activities done', streakDays: 'day streak',
+    },
   },
 
   de: {
@@ -854,6 +874,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: '30-Tage-Serie', badge_streak100: '100-Tage-Serie',
       badge_games10: '10 Spiele gespielt', badge_games100: '100 Spiele gespielt',
       badge_top100: 'Top 100 Rangliste',
+    },
+    myDay: {
+      title: '🌤️ Mein Tag', setupPrompt: 'Richte deinen Tag ein', configure: '⚙️', save: 'Speichern', cancel: 'Abbrechen',
+      citiesTitle: 'Meine Städte', citiesEmpty: 'Favoriten in Weltzeit hinzufügen',
+      weatherTitle: 'Wetter', weatherLocating: 'Standort wird ermittelt…', weatherDenied: 'Standortzugriff verweigert',
+      teamTitle: 'Mein Team', teamSelectLeague: 'Liga', teamSelectTeam: 'Team',
+      teamLast: 'Letztes Spiel', teamNext: 'Nächstes Spiel', teamNone: 'Kein Spiel gefunden', teamEmpty: 'Wähle dein Lieblingsteam',
+      cryptoTitle: 'Meine Münze', cryptoSelect: 'Münze wählen', cryptoEmpty: 'Wähle eine Münze zur Beobachtung',
+      birthdayTitle: 'Geburtstag', birthdayEmpty: 'Geburtstag im Alters-Rechner festlegen', birthdayDaysLeft: 'Tage bis zum Geburtstag', birthdayToday: 'Alles Gute zum Geburtstag! 🎉',
+      challengeTitle: 'Heutige Challenge', challengeDone: 'Aktivitäten erledigt', streakDays: 'Tage-Serie',
     },
   },
 
@@ -1159,6 +1189,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: '10 Partite Giocate', badge_games100: '100 Partite Giocate',
       badge_top100: 'Top 100 Classifica',
     },
+    myDay: {
+      title: '🌤️ Il Mio Giorno', setupPrompt: 'Configura la tua giornata', configure: '⚙️', save: 'Salva', cancel: 'Annulla',
+      citiesTitle: 'Le Mie Città', citiesEmpty: 'Aggiungi preferiti in Ora Mondiale',
+      weatherTitle: 'Meteo', weatherLocating: 'Localizzazione…', weatherDenied: 'Accesso alla posizione negato',
+      teamTitle: 'La Mia Squadra', teamSelectLeague: 'Lega', teamSelectTeam: 'Squadra',
+      teamLast: 'Ultima partita', teamNext: 'Prossima partita', teamNone: 'Nessuna partita trovata', teamEmpty: 'Scegli la tua squadra preferita',
+      cryptoTitle: 'La Mia Crypto', cryptoSelect: 'Scegli una crypto', cryptoEmpty: 'Scegli una crypto da seguire',
+      birthdayTitle: 'Compleanno', birthdayEmpty: 'Imposta il compleanno nel Calcolatore Età', birthdayDaysLeft: 'giorni al tuo compleanno', birthdayToday: 'Buon Compleanno! 🎉',
+      challengeTitle: 'Sfida di Oggi', challengeDone: 'attività completate', streakDays: 'serie di giorni',
+    },
   },
 
   fr: {
@@ -1462,6 +1502,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: 'Série de 30 Jours', badge_streak100: 'Série de 100 Jours',
       badge_games10: '10 Parties Jouées', badge_games100: '100 Parties Jouées',
       badge_top100: 'Top 100 Classement',
+    },
+    myDay: {
+      title: '🌤️ Ma Journée', setupPrompt: 'Configure ta journée', configure: '⚙️', save: 'Enregistrer', cancel: 'Annuler',
+      citiesTitle: 'Mes Villes', citiesEmpty: 'Ajoute des favoris dans Heure Mondiale',
+      weatherTitle: 'Météo', weatherLocating: 'Localisation…', weatherDenied: 'Accès à la position refusé',
+      teamTitle: 'Mon Équipe', teamSelectLeague: 'Ligue', teamSelectTeam: 'Équipe',
+      teamLast: 'Dernier match', teamNext: 'Prochain match', teamNone: 'Aucun match trouvé', teamEmpty: 'Choisis ton équipe préférée',
+      cryptoTitle: 'Ma Crypto', cryptoSelect: 'Choisir une crypto', cryptoEmpty: 'Choisis une crypto à suivre',
+      birthdayTitle: 'Anniversaire', birthdayEmpty: "Définis ta date de naissance dans l'Âge Calculateur", birthdayDaysLeft: "jours avant ton anniversaire", birthdayToday: 'Joyeux anniversaire ! 🎉',
+      challengeTitle: 'Défi du Jour', challengeDone: 'activités terminées', streakDays: 'jours de série',
     },
   },
 
@@ -1767,6 +1817,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: '10 odehraných her', badge_games100: '100 odehraných her',
       badge_top100: 'Top 100 v žebříčku',
     },
+    myDay: {
+      title: '🌤️ Můj Den', setupPrompt: 'Nastav si svůj den', configure: '⚙️', save: 'Uložit', cancel: 'Zrušit',
+      citiesTitle: 'Moje Města', citiesEmpty: 'Přidej oblíbená města ve Světovém času',
+      weatherTitle: 'Počasí', weatherLocating: 'Zjišťuji polohu…', weatherDenied: 'Přístup k poloze odepřen',
+      teamTitle: 'Můj Tým', teamSelectLeague: 'Liga', teamSelectTeam: 'Tým',
+      teamLast: 'Poslední zápas', teamNext: 'Příští zápas', teamNone: 'Žádný zápas nenalezen', teamEmpty: 'Vyber si oblíbený tým',
+      cryptoTitle: 'Moje Kryptoměna', cryptoSelect: 'Vyber kryptoměnu', cryptoEmpty: 'Vyber kryptoměnu ke sledování',
+      birthdayTitle: 'Narozeniny', birthdayEmpty: 'Nastav datum narození ve Věkové kalkulačce', birthdayDaysLeft: 'dní do narozenin', birthdayToday: 'Všechno nejlepší k narozeninám! 🎉',
+      challengeTitle: 'Dnešní Výzva', challengeDone: 'aktivit splněno', streakDays: 'dní v řadě',
+    },
   },
 
   es: {
@@ -2070,6 +2130,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: 'Racha de 30 Días', badge_streak100: 'Racha de 100 Días',
       badge_games10: '10 Partidas Jugadas', badge_games100: '100 Partidas Jugadas',
       badge_top100: 'Top 100 Clasificación',
+    },
+    myDay: {
+      title: '🌤️ Mi Día', setupPrompt: 'Configura tu día', configure: '⚙️', save: 'Guardar', cancel: 'Cancelar',
+      citiesTitle: 'Mis Ciudades', citiesEmpty: 'Añade favoritos en Hora Mundial',
+      weatherTitle: 'Clima', weatherLocating: 'Localizando…', weatherDenied: 'Acceso a la ubicación denegado',
+      teamTitle: 'Mi Equipo', teamSelectLeague: 'Liga', teamSelectTeam: 'Equipo',
+      teamLast: 'Último partido', teamNext: 'Próximo partido', teamNone: 'No se encontró partido', teamEmpty: 'Elige tu equipo favorito',
+      cryptoTitle: 'Mi Cripto', cryptoSelect: 'Elige una cripto', cryptoEmpty: 'Elige una cripto para seguir',
+      birthdayTitle: 'Cumpleaños', birthdayEmpty: 'Establece tu fecha de nacimiento en la Calculadora de Edad', birthdayDaysLeft: 'días para tu cumpleaños', birthdayToday: '¡Feliz cumpleaños! 🎉',
+      challengeTitle: 'Reto de Hoy', challengeDone: 'actividades completadas', streakDays: 'días de racha',
     },
   },
 
@@ -2375,6 +2445,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: '10 rozegranych gier', badge_games100: '100 rozegranych gier',
       badge_top100: 'Top 100 w rankingu',
     },
+    myDay: {
+      title: '🌤️ Mój Dzień', setupPrompt: 'Skonfiguruj swój dzień', configure: '⚙️', save: 'Zapisz', cancel: 'Anuluj',
+      citiesTitle: 'Moje Miasta', citiesEmpty: 'Dodaj ulubione w Czasie Światowym',
+      weatherTitle: 'Pogoda', weatherLocating: 'Ustalanie lokalizacji…', weatherDenied: 'Odmówiono dostępu do lokalizacji',
+      teamTitle: 'Mój Zespół', teamSelectLeague: 'Liga', teamSelectTeam: 'Zespół',
+      teamLast: 'Ostatni meczu', teamNext: 'Następny meczu', teamNone: 'Nie znaleziono meczu', teamEmpty: 'Wybierz swój zespół',
+      cryptoTitle: 'Moja Krypto', cryptoSelect: 'Wybierz kryptowalutę', cryptoEmpty: 'Wybierz kryptowalutę do obserwowania',
+      birthdayTitle: 'Urodziny', birthdayEmpty: 'Ustaw datę urodzenia w Kalkulatorze Wieku', birthdayDaysLeft: 'dni do urodzin', birthdayToday: 'Wszystkiego najlepszego! 🎉',
+      challengeTitle: 'Dzisiejsze Wyzwanie', challengeDone: 'ukończonych aktywności', streakDays: 'dni serii',
+    },
   },
 
   pt: {
@@ -2678,6 +2758,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: 'Sequência de 30 Dias', badge_streak100: 'Sequência de 100 Dias',
       badge_games10: '10 Partidas Jogadas', badge_games100: '100 Partidas Jogadas',
       badge_top100: 'Top 100 Classificação',
+    },
+    myDay: {
+      title: '🌤️ Meu Dia', setupPrompt: 'Configure o seu dia', configure: '⚙️', save: 'Guardar', cancel: 'Cancelar',
+      citiesTitle: 'Minhas Cidades', citiesEmpty: 'Adicione favoritos na Hora Mundial',
+      weatherTitle: 'Clima', weatherLocating: 'Localizando…', weatherDenied: 'Acesso à localização negado',
+      teamTitle: 'Meu Time', teamSelectLeague: 'Liga', teamSelectTeam: 'Time',
+      teamLast: 'Último jogo', teamNext: 'Próximo jogo', teamNone: 'Nenhum jogo encontrado', teamEmpty: 'Escolha o seu time favorito',
+      cryptoTitle: 'Minha Cripto', cryptoSelect: 'Escolha uma cripto', cryptoEmpty: 'Escolha uma cripto para acompanhar',
+      birthdayTitle: 'Aniversário', birthdayEmpty: 'Defina a data de nascimento na Calculadora de Idade', birthdayDaysLeft: 'dias até o seu aniversário', birthdayToday: 'Feliz Aniversário! 🎉',
+      challengeTitle: 'Desafio de Hoje', challengeDone: 'atividades concluídas', streakDays: 'dias de sequência',
     },
   },
 
@@ -2983,6 +3073,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: '10 сыгранных игр', badge_games100: '100 сыгранных игр',
       badge_top100: 'Топ 100 в рейтинге',
     },
+    myDay: {
+      title: '🌤️ Мой День', setupPrompt: 'Настройте свой день', configure: '⚙️', save: 'Сохранить', cancel: 'Отмена',
+      citiesTitle: 'Мои Города', citiesEmpty: 'Добавьте избранное во Всемирном времени',
+      weatherTitle: 'Погода', weatherLocating: 'Определение местоположения…', weatherDenied: 'Доступ к геолокации запрещён',
+      teamTitle: 'Моя Команда', teamSelectLeague: 'Лига', teamSelectTeam: 'Команда',
+      teamLast: 'Последний матч', teamNext: 'Следующий матч', teamNone: 'Матч не найден', teamEmpty: 'Выберите любимую команду',
+      cryptoTitle: 'Моя Криптовалюта', cryptoSelect: 'Выберите криптовалюту', cryptoEmpty: 'Выберите криптовалюту для отслеживания',
+      birthdayTitle: 'День рождения', birthdayEmpty: 'Укажите дату рождения в Калькуляторе возраста', birthdayDaysLeft: 'дней до дня рождения', birthdayToday: 'С днём рождения! 🎉',
+      challengeTitle: 'Задача на сегодня', challengeDone: 'активностей выполнено', streakDays: 'дней подряд',
+    },
   },
 
   zh: {
@@ -3286,6 +3386,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: '连续30天', badge_streak100: '连续100天',
       badge_games10: '玩过10场游戏', badge_games100: '玩过100场游戏',
       badge_top100: '排行榜前100',
+    },
+    myDay: {
+      title: '🌤️ 我的一天', setupPrompt: '设置你的一天', configure: '⚙️', save: '保存', cancel: '取消',
+      citiesTitle: '我的城市', citiesEmpty: '在世界时间中添加收藏城市',
+      weatherTitle: '天气', weatherLocating: '正在定位…', weatherDenied: '位置访问被拒绝',
+      teamTitle: '我的球队', teamSelectLeague: '联盟', teamSelectTeam: '球队',
+      teamLast: '上一场比赛', teamNext: '下一场比赛', teamNone: '未找到比赛', teamEmpty: '选择你最喜欢的球队',
+      cryptoTitle: '我的币种', cryptoSelect: '选择一种币', cryptoEmpty: '选择要关注的币种',
+      birthdayTitle: '生日', birthdayEmpty: '在年龄计算器中设置你的生日', birthdayDaysLeft: '天后是你的生日', birthdayToday: '生日快乐！🎉',
+      challengeTitle: '今日挑战', challengeDone: '项活动已完成', streakDays: '天连胜',
     },
   },
 
@@ -3591,6 +3701,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: 'ゲーム10回プレイ', badge_games100: 'ゲーム100回プレイ',
       badge_top100: 'リーダーボード上位100',
     },
+    myDay: {
+      title: '🌤️ マイデイ', setupPrompt: '今日の設定をしよう', configure: '⚙️', save: '保存', cancel: 'キャンセル',
+      citiesTitle: 'マイシティ', citiesEmpty: 'ワールドタイムでお気に入りを追加',
+      weatherTitle: '天気', weatherLocating: '位置情報を取得中…', weatherDenied: '位置情報へのアクセスが拒否されました',
+      teamTitle: 'マイチーム', teamSelectLeague: 'リーグ', teamSelectTeam: 'チーム',
+      teamLast: '前回の試合', teamNext: '次の試合', teamNone: '試合が見つかりません', teamEmpty: 'お気に入りのチームを選択',
+      cryptoTitle: 'マイコイン', cryptoSelect: 'コインを選択', cryptoEmpty: '追跡するコインを選択',
+      birthdayTitle: '誕生日', birthdayEmpty: '年齢計算機で誕生日を設定', birthdayDaysLeft: '日で誕生日', birthdayToday: 'お誕生日おめでとう！🎉',
+      challengeTitle: '今日のチャレンジ', challengeDone: '件のアクティビティ完了', streakDays: '日間の連続記録',
+    },
   },
 
   ko: {
@@ -3894,6 +4014,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: '30일 연속', badge_streak100: '100일 연속',
       badge_games10: '게임 10회 플레이', badge_games100: '게임 100회 플레이',
       badge_top100: '리더보드 상위 100',
+    },
+    myDay: {
+      title: '🌤️ 나의 하루', setupPrompt: '하루를 설정하세요', configure: '⚙️', save: '저장', cancel: '취소',
+      citiesTitle: '내 도시', citiesEmpty: '세계 시간에서 즐겨찾기를 추가하세요',
+      weatherTitle: '날씨', weatherLocating: '위치 확인 중…', weatherDenied: '위치 접근이 거부되었습니다',
+      teamTitle: '내 팀', teamSelectLeague: '리그', teamSelectTeam: '팀',
+      teamLast: '지난 경기', teamNext: '다음 경기', teamNone: '경기를 찾을 수 없습니다', teamEmpty: '좋아하는 팀을 선택하세요',
+      cryptoTitle: '내 코인', cryptoSelect: '코인 선택', cryptoEmpty: '추적할 코인을 선택하세요',
+      birthdayTitle: '생일', birthdayEmpty: '나이 계산기에서 생일을 설정하세요', birthdayDaysLeft: '일 남음 (생일까지)', birthdayToday: '생일 축하합니다! 🎉',
+      challengeTitle: '오늘의 도전', challengeDone: '개 활동 완료', streakDays: '일 연속',
     },
   },
 
@@ -4199,6 +4329,16 @@ const t: Record<Lang, Translations> = {
       badge_games10: 'لعب 10 ألعاب', badge_games100: 'لعب 100 لعبة',
       badge_top100: 'أفضل 100 في لوحة الصدارة',
     },
+    myDay: {
+      title: '🌤️ يومي', setupPrompt: 'قم بتخصيص يومك', configure: '⚙️', save: 'حفظ', cancel: 'إلغاء',
+      citiesTitle: 'مدني', citiesEmpty: 'أضف مدنًا مفضلة في التوقيت العالمي',
+      weatherTitle: 'الطقس', weatherLocating: 'تحديد الموقع…', weatherDenied: 'تم رفض الوصول إلى الموقع',
+      teamTitle: 'فريقي', teamSelectLeague: 'الدوري', teamSelectTeam: 'الفريق',
+      teamLast: 'آخر مباراة', teamNext: 'المباراة القادمة', teamNone: 'لم يتم العثور على مباراة', teamEmpty: 'اختر فريقك المفضل',
+      cryptoTitle: 'عملتي المشفرة', cryptoSelect: 'اختر عملة', cryptoEmpty: 'اختر عملة لتتبعها',
+      birthdayTitle: 'عيد الميلاد', birthdayEmpty: 'حدد تاريخ ميلادك في حاسبة العمر', birthdayDaysLeft: 'أيام حتى عيد ميلادك', birthdayToday: 'عيد ميلاد سعيد! 🎉',
+      challengeTitle: 'تحدي اليوم', challengeDone: 'أنشطة مكتملة', streakDays: 'أيام متتالية',
+    },
   },
 
   hi: {
@@ -4502,6 +4642,16 @@ const t: Record<Lang, Translations> = {
       badge_streak30: '30-दिन की स्ट्रीक', badge_streak100: '100-दिन की स्ट्रीक',
       badge_games10: '10 गेम खेले', badge_games100: '100 गेम खेले',
       badge_top100: 'टॉप 100 लीडरबोर्ड',
+    },
+    myDay: {
+      title: '🌤️ मेरा दिन', setupPrompt: 'अपना दिन सेट करें', configure: '⚙️', save: 'सहेजें', cancel: 'रद्द करें',
+      citiesTitle: 'मेरे शहर', citiesEmpty: 'वर्ल्ड टाइम में पसंदीदा शहर जोड़ें',
+      weatherTitle: 'मौसम', weatherLocating: 'स्थान खोजा जा रहा है…', weatherDenied: 'स्थान की अनुमति नहीं मिली',
+      teamTitle: 'मेरी टीम', teamSelectLeague: 'लीग', teamSelectTeam: 'टीम',
+      teamLast: 'पिछला मैच', teamNext: 'अगला मैच', teamNone: 'कोई मैच नहीं मिला', teamEmpty: 'अपनी पसंदीदा टीम चुनें',
+      cryptoTitle: 'मेरी क्रिप्टो', cryptoSelect: 'क्रिप्टो चुनें', cryptoEmpty: 'ट्रैक करने के लिए क्रिप्टो चुनें',
+      birthdayTitle: 'जन्मदिन', birthdayEmpty: 'एज कैलकुलेटर में अपनी जन्मतिथि सेट करें', birthdayDaysLeft: 'दिन आपके जन्मदिन तक', birthdayToday: 'जन्मदिन मुबारक हो! 🎉',
+      challengeTitle: 'आज की चुनौती', challengeDone: 'गतिविधियाँ पूरी हुईं', streakDays: 'दिनों की स्ट्रीक',
     },
   },
 };

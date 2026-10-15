@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 
-type City = {
+export type City = {
   name: string;
   country: string;
   tz: string;
@@ -125,7 +125,8 @@ const SEARCH_EXTRA: City[] = [
   { name: 'Port Moresby',  country: 'Papua NG',   tz: 'Pacific/Port_Moresby',flag: '🇵🇬', continent: 'Pacific' },
 ];
 
-const ALL_CITIES: City[] = [...CITIES, ...SEARCH_EXTRA];
+export const ALL_CITIES: City[] = [...CITIES, ...SEARCH_EXTRA];
+export const WORLDTIME_FAVORITES_KEY = 'worldtime_favorites_v2';
 
 /* ── Time helpers ── */
 function getTime(tz: string): string {
@@ -175,7 +176,7 @@ const SORTS = [
   { label: 'Continent', value: 'continent' },
 ];
 const MAX_FAV = 3;
-const LS_KEY  = 'worldtime_favorites_v2';
+const LS_KEY  = WORLDTIME_FAVORITES_KEY;
 
 export default function WorldTime() {
   const { listLimit, isMobile } = useDeviceDetect();

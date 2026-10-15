@@ -119,11 +119,24 @@ function getMonthNames(t: Translations): string[] {
 const DAYS   = Array.from({ length: 31 }, (_, i) => i + 1);
 const YEARS  = Array.from({ length: 126 }, (_, i) => 2025 - i); // 2025..1900
 
+export const AGE_CALCULATOR_DOB_KEY = 'age_calculator_dob_v1';
+
+type StoredDob = { day: number; month: number; year: number };
+
+export function loadStoredDob(): StoredDob | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(AGE_CALCULATOR_DOB_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
 export default function AgeCalculator() {
   const { t } = useLang();
-  const [birthDay,   setBirthDay]   = useState(1);
-  const [birthMonth, setBirthMonth] = useState(1);   // 1 = January
-  const [birthYear,  setBirthYear]  = useState(2000);
+  const stored = loadStoredDob();
+  const [birthDay,   setBirthDay]   = useState(stored?.day ?? 1);
+  const [birthMonth, setBirthMonth] = useState(stored?.month ?? 1);   // 1 = January
+  const [birthYear,  setBirthYear]  = useState(stored?.year ?? 2000);
   const [now, setNow] = useState(new Date());
   const MONTH_NAMES = getMonthNames(t);
   const STATS = getStats(t);
@@ -132,6 +145,10 @@ export default function AgeCalculator() {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  function saveDob(day: number, month: number, year: number) {
+    try { localStorage.setItem(AGE_CALCULATOR_DOB_KEY, JSON.stringify({ day, month, year })); } catch {}
+  }
 
   const birth = new Date(birthYear, birthMonth - 1, birthDay);
   // Guard against day overflow (e.g. Feb 30 rolls to Mar)
@@ -172,15 +189,15 @@ export default function AgeCalculator() {
         <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.ageCalculator.dateOfBirth}</div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {/* Day */}
-          <select value={birthDay} onChange={e => setBirthDay(Number(e.target.value))} style={selectStyle}>
+          <select value={birthDay} onChange={e => { const v = Number(e.target.value); setBirthDay(v); saveDob(v, birthMonth, birthYear); }} style={selectStyle}>
             {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
           {/* Month */}
-          <select value={birthMonth} onChange={e => setBirthMonth(Number(e.target.value))} style={{ ...selectStyle, flex: 2 }}>
+          <select value={birthMonth} onChange={e => { const v = Number(e.target.value); setBirthMonth(v); saveDob(birthDay, v, birthYear); }} style={{ ...selectStyle, flex: 2 }}>
             {MONTH_NAMES.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
           </select>
           {/* Year */}
-          <select value={birthYear} onChange={e => setBirthYear(Number(e.target.value))} style={{ ...selectStyle, flex: 1.2 }}>
+          <select value={birthYear} onChange={e => { const v = Number(e.target.value); setBirthYear(v); saveDob(birthDay, birthMonth, v); }} style={{ ...selectStyle, flex: 1.2 }}>
             {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
