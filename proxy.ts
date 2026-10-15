@@ -12,7 +12,7 @@ function todayKey() {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  if (process.env.NEXT_PUBLIC_MAINTENANCE === 'true' && pathname !== '/maintenance') {
+  if (process.env.NEXT_PUBLIC_MAINTENANCE !== 'false' && pathname !== '/maintenance') {
     return NextResponse.rewrite(new URL('/maintenance', req.url));
   }
 
