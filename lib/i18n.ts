@@ -236,6 +236,10 @@ export type Translations = {
     streak: string; winRate: string; played: string; currentStreak: string;
     maxStreak: string; nextWordIn: string; keyboard_enter: string; keyboard_backspace: string;
   };
+  maintenance: {
+    tagline: string; days: string; hours: string; minutes: string; seconds: string;
+    launchingSoon: string;
+  };
 };
 
 const t: Record<Lang, Translations> = {
@@ -528,6 +532,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: 'Current streak', maxStreak: 'Max streak',
       nextWordIn: 'Next word in', keyboard_enter: 'Enter', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: "We're building something amazing. Coming soon.",
+      days: 'Days', hours: 'Hours', minutes: 'Minutes', seconds: 'Seconds',
+      launchingSoon: 'Launching very soon',
+    },
   },
 
   de: {
@@ -818,6 +827,11 @@ const t: Record<Lang, Translations> = {
       streak: 'Serie', winRate: 'Gewinnrate', played: 'Gespielt',
       currentStreak: 'Aktuelle Serie', maxStreak: 'Max. Serie',
       nextWordIn: 'Nächstes Wort in', keyboard_enter: 'Eingabe', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: 'Wir bauen gerade etwas Großartiges. Bald verfügbar.',
+      days: 'Tage', hours: 'Stunden', minutes: 'Minuten', seconds: 'Sekunden',
+      launchingSoon: 'Start ist ganz bald',
     },
   },
 
@@ -1110,6 +1124,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: 'Serie attuale', maxStreak: 'Serie max',
       nextWordIn: 'Prossima parola tra', keyboard_enter: 'Invio', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: 'Stiamo creando qualcosa di straordinario. Prossimamente.',
+      days: 'Giorni', hours: 'Ore', minutes: 'Minuti', seconds: 'Secondi',
+      launchingSoon: 'Il lancio è vicinissimo',
+    },
   },
 
   fr: {
@@ -1400,6 +1419,11 @@ const t: Record<Lang, Translations> = {
       streak: 'Série', winRate: 'Taux de victoire', played: 'Parties jouées',
       currentStreak: 'Série actuelle', maxStreak: 'Série max',
       nextWordIn: 'Prochain mot dans', keyboard_enter: 'Entrée', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: "Nous construisons quelque chose d'extraordinaire. Bientôt disponible.",
+      days: 'Jours', hours: 'Heures', minutes: 'Minutes', seconds: 'Secondes',
+      launchingSoon: 'Le lancement est très proche',
     },
   },
 
@@ -1692,6 +1716,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: 'Aktuální série', maxStreak: 'Nejlepší série',
       nextWordIn: 'Příští slovo za', keyboard_enter: 'Potvrdit', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: 'Připravujeme něco úžasného. Již brzy.',
+      days: 'Dny', hours: 'Hodiny', minutes: 'Minuty', seconds: 'Sekundy',
+      launchingSoon: 'Spouštíme už velmi brzy',
+    },
   },
 
   es: {
@@ -1982,6 +2011,11 @@ const t: Record<Lang, Translations> = {
       streak: 'Racha', winRate: 'Tasa de victorias', played: 'Jugadas',
       currentStreak: 'Racha actual', maxStreak: 'Racha máx.',
       nextWordIn: 'Próxima palabra en', keyboard_enter: 'Intro', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: 'Estamos creando algo increíble. Próximamente.',
+      days: 'Días', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos',
+      launchingSoon: 'El lanzamiento está muy cerca',
     },
   },
 
@@ -2274,6 +2308,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: 'Obecna seria', maxStreak: 'Maks. seria',
       nextWordIn: 'Następne słowo za', keyboard_enter: 'Enter', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: 'Budujemy coś niesamowitego. Już wkrótce.',
+      days: 'Dni', hours: 'Godziny', minutes: 'Minuty', seconds: 'Sekundy',
+      launchingSoon: 'Startujemy już bardzo wkrótce',
+    },
   },
 
   pt: {
@@ -2564,6 +2603,11 @@ const t: Record<Lang, Translations> = {
       streak: 'Sequência', winRate: 'Taxa de vitórias', played: 'Jogadas',
       currentStreak: 'Sequência atual', maxStreak: 'Sequência máx.',
       nextWordIn: 'Próxima palavra em', keyboard_enter: 'Enter', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: 'Estamos a construir algo incrível. Brevemente.',
+      days: 'Dias', hours: 'Horas', minutes: 'Minutos', seconds: 'Segundos',
+      launchingSoon: 'O lançamento está muito próximo',
     },
   },
 
@@ -2856,6 +2900,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: 'Текущая серия', maxStreak: 'Макс. серия',
       nextWordIn: 'Следующее слово через', keyboard_enter: 'Ввод', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: 'Мы создаём что-то потрясающее. Скоро открытие.',
+      days: 'Дни', hours: 'Часы', minutes: 'Минуты', seconds: 'Секунды',
+      launchingSoon: 'Запуск уже совсем скоро',
+    },
   },
 
   zh: {
@@ -3146,6 +3195,11 @@ const t: Record<Lang, Translations> = {
       streak: '连胜', winRate: '胜率', played: '已玩局数',
       currentStreak: '当前连胜', maxStreak: '最长连胜',
       nextWordIn: '下一个单词还有', keyboard_enter: '回车', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: '我们正在打造精彩内容，敬请期待。',
+      days: '天', hours: '小时', minutes: '分钟', seconds: '秒',
+      launchingSoon: '即将正式上线',
     },
   },
 
@@ -3438,6 +3492,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: '現在の連続記録', maxStreak: '最高連続記録',
       nextWordIn: '次の単語まで', keyboard_enter: 'Enter', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: '素晴らしいものを準備中です。近日公開。',
+      days: '日', hours: '時間', minutes: '分', seconds: '秒',
+      launchingSoon: 'まもなく公開されます',
+    },
   },
 
   ko: {
@@ -3728,6 +3787,11 @@ const t: Record<Lang, Translations> = {
       streak: '연속 기록', winRate: '승률', played: '플레이 횟수',
       currentStreak: '현재 연속 기록', maxStreak: '최고 연속 기록',
       nextWordIn: '다음 단어까지', keyboard_enter: '입력', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: '놀라운 것을 준비하고 있습니다. 곧 공개됩니다.',
+      days: '일', hours: '시간', minutes: '분', seconds: '초',
+      launchingSoon: '곧 출시됩니다',
     },
   },
 
@@ -4020,6 +4084,11 @@ const t: Record<Lang, Translations> = {
       currentStreak: 'السلسلة الحالية', maxStreak: 'أطول سلسلة',
       nextWordIn: 'الكلمة التالية خلال', keyboard_enter: 'إدخال', keyboard_backspace: '⌫',
     },
+    maintenance: {
+      tagline: 'نحن نبني شيئًا مذهلاً. قريبًا جدًا.',
+      days: 'أيام', hours: 'ساعات', minutes: 'دقائق', seconds: 'ثواني',
+      launchingSoon: 'الإطلاق قريب جدًا',
+    },
   },
 
   hi: {
@@ -4310,6 +4379,11 @@ const t: Record<Lang, Translations> = {
       streak: 'श्रृंखला', winRate: 'जीत दर', played: 'खेले गए',
       currentStreak: 'वर्तमान श्रृंखला', maxStreak: 'अधिकतम श्रृंखला',
       nextWordIn: 'अगला शब्द', keyboard_enter: 'एंटर', keyboard_backspace: '⌫',
+    },
+    maintenance: {
+      tagline: 'हम कुछ अद्भुत बना रहे हैं। बहुत जल्द आ रहा है।',
+      days: 'दिन', hours: 'घंटे', minutes: 'मिनट', seconds: 'सेकंड',
+      launchingSoon: 'लॉन्च बहुत जल्द होने वाला है',
     },
   },
 };

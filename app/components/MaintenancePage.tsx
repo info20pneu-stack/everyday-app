@@ -1,14 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-// 14 days from today (set 2026-07-05) — fixed target, not a rolling window.
-const LAUNCH_DATE = new Date('2026-07-19T00:00:00Z');
+import { useLang } from '@/lib/LanguageContext';
 
 type TimeLeft = { days: number; hours: number; minutes: number; seconds: number };
 
-function getTimeLeft(): TimeLeft {
-  const diff = Math.max(0, LAUNCH_DATE.getTime() - Date.now());
+function resolveLaunchDate(): Date {
+  const raw = process.env.NEXT_PUBLIC_LAUNCH_DATE;
+  if (raw) {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return new Date(Date.now() + 30 * 86400000);
+}
+
+function getTimeLeft(diffMs: number): TimeLeft {
+  const diff = Math.max(0, diffMs);
   return {
     days: Math.floor(diff / 86400000),
     hours: Math.floor((diff % 86400000) / 3600000),
@@ -18,23 +25,32 @@ function getTimeLeft(): TimeLeft {
 }
 
 export default function MaintenancePage() {
+  const { t } = useLang();
+  // Computed once on mount so the countdown has a fixed target for the session.
+  const [launchDate] = useState<Date>(() => resolveLaunchDate());
   // Start null so server and first client render match exactly (both show
   // placeholders) — Date.now() must not run until after mount, otherwise the
   // SSR-computed and hydration-computed second can differ and React flags a
   // hydration mismatch.
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
+  const [launched, setLaunched] = useState(false);
 
   useEffect(() => {
-    setTimeLeft(getTimeLeft());
-    const iv = setInterval(() => setTimeLeft(getTimeLeft()), 1000);
+    const tick = () => {
+      const diff = launchDate.getTime() - Date.now();
+      setTimeLeft(getTimeLeft(diff));
+      if (diff <= 0) setLaunched(true);
+    };
+    tick();
+    const iv = setInterval(tick, 1000);
     return () => clearInterval(iv);
-  }, []);
+  }, [launchDate]);
 
   const units = [
-    { value: timeLeft?.days, label: 'Days' },
-    { value: timeLeft?.hours, label: 'Hours' },
-    { value: timeLeft?.minutes, label: 'Minutes' },
-    { value: timeLeft?.seconds, label: 'Seconds' },
+    { value: timeLeft?.days, label: t.maintenance.days },
+    { value: timeLeft?.hours, label: t.maintenance.hours },
+    { value: timeLeft?.minutes, label: t.maintenance.minutes },
+    { value: timeLeft?.seconds, label: t.maintenance.seconds },
   ];
 
   return (
@@ -42,18 +58,22 @@ export default function MaintenancePage() {
       <div className="maintenance-glow" />
 
       <h1 className="maintenance-title">EVERY DAY</h1>
-      <p className="maintenance-tagline">We&apos;re building something amazing. Coming soon.</p>
+      <p className="maintenance-tagline">{t.maintenance.tagline}</p>
 
-      <div className="maintenance-countdown">
-        {units.map(u => (
-          <div key={u.label} className="maintenance-countdown-unit">
-            <span key={u.value ?? 'pending'} className="maintenance-countdown-value tabular-nums">
-              {u.value != null ? String(u.value).padStart(2, '0') : '--'}
-            </span>
-            <span className="maintenance-countdown-label">{u.label}</span>
-          </div>
-        ))}
-      </div>
+      {launched ? (
+        <p className="maintenance-launching">{t.maintenance.launchingSoon}</p>
+      ) : (
+        <div className="maintenance-countdown">
+          {units.map(u => (
+            <div key={u.label} className="maintenance-countdown-unit">
+              <span key={u.value ?? 'pending'} className="maintenance-countdown-value tabular-nums">
+                {u.value != null ? String(u.value).padStart(2, '0') : '--'}
+              </span>
+              <span className="maintenance-countdown-label">{u.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
