@@ -113,6 +113,8 @@ export type Translations = {
     players: string; noRecords: string; noPlayersArea: string; loading: string;
     mathrush: string; reflex: string; reaction: string; stackGame: string; felixJump: string;
     timeLeft: string; attempt: string; avgDev: string; avgReact: string; blocks: string; distance: string;
+    challengeFriend: string; challengeCopied: string; youVs: string;
+    challengeWon: string; challengeLost: string; challengeTie: string; shareChallengeLink: string;
   };
   ageCalculator: {
     title: string; dateOfBirth: string; yourAge: string; nextBirthday: string;
@@ -383,6 +385,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'No players from this area.', loading: 'Loading…',
       mathrush: 'Math Rush', reflex: 'Reflex', reaction: 'Reaction', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Time left', attempt: 'Attempt', avgDev: 'Avg deviation', avgReact: 'Avg reaction', blocks: 'Blocks', distance: 'Distance',
+      challengeFriend: '🔗 Challenge a friend', challengeCopied: '✓ Link copied!', youVs: 'You vs {name}',
+      challengeWon: 'You won! 🎉', challengeLost: 'You lost', challengeTie: "It's a tie!", shareChallengeLink: 'Share challenge link',
     },
     ageCalculator: {
       title: '🎂 Age Calculator', dateOfBirth: 'Date of birth', yourAge: 'Your age',
@@ -707,6 +711,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'Keine Spieler aus dieser Region.', loading: 'Lade…',
       mathrush: 'Math Rush', reflex: 'Reflex', reaction: 'Reaktion', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Zeit übrig', attempt: 'Versuch', avgDev: 'Ø Abweichung', avgReact: 'Ø Reaktion', blocks: 'Blöcke', distance: 'Distanz',
+      challengeFriend: '🔗 Freund herausfordern', challengeCopied: '✓ Link kopiert!', youVs: 'Du vs {name}',
+      challengeWon: 'Du hast gewonnen! 🎉', challengeLost: 'Du hast verloren', challengeTie: 'Unentschieden!', shareChallengeLink: 'Herausforderungslink teilen',
     },
     ageCalculator: {
       title: '🎂 Altersrechner', dateOfBirth: 'Geburtsdatum', yourAge: 'Dein Alter',
@@ -1031,6 +1037,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: "Nessun giocatore da quest'area.", loading: 'Caricamento…',
       mathrush: 'Math Rush', reflex: 'Riflessi', reaction: 'Reazione', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Tempo rimasto', attempt: 'Tentativo', avgDev: 'Dev. media', avgReact: 'React. media', blocks: 'Blocchi', distance: 'Distanza',
+      challengeFriend: '🔗 Sfida un amico', challengeCopied: '✓ Link copiato!', youVs: 'Tu vs {name}',
+      challengeWon: 'Hai vinto! 🎉', challengeLost: 'Hai perso', challengeTie: 'Pareggio!', shareChallengeLink: 'Condividi link sfida',
     },
     ageCalculator: {
       title: '🎂 Calcolatore di età', dateOfBirth: 'Data di nascita', yourAge: 'La tua età',
@@ -1355,6 +1363,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'Aucun joueur de cette région.', loading: 'Chargement…',
       mathrush: 'Math Rush', reflex: 'Réflexe', reaction: 'Réaction', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Temps restant', attempt: 'Essai', avgDev: 'Dév. moyenne', avgReact: 'Réact. moy.', blocks: 'Blocs', distance: 'Distance',
+      challengeFriend: '🔗 Défier un ami', challengeCopied: '✓ Lien copié !', youVs: 'Toi vs {name}',
+      challengeWon: 'Tu as gagné ! 🎉', challengeLost: 'Tu as perdu', challengeTie: 'Égalité !', shareChallengeLink: 'Partager le lien du défi',
     },
     ageCalculator: {
       title: "🎂 Calculateur d'âge", dateOfBirth: 'Date de naissance', yourAge: 'Votre âge',
@@ -1679,6 +1689,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'Žádní hráči z této oblasti.', loading: 'Načítám…',
       mathrush: 'Math Rush', reflex: 'Reflex', reaction: 'Reakce', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Zbývá času', attempt: 'Pokus', avgDev: 'Prům. odchylka', avgReact: 'Prům. reakce', blocks: 'Bloky', distance: 'Vzdálenost',
+      challengeFriend: '🔗 Vyzvi kamaráda', challengeCopied: '✓ Odkaz zkopírován!', youVs: 'Ty vs {name}',
+      challengeWon: 'Vyhrál jsi! 🎉', challengeLost: 'Prohrál jsi', challengeTie: 'Je to remíza!', shareChallengeLink: 'Sdílet odkaz na výzvu',
     },
     ageCalculator: {
       title: '🎂 Věková kalkulačka', dateOfBirth: 'Datum narození', yourAge: 'Váš věk',
@@ -2003,6 +2015,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'No hay jugadores de esta área.', loading: 'Cargando…',
       mathrush: 'Math Rush', reflex: 'Reflejos', reaction: 'Reacción', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Tiempo restante', attempt: 'Intento', avgDev: 'Dev. media', avgReact: 'Reac. media', blocks: 'Bloques', distance: 'Distancia',
+      challengeFriend: '🔗 Desafiar a un amigo', challengeCopied: '✓ ¡Enlace copiado!', youVs: 'Tú vs {name}',
+      challengeWon: '¡Ganaste! 🎉', challengeLost: 'Perdiste', challengeTie: '¡Es un empate!', shareChallengeLink: 'Compartir enlace del desafío',
     },
     ageCalculator: {
       title: '🎂 Calculadora de edad', dateOfBirth: 'Fecha de nacimiento', yourAge: 'Tu edad',
@@ -2327,6 +2341,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'Brak graczy z tego obszaru.', loading: 'Ładowanie…',
       mathrush: 'Math Rush', reflex: 'Refleks', reaction: 'Reakcja', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Pozostały czas', attempt: 'Próba', avgDev: 'Śr. odchylenie', avgReact: 'Śr. reakcja', blocks: 'Bloki', distance: 'Dystans',
+      challengeFriend: '🔗 Wyzwij przyjaciela', challengeCopied: '✓ Link skopiowany!', youVs: 'Ty vs {name}',
+      challengeWon: 'Wygrałeś! 🎉', challengeLost: 'Przegrałeś', challengeTie: 'Remis!', shareChallengeLink: 'Udostępnij link wyzwania',
     },
     ageCalculator: {
       title: '🎂 Kalkulator wieku', dateOfBirth: 'Data urodzenia', yourAge: 'Twój wiek',
@@ -2651,6 +2667,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'Nenhum jogador desta área.', loading: 'A carregar…',
       mathrush: 'Math Rush', reflex: 'Reflexo', reaction: 'Reação', stackGame: 'Stack', felixJump: 'Felix Jump',
       timeLeft: 'Tempo restante', attempt: 'Tentativa', avgDev: 'Desv. média', avgReact: 'React. média', blocks: 'Blocos', distance: 'Distância',
+      challengeFriend: '🔗 Desafiar um amigo', challengeCopied: '✓ Link copiado!', youVs: 'Você vs {name}',
+      challengeWon: 'Você venceu! 🎉', challengeLost: 'Você perdeu', challengeTie: 'Empate!', shareChallengeLink: 'Compartilhar link do desafio',
     },
     ageCalculator: {
       title: '🎂 Calculadora de idade', dateOfBirth: 'Data de nascimento', yourAge: 'Sua idade',
@@ -2975,6 +2993,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'Нет игроков из этого региона.', loading: 'Загрузка…',
       mathrush: 'Math Rush', reflex: 'Рефлекс', reaction: 'Реакция', stackGame: 'Стек', felixJump: 'Felix Jump',
       timeLeft: 'Осталось', attempt: 'Попытка', avgDev: 'Ср. отклонение', avgReact: 'Ср. реакция', blocks: 'Блоки', distance: 'Расстояние',
+      challengeFriend: '🔗 Вызвать друга', challengeCopied: '✓ Ссылка скопирована!', youVs: 'Ты vs {name}',
+      challengeWon: 'Ты выиграл! 🎉', challengeLost: 'Ты проиграл', challengeTie: 'Это ничья!', shareChallengeLink: 'Поделиться ссылкой на вызов',
     },
     ageCalculator: {
       title: '🎂 Калькулятор возраста', dateOfBirth: 'Дата рождения', yourAge: 'Ваш возраст',
@@ -3299,6 +3319,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: '该地区暂无玩家。', loading: '加载中…',
       mathrush: '数学竞速', reflex: '反应时间', reaction: '点击反应', stackGame: '堆叠', felixJump: 'Felix Jump',
       timeLeft: '剩余时间', attempt: '尝试', avgDev: '平均偏差', avgReact: '平均反应', blocks: '方块', distance: '距离',
+      challengeFriend: '🔗 挑战朋友', challengeCopied: '✓ 链接已复制！', youVs: '你 vs {name}',
+      challengeWon: '你赢了！🎉', challengeLost: '你输了', challengeTie: '平局！', shareChallengeLink: '分享挑战链接',
     },
     ageCalculator: {
       title: '🎂 年龄计算器', dateOfBirth: '出生日期', yourAge: '你的年龄',
@@ -3623,6 +3645,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'このエリアのプレイヤーはいません。', loading: '読み込み中…',
       mathrush: '計算Rush', reflex: '反射神経', reaction: '反応クリック', stackGame: 'スタック', felixJump: 'Felix Jump',
       timeLeft: '残り時間', attempt: '試行', avgDev: '平均偏差', avgReact: '平均反応', blocks: 'ブロック', distance: '距離',
+      challengeFriend: '🔗 友達に挑戦', challengeCopied: '✓ リンクをコピーしました！', youVs: 'あなた vs {name}',
+      challengeWon: '勝ちました！🎉', challengeLost: '負けました', challengeTie: '引き分けです！', shareChallengeLink: '挑戦リンクを共有',
     },
     ageCalculator: {
       title: '🎂 年齢計算機', dateOfBirth: '生年月日', yourAge: 'あなたの年齢',
@@ -3947,6 +3971,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: '이 지역의 플레이어가 없습니다.', loading: '로딩 중…',
       mathrush: '수학 러시', reflex: '반사신경', reaction: '반응 클릭', stackGame: '스택', felixJump: 'Felix Jump',
       timeLeft: '남은 시간', attempt: '시도', avgDev: '평균 편차', avgReact: '평균 반응', blocks: '블록', distance: '거리',
+      challengeFriend: '🔗 친구에게 도전하기', challengeCopied: '✓ 링크가 복사되었습니다!', youVs: '당신 vs {name}',
+      challengeWon: '승리했습니다! 🎉', challengeLost: '패배했습니다', challengeTie: '무승부입니다!', shareChallengeLink: '도전 링크 공유',
     },
     ageCalculator: {
       title: '🎂 나이 계산기', dateOfBirth: '생년월일', yourAge: '나이',
@@ -4271,6 +4297,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'لا يوجد لاعبون من هذه المنطقة.', loading: 'جارٍ التحميل…',
       mathrush: 'سباق الرياضيات', reflex: 'ردود الفعل', reaction: 'الاستجابة', stackGame: 'تراكم', felixJump: 'Felix Jump',
       timeLeft: 'الوقت المتبقي', attempt: 'محاولة', avgDev: 'متوسط الانحراف', avgReact: 'متوسط الرد', blocks: 'مكعبات', distance: 'مسافة',
+      challengeFriend: '🔗 تحدي صديق', challengeCopied: '✓ تم نسخ الرابط!', youVs: 'أنت ضد {name}',
+      challengeWon: 'لقد فزت! 🎉', challengeLost: 'لقد خسرت', challengeTie: 'إنها تعادل!', shareChallengeLink: 'مشاركة رابط التحدي',
     },
     ageCalculator: {
       title: '🎂 حاسبة العمر', dateOfBirth: 'تاريخ الميلاد', yourAge: 'عمرك',
@@ -4595,6 +4623,8 @@ const t: Record<Lang, Translations> = {
       noPlayersArea: 'इस क्षेत्र से कोई खिलाड़ी नहीं।', loading: 'लोड हो रहा है…',
       mathrush: 'गणित रश', reflex: 'रिफ्लेक्स', reaction: 'रिएक्शन', stackGame: 'स्टैक', felixJump: 'Felix Jump',
       timeLeft: 'शेष समय', attempt: 'प्रयास', avgDev: 'औसत विचलन', avgReact: 'औसत प्रतिक्रिया', blocks: 'ब्लॉक', distance: 'दूरी',
+      challengeFriend: '🔗 दोस्त को चुनौती दें', challengeCopied: '✓ लिंक कॉपी हो गया!', youVs: 'आप vs {name}',
+      challengeWon: 'आप जीत गए! 🎉', challengeLost: 'आप हार गए', challengeTie: 'यह बराबरी है!', shareChallengeLink: 'चुनौती लिंक साझा करें',
     },
     ageCalculator: {
       title: '🎂 आयु कैलकुलेटर', dateOfBirth: 'जन्म तिथि', yourAge: 'आपकी आयु',

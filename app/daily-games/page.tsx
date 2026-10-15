@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import PageShell from '../components/PageShell';
 import DailyGames from '../components/DailyGames';
 
@@ -25,7 +26,9 @@ export const metadata: Metadata = {
 export default function DailyGamesPage() {
   return (
     <PageShell>
-      <DailyGames />
+      <Suspense fallback={null}>
+        <DailyGames />
+      </Suspense>
     </PageShell>
   );
 }

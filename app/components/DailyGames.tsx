@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
 import { TypingSpeedTest } from './TypingSpeedTest';
 import WordleGames from './WordleGames';
 import { recordGameCompleted, recordLeaderboardRank } from '../../lib/streak';
+import type { Translations } from '../../lib/i18n';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -205,6 +207,40 @@ function dateSeed() {
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 }
 
+// Deterministic RNG (same LCG as seededShuffle) — repeated calls yield a reproducible sequence in [0,1).
+function makeRng(seed: number): () => number {
+  let s = seed || 1;
+  return () => {
+    s = Math.imul(s, 1664525) + 1013904223 | 0;
+    return (s >>> 0) / 4294967296;
+  };
+}
+
+function freshSeed(): number {
+  return (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+}
+
+type Challenge = { score: number; name: string } | undefined;
+
+function buildChallengeUrl(game: string, seed: number, score: number, name: string): string {
+  if (typeof window === 'undefined') return '';
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('challenge', game);
+  url.searchParams.set('seed', String(seed));
+  url.searchParams.set('score', String(score));
+  url.searchParams.set('name', name);
+  return url.toString();
+}
+
+// navigator.share on mobile (native share sheet, no extra feedback needed); clipboard copy otherwise.
+async function shareChallengeUrl(url: string, text: string): Promise<{ copied: boolean }> {
+  if (typeof navigator !== 'undefined' && navigator.share) {
+    try { await navigator.share({ text, url }); return { copied: false }; } catch { /* cancelled, fall through */ }
+  }
+  try { await navigator.clipboard.writeText(url); return { copied: true }; } catch { return { copied: false }; }
+}
+
 function fmtTime(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
@@ -276,6 +312,30 @@ function BestBadge({ label, value }: { label: string; value: string | number }) 
   );
 }
 
+function ChallengeVs({ challenge, myValue, lowerBetter, formatValue, t }: {
+  challenge: Challenge; myValue: number; lowerBetter: boolean;
+  formatValue: (v: number) => string; t: Translations;
+}) {
+  if (!challenge) return null;
+  const tie   = myValue === challenge.score;
+  const iWon  = !tie && (lowerBetter ? myValue < challenge.score : myValue > challenge.score);
+  const verdict = tie ? t.games.challengeTie : iWon ? t.games.challengeWon : t.games.challengeLost;
+  const verdictColor = tie ? '#FFB300' : iWon ? 'var(--green2)' : '#f87171';
+  return (
+    <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+      <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {t.games.youVs.replace('{name}', challenge.name)}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', alignItems: 'center' }}>
+        <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: '#fff' }}>{formatValue(myValue)}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>vs</div>
+        <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: 'var(--text2)' }}>{formatValue(challenge.score)}</div>
+      </div>
+      <div style={{ marginTop: '8px', fontSize: '13px', fontWeight: '700', color: verdictColor }}>{verdict}</div>
+    </div>
+  );
+}
+
 /* ═══════════════════════ LEADERBOARD MODAL ═══════════════════════ */
 
 type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
@@ -297,12 +357,26 @@ interface ModalProps {
   score?: number;
   moves?: number;
   diff?: string;
+  seed?: number;
   onClose: () => void;
   onShowLeaderboard: () => void;
 }
 
-function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLeaderboard }: ModalProps) {
+function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onShowLeaderboard }: ModalProps) {
   const { lang, t } = useLang();
+  const [challengeName, setChallengeName] = useState(() => lsGet<string>('lb_nick', ''));
+  const [challengeCopied, setChallengeCopied] = useState(false);
+  const canChallenge = CHALLENGE_GAMES.has(game) && seed !== undefined;
+
+  async function sendChallenge() {
+    if (!challengeName.trim() || seed === undefined) return;
+    lsSet('lb_nick', challengeName.trim());
+    const value = CHALLENGE_SCORE_BASED.has(game) ? (score ?? 0) : Math.round(timeMs);
+    const url = buildChallengeUrl(game, seed, value, challengeName.trim());
+    const text = `${t.games.challengeFriend} — EVERY DAY`;
+    const { copied } = await shareChallengeUrl(url, text);
+    if (copied) { setChallengeCopied(true); setTimeout(() => setChallengeCopied(false), 2200); }
+  }
   const [nick,       setNick]       = useState(() => lsGet<string>('lb_nick', ''));
   const [country,    setCountry]    = useState(() => lsGet<string>('lb_country', ''));
   const [city,       setCity]       = useState(() => lsGet<string>('lb_city', ''));
@@ -448,6 +522,32 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, onClose, onShowLea
             </>
           )}
         </div>
+
+        {/* Challenge a friend */}
+        {canChallenge && (
+          <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text" placeholder={t.games.nickPlaceholder} value={challengeName} maxLength={30}
+                onChange={e => setChallengeName(e.target.value.slice(0, 30))}
+                style={{ ...inputSt, flex: 1 }}
+              />
+              <button
+                onClick={sendChallenge}
+                disabled={!challengeName.trim()}
+                style={{
+                  flexShrink: 0, background: challengeCopied ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.08)',
+                  border: challengeCopied ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.14)',
+                  borderRadius: '9px', color: challengeCopied ? 'var(--green2)' : '#fff',
+                  fontSize: '12px', fontWeight: '600', padding: '0 14px', cursor: 'pointer',
+                  opacity: challengeName.trim() ? 1 : 0.5, whiteSpace: 'nowrap',
+                }}
+              >
+                {challengeCopied ? t.games.challengeCopied : t.games.challengeFriend}
+              </button>
+            </div>
+          </div>
+        )}
 
         {phase === 'form' ? (
           <>
@@ -764,7 +864,11 @@ type DiffKey = keyof typeof DIFFS;
 
 type MemCard = { id: number; pairId: number; code: string };
 
-function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number, diff: string) => void }) {
+function MemoryGame({ onComplete, challengeSeed, challenge }: {
+  onComplete: (timeMs: number, moves: number, diff: string, seed: number) => void;
+  challengeSeed?: number;
+  challenge?: Challenge;
+}) {
   const { lang, t } = useLang();
   const [diff, setDiff]       = useState<DiffKey>('4×4');
   const [cards, setCards]     = useState<MemCard[]>([]);
@@ -779,11 +883,12 @@ function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number
   const best = lsGet<Record<DiffKey, number>>('mem_best', {} as Record<DiffKey, number>);
   const startRef = useRef<number>(0);
   const rafRef   = useRef<number>(0);
+  const seedRef  = useRef(challengeSeed ?? dateSeed());
 
   const initGame = useCallback((d: DiffKey) => {
     cancelAnimationFrame(rafRef.current);
     const { pairs } = DIFFS[d];
-    const seed = dateSeed();
+    const seed = seedRef.current;
     const countries = seededShuffle(UNIQUE_COUNTRIES, seed).slice(0, pairs);
     const deck: MemCard[] = [];
     countries.forEach((c, i) => {
@@ -827,7 +932,7 @@ function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number
           setOver(true); setRunning(false);
           const prev = best[diff] ?? Infinity;
           if (newMoves < prev) lsSet('mem_best', { ...best, [diff]: newMoves });
-          setTimeout(() => onComplete(done, newMoves, diff), 400);
+          setTimeout(() => onComplete(done, newMoves, diff, seedRef.current), 400);
         }
       } else {
         setLocked(true);
@@ -912,6 +1017,8 @@ function MemoryGame({ onComplete }: { onComplete: (timeMs: number, moves: number
           <button onClick={() => initGame(diff)} style={{ marginTop: '12px', background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
             {t.games.playAgain}
           </button>
+
+          <ChallengeVs challenge={challenge} myValue={Math.round(finalMs)} lowerBetter formatValue={fmtTimePrecise4} t={t} />
         </div>
       )}
     </div>
@@ -1221,7 +1328,11 @@ function optionColors(
   return { bg: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', shadow: 'none', anim: 'none' };
 }
 
-function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, diff: string) => void }) {
+function FlagQuiz({ onComplete, challengeSeed, challenge }: {
+  onComplete: (timeMs: number, score: number, diff: string, seed: number) => void;
+  challengeSeed?: number;
+  challenge?: Challenge;
+}) {
   const { lang, t } = useLang();
   const fqDiffs: { key: FQDiff; label: string; pool: Country[] }[] = [
     { key: 'easy',   label: t.games.easy,   pool: POOL_EASY   },
@@ -1245,6 +1356,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
   const startTimeRef  = useRef<number | null>(null);
   const rafRef        = useRef<number>(0);
   const recordsRef    = useRef<FQRecord[]>(lsGet<FQRecord[]>('fq_records', []));
+  const usedSeedRef   = useRef<number>(0);
 
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
@@ -1257,7 +1369,9 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
     cancelAnimationFrame(rafRef.current);
     startTimeRef.current = null;
     const cfg = fqDiffs.find(x => x.key === d)!;
-    setQuestions(buildQuestions(dateSeed() + Math.floor(Math.random() * 1000), cfg.pool));
+    const seed = challengeSeed ?? (dateSeed() + Math.floor(Math.random() * 1000));
+    usedSeedRef.current = seed;
+    setQuestions(buildQuestions(seed, cfg.pool));
     setCurrent(0); setScore(0); setSelected(null); setState('playing');
     setStreak(0); setMaxStreak(0);
     setLiveMs(0); setFinalMs(0); setIsNewRecord(false); setCopied(false);
@@ -1305,7 +1419,7 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
         const updated = [...recordsRef.current, entry].sort((a, b) => b.score - a.score || a.time - b.time);
         recordsRef.current = updated;
         lsSet('fq_records', updated);
-        setTimeout(() => onComplete(elapsed, newScore, `${diff}-${variant}`), 400);
+        setTimeout(() => onComplete(elapsed, newScore, `${diff}-${variant}`, usedSeedRef.current), 400);
       } else {
         setCurrent(c => c + 1);
         setSelected(null);
@@ -1530,6 +1644,8 @@ function FlagQuiz({ onComplete }: { onComplete: (timeMs: number, score: number, 
             </button>
           </div>
 
+          <ChallengeVs challenge={challenge} myValue={score} lowerBetter={false} formatValue={v => `${v}/${TOTAL_Q}`} t={t} />
+
           {/* Local top 5 */}
           {top5.length > 0 && (
             <div style={{ textAlign: 'left', marginTop: '4px' }}>
@@ -1575,21 +1691,27 @@ function spIsSolved(tiles: number[]): boolean {
   return tiles.every((t, i) => t === SP_GOAL[i]);
 }
 
-function spGenerate(): number[] {
+function spGenerate(seed: number): number[] {
+  const rng = makeRng(seed);
   let t: number[];
   do {
     t = [...SP_GOAL];
     for (let i = t.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rng() * (i + 1));
       [t[i], t[j]] = [t[j], t[i]];
     }
   } while (!spIsSolvable(t) || spIsSolved(t));
   return t;
 }
 
-function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: number) => void }) {
+function SlidingPuzzle({ onComplete, challengeSeed, challenge }: {
+  onComplete: (timeMs: number, moves: number, seed: number) => void;
+  challengeSeed?: number;
+  challenge?: Challenge;
+}) {
   const { t } = useLang();
-  const [tiles, setTiles]         = useState<number[]>(() => spGenerate());
+  const seedRef = useRef(challengeSeed ?? freshSeed());
+  const [tiles, setTiles]         = useState<number[]>(() => spGenerate(seedRef.current));
   const [phase, setPhase]         = useState<'idle' | 'playing' | 'solved'>('idle');
   const [moves, setMoves]         = useState(0);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -1606,7 +1728,8 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
   function reset() {
     cancelAnimationFrame(rafRef.current);
     activeRef.current = false;
-    setTiles(spGenerate());
+    seedRef.current = challengeSeed ?? freshSeed();
+    setTiles(spGenerate(seedRef.current));
     setPhase('idle');
     setMoves(0);
     setElapsedMs(0);
@@ -1650,7 +1773,7 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
       const newBest = !prev || done < prev;
       if (newBest) { lsSet('sp_best_ms', done); setBestMs(done); }
       setIsNewBest(newBest);
-      setTimeout(() => onComplete(done, newMoves), 400);
+      setTimeout(() => onComplete(done, newMoves, seedRef.current), 400);
     }
   }
 
@@ -1766,6 +1889,8 @@ function SlidingPuzzle({ onComplete }: { onComplete: (timeMs: number, moves: num
           }}>
             ↺ {t.games.playAgain}
           </button>
+
+          <ChallengeVs challenge={challenge} myValue={Math.round(finalMs)} lowerBetter formatValue={fmtTimePrecise4} t={t} />
         </div>
       )}
     </div>
@@ -1794,45 +1919,51 @@ function playTone(freq: number, dur: number, type: OscillatorType = 'sine', vol 
 type MathDiff = 'easy' | 'medium' | 'hard';
 type MathPhase = 'idle' | 'countdown' | 'playing' | 'done';
 
-function genProblem(diff: MathDiff): { expr: string; answer: number; choices: number[] } {
+function genProblem(diff: MathDiff, rng: () => number = Math.random): { expr: string; answer: number; choices: number[] } {
   let a: number, b: number, answer: number, expr: string;
   if (diff === 'easy') {
-    const op = Math.random() < 0.5 ? '+' : '-';
-    a = Math.floor(Math.random() * 20) + 1;
-    b = Math.floor(Math.random() * 20) + 1;
+    const op = rng() < 0.5 ? '+' : '-';
+    a = Math.floor(rng() * 20) + 1;
+    b = Math.floor(rng() * 20) + 1;
     if (op === '-') { if (a < b) [a, b] = [b, a]; }
     answer = op === '+' ? a + b : a - b;
     expr = `${a} ${op} ${b}`;
   } else if (diff === 'medium') {
-    const r = Math.random();
-    if (r < 0.4) { a = Math.floor(Math.random() * 9) + 2; b = Math.floor(Math.random() * 9) + 2; answer = a * b; expr = `${a} × ${b}`; }
-    else if (r < 0.7) { a = Math.floor(Math.random() * 49) + 10; b = Math.floor(Math.random() * 29) + 5; answer = a + b; expr = `${a} + ${b}`; }
-    else { a = Math.floor(Math.random() * 49) + 20; b = Math.floor(Math.random() * 19) + 2; answer = a - b; expr = `${a} − ${b}`; }
+    const r = rng();
+    if (r < 0.4) { a = Math.floor(rng() * 9) + 2; b = Math.floor(rng() * 9) + 2; answer = a * b; expr = `${a} × ${b}`; }
+    else if (r < 0.7) { a = Math.floor(rng() * 49) + 10; b = Math.floor(rng() * 29) + 5; answer = a + b; expr = `${a} + ${b}`; }
+    else { a = Math.floor(rng() * 49) + 20; b = Math.floor(rng() * 19) + 2; answer = a - b; expr = `${a} − ${b}`; }
   } else {
-    const r = Math.random();
-    if (r < 0.3) { b = Math.floor(Math.random() * 9) + 2; answer = Math.floor(Math.random() * 14) + 2; a = b * answer; expr = `${a} ÷ ${b}`; }
-    else if (r < 0.6) { a = Math.floor(Math.random() * 18) + 5; b = Math.floor(Math.random() * 11) + 3; answer = a * b; expr = `${a} × ${b}`; }
-    else { a = Math.floor(Math.random() * 98) + 20; b = Math.floor(Math.random() * 79) + 10; if (Math.random() < 0.5) { answer = a + b; expr = `${a} + ${b}`; } else { if (a < b) [a, b] = [b, a]; answer = a - b; expr = `${a} − ${b}`; } }
+    const r = rng();
+    if (r < 0.3) { b = Math.floor(rng() * 9) + 2; answer = Math.floor(rng() * 14) + 2; a = b * answer; expr = `${a} ÷ ${b}`; }
+    else if (r < 0.6) { a = Math.floor(rng() * 18) + 5; b = Math.floor(rng() * 11) + 3; answer = a * b; expr = `${a} × ${b}`; }
+    else { a = Math.floor(rng() * 98) + 20; b = Math.floor(rng() * 79) + 10; if (rng() < 0.5) { answer = a + b; expr = `${a} + ${b}`; } else { if (a < b) [a, b] = [b, a]; answer = a - b; expr = `${a} − ${b}`; } }
   }
   const wrongs = new Set<number>();
   while (wrongs.size < 3) {
-    const d = Math.floor(Math.random() * 7) + 1;
-    const w = Math.random() < 0.5 ? answer + d : answer - d;
+    const d = Math.floor(rng() * 7) + 1;
+    const w = rng() < 0.5 ? answer + d : answer - d;
     if (w !== answer && w >= 0) wrongs.add(w);
   }
-  const choices = [answer, ...wrongs].sort(() => Math.random() - 0.5);
+  const choices = [answer, ...wrongs].sort(() => rng() - 0.5);
   return { expr, answer, choices };
 }
 
-function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, diff: string) => void }) {
+function MathRush({ onComplete, challengeSeed, challenge }: {
+  onComplete: (timeMs: number, score: number, diff: string, seed: number) => void;
+  challengeSeed?: number;
+  challenge?: Challenge;
+}) {
   const { t } = useLang();
+  const seedRef = useRef(challengeSeed ?? freshSeed());
+  const rngRef  = useRef(makeRng(seedRef.current));
   const [diff, setDiff] = useState<MathDiff>('easy');
   const [phase, setPhase] = useState<MathPhase>('idle');
   const [countdown, setCountdown] = useState(3);
   const [timeLeft, setTimeLeft] = useState(60);
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
-  const [problem, setProblem] = useState(() => genProblem('easy'));
+  const [problem, setProblem] = useState(() => genProblem('easy', rngRef.current));
   const [flash, setFlash] = useState<'correct' | 'wrong' | null>(null);
   const [finalScore, setFinalScore] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -1844,8 +1975,10 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
   function startGame(d: MathDiff = diff) {
     clearInterval(timerRef.current!); clearInterval(cdRef.current!);
     scoreRef.current = 0;
+    seedRef.current = challengeSeed ?? freshSeed();
+    rngRef.current = makeRng(seedRef.current);
     setDiff(d); setScore(0); setStreak(0); setTimeLeft(60); setFlash(null); setFinalScore(0);
-    setProblem(genProblem(d));
+    setProblem(genProblem(d, rngRef.current));
     setCountdown(3); setPhase('countdown');
     cdRef.current = setInterval(() => {
       setCountdown(c => {
@@ -1859,7 +1992,7 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
                 const finalSc = scoreRef.current;
                 setFinalScore(finalSc);
                 setPhase('done');
-                setTimeout(() => onComplete(60000, finalSc, d), 300);
+                setTimeout(() => onComplete(60000, finalSc, d, seedRef.current), 300);
                 return 0;
               }
               return tl - 1;
@@ -1885,7 +2018,7 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
       setFlash('wrong');
       setStreak(0);
     }
-    setTimeout(() => { setFlash(null); setProblem(genProblem(diff)); }, 180);
+    setTimeout(() => { setFlash(null); setProblem(genProblem(diff, rngRef.current)); }, 180);
   }
 
   const timerPct = (timeLeft / 60) * 100;
@@ -1967,6 +2100,8 @@ function MathRush({ onComplete }: { onComplete: (timeMs: number, score: number, 
           <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '6px' }}>{t.games.correct} · 60s</div>
           <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '16px' }}>Leaderboard modal loading…</div>
           <button onClick={() => setPhase('idle')} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+
+          <ChallengeVs challenge={challenge} myValue={finalScore} lowerBetter={false} formatValue={v => `${v} ✓`} t={t} />
         </div>
       )}
     </div>
@@ -2100,7 +2235,11 @@ const RC_ROUNDS = 5;
 const RC_FALSE_PENALTY = 200;
 type RCPhase = 'idle' | 'waiting' | 'ready' | 'result' | 'done';
 
-function ReactionClick({ onComplete }: { onComplete: (timeMs: number) => void }) {
+function ReactionClick({ onComplete, challengeSeed, challenge }: {
+  onComplete: (timeMs: number, seed: number) => void;
+  challengeSeed?: number;
+  challenge?: Challenge;
+}) {
   const { t } = useLang();
   const [phase, setPhase] = useState<RCPhase>('idle');
   const [round, setRound] = useState(1);
@@ -2110,14 +2249,16 @@ function ReactionClick({ onComplete }: { onComplete: (timeMs: number) => void })
   const [circleColor, setCircleColor] = useState('#5D4CFF');
   const waitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appearRef = useRef(0);
+  const seedRef = useRef(challengeSeed ?? freshSeed());
+  const rngRef  = useRef(makeRng(seedRef.current));
 
   const COLORS = ['#5D4CFF', '#4ade80', '#f87171', '#FFB300', '#60a5fa', '#e879f9'];
 
   function startWait() {
     setPhase('waiting'); setFalseStart(false); setLastMs(null);
-    const delay = 1200 + Math.random() * 2800;
+    const delay = 1200 + rngRef.current() * 2800;
     waitRef.current = setTimeout(() => {
-      setCircleColor(COLORS[Math.floor(Math.random() * COLORS.length)]);
+      setCircleColor(COLORS[Math.floor(rngRef.current() * COLORS.length)]);
       setPhase('ready');
       appearRef.current = performance.now();
     }, delay);
@@ -2136,7 +2277,7 @@ function ReactionClick({ onComplete }: { onComplete: (timeMs: number) => void })
       playTone(220, 0.2, 'sawtooth', 0.08);
       if (nr.length >= RC_ROUNDS) {
         const avg = nr.reduce((a, b) => a + b, 0) / nr.length;
-        setTimeout(() => { setPhase('done'); onComplete(Math.round(avg)); }, 600);
+        setTimeout(() => { setPhase('done'); onComplete(Math.round(avg), seedRef.current); }, 600);
       }
       return;
     }
@@ -2149,12 +2290,16 @@ function ReactionClick({ onComplete }: { onComplete: (timeMs: number) => void })
       setPhase('result');
       if (nr.length >= RC_ROUNDS) {
         const avg = nr.reduce((a, b) => a + b, 0) / nr.length;
-        setTimeout(() => { setPhase('done'); onComplete(Math.round(avg)); }, 600);
+        setTimeout(() => { setPhase('done'); onComplete(Math.round(avg), seedRef.current); }, 600);
       }
     }
   }
 
-  function reset() { clearTimeout(waitRef.current!); setPhase('idle'); setRound(1); setResults([]); setLastMs(null); setFalseStart(false); }
+  function reset() {
+    clearTimeout(waitRef.current!); setPhase('idle'); setRound(1); setResults([]); setLastMs(null); setFalseStart(false);
+    seedRef.current = challengeSeed ?? freshSeed();
+    rngRef.current = makeRng(seedRef.current);
+  }
 
   function advance() { if (phase !== 'result' || results.length >= RC_ROUNDS) return; setRound(r => r + 1); startWait(); }
 
@@ -2217,6 +2362,8 @@ function ReactionClick({ onComplete }: { onComplete: (timeMs: number) => void })
             <div style={{ fontFamily: 'Poppins', fontSize: '13px', color: 'var(--text2)', marginBottom: '4px' }}>{t.games.avgReact}</div>
             <div style={{ fontFamily: 'Poppins', fontSize: '42px', fontWeight: '900', color: 'var(--green2)', marginBottom: '14px' }}>{avgMs}ms</div>
             <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+
+            <ChallengeVs challenge={challenge} myValue={avgMs ?? 0} lowerBetter formatValue={v => `${v}ms`} t={t} />
           </div>
         )}
       </div>
@@ -2555,7 +2702,12 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
 
 type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
 type CategoryId = 'daily' | 'speed' | 'hb' | 'wordle';
-type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string } | null;
+type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string; seed?: number } | null;
+
+// Games that support the "challenge a friend" link flow.
+const CHALLENGE_GAMES = new Set<GameId>(['sliding', 'flagquiz', 'memory', 'mathrush', 'reaction', 'typing']);
+// Among those, games ranked by score (higher better) vs. by time (lower better).
+const CHALLENGE_SCORE_BASED = new Set<GameId>(['flagquiz', 'mathrush', 'typing']);
 
 interface CategoryDef {
   id: CategoryId; icon: string; name: string; desc: string;
@@ -2679,6 +2831,26 @@ export default function DailyGames() {
   const [modal,     setModal]    = useState<ModalState>(null);
   const [catHover,  setCatHover] = useState<CategoryId | null>(null);
 
+  const searchParams = useSearchParams();
+  const urlChallenge = useMemo(() => {
+    const g = searchParams.get('challenge');
+    const seedStr = searchParams.get('seed');
+    const scoreStr = searchParams.get('score');
+    const name = searchParams.get('name');
+    if (!g || !seedStr || !scoreStr || !name || !CHALLENGE_GAMES.has(g as GameId)) return null;
+    const seed = Number(seedStr);
+    const score = Number(scoreStr);
+    if (!Number.isFinite(seed) || !Number.isFinite(score)) return null;
+    return { game: g as GameId, seed, score, name: name.slice(0, 30) };
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!urlChallenge) return;
+    const game = urlChallenge.game as TabId;
+    if (DAILY_TABS.includes(game)) { setCategory('daily'); setTab(game); }
+    else if (SPEED_TABS.includes(game)) { setCategory('speed'); setTab(game); }
+  }, [urlChallenge]);
+
   function selectCategory(cat: CategoryId) {
     setCategory(cat);
     setModal(null);
@@ -2686,7 +2858,7 @@ export default function DailyGames() {
     if (cat === 'speed') setTab('mathrush');
   }
 
-  function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string }) {
+  function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string; seed?: number }) {
     setModal({ game, timeMs, ...extra });
     recordGameCompleted();
   }
@@ -2888,16 +3060,28 @@ export default function DailyGames() {
       </div>
 
       {/* Games */}
-      {tab === 'memory'    && <MemoryGame    onComplete={(ms, mv, df) => openModal('memory',    ms, { moves: mv, diff: df })} />}
+      {tab === 'memory'    && <MemoryGame    onComplete={(ms, mv, df, seed) => openModal('memory',    ms, { moves: mv, diff: df, seed })}
+        challengeSeed={urlChallenge?.game === 'memory' ? urlChallenge.seed : undefined}
+        challenge={urlChallenge?.game === 'memory' ? urlChallenge : undefined} />}
       {tab === 'wordchain' && <WordChain     onComplete={(ms, sc)     => openModal('wordchain', ms, { score: sc })} />}
-      {tab === 'flagquiz'  && <FlagQuiz      onComplete={(ms, sc, df) => openModal('flagquiz',  ms, { score: sc, diff: df })} />}
-      {tab === 'sliding'   && <SlidingPuzzle onComplete={(ms, mv)     => openModal('sliding',   ms, { moves: mv })} />}
-      {tab === 'mathrush'  && <MathRush      onComplete={(ms, sc, df) => openModal('mathrush',  ms, { score: sc, diff: df })} />}
+      {tab === 'flagquiz'  && <FlagQuiz      onComplete={(ms, sc, df, seed) => openModal('flagquiz',  ms, { score: sc, diff: df, seed })}
+        challengeSeed={urlChallenge?.game === 'flagquiz' ? urlChallenge.seed : undefined}
+        challenge={urlChallenge?.game === 'flagquiz' ? urlChallenge : undefined} />}
+      {tab === 'sliding'   && <SlidingPuzzle onComplete={(ms, mv, seed) => openModal('sliding',   ms, { moves: mv, seed })}
+        challengeSeed={urlChallenge?.game === 'sliding' ? urlChallenge.seed : undefined}
+        challenge={urlChallenge?.game === 'sliding' ? urlChallenge : undefined} />}
+      {tab === 'mathrush'  && <MathRush      onComplete={(ms, sc, df, seed) => openModal('mathrush',  ms, { score: sc, diff: df, seed })}
+        challengeSeed={urlChallenge?.game === 'mathrush' ? urlChallenge.seed : undefined}
+        challenge={urlChallenge?.game === 'mathrush' ? urlChallenge : undefined} />}
       {tab === 'reflex'    && <ReflexTimer   onComplete={(ms)         => openModal('reflex',    ms)} />}
-      {tab === 'reaction'  && <ReactionClick onComplete={(ms)         => openModal('reaction',  ms)} />}
+      {tab === 'reaction'  && <ReactionClick onComplete={(ms, seed)   => openModal('reaction',  ms, { seed })}
+        challengeSeed={urlChallenge?.game === 'reaction' ? urlChallenge.seed : undefined}
+        challenge={urlChallenge?.game === 'reaction' ? urlChallenge : undefined} />}
       {tab === 'stack'     && <StackGame     onComplete={(ms, sc)     => openModal('stack',     ms, { score: sc })} />}
       {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
-      {tab === 'typing'    && <TypingSpeedTest onComplete={(ms, sc, df) => openModal('typing',    ms, { score: sc, diff: df })} />}
+      {tab === 'typing'    && <TypingSpeedTest onComplete={(ms, sc, df, seed) => openModal('typing', ms, { score: sc, diff: df, seed })}
+        challengeSeed={urlChallenge?.game === 'typing' ? urlChallenge.seed : undefined}
+        challenge={urlChallenge?.game === 'typing' ? urlChallenge : undefined} />}
 
       {/* Leaderboard — always visible below active game */}
       <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -2909,7 +3093,7 @@ export default function DailyGames() {
 
       {modal && (
         <LeaderboardModal
-          game={modal.game} timeMs={modal.timeMs} score={modal.score} moves={modal.moves} diff={modal.diff}
+          game={modal.game} timeMs={modal.timeMs} score={modal.score} moves={modal.moves} diff={modal.diff} seed={modal.seed}
           onClose={() => setModal(null)}
           onShowLeaderboard={handleShowLeaderboard}
         />

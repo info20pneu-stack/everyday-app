@@ -41,6 +41,11 @@ const LANG_OPTIONS = [
 const DURATIONS = [15, 30, 60, 120] as const;
 type Duration = 15 | 30 | 60 | 120;
 type Phase = 'idle' | 'playing' | 'done';
+type Challenge = { score: number; name: string } | undefined;
+
+function closestDuration(n: number): Duration {
+  return DURATIONS.reduce((best, d) => Math.abs(d - n) < Math.abs(best - n) ? d : best, DURATIONS[0]);
+}
 
 function durationLabel(t: Translations, d: Duration): string {
   const key = `dur_${d}s` as const;
@@ -84,11 +89,14 @@ function WpmGraph({ history, t }: { history: number[]; t: Translations }) {
   );
 }
 
-export function TypingSpeedTest({ onComplete }: {
-  onComplete: (timeMs: number, wpm: number, diff: string) => void;
+export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
+  onComplete: (timeMs: number, wpm: number, diff: string, seed: number) => void;
+  challengeSeed?: number;
+  challenge?: Challenge;
 }) {
   const { t } = useLang();
-  const [duration, setDuration]     = useState<Duration>(60);
+  const isChallenge = challengeSeed !== undefined;
+  const [duration, setDuration]     = useState<Duration>(() => challengeSeed ? closestDuration(challengeSeed) : 60);
   const [lang, setLang]             = useState('en');
   const [phase, setPhase]           = useState<Phase>('idle');
   const [timeLeft, setTimeLeft]     = useState<number>(60);
@@ -141,7 +149,7 @@ export function TypingSpeedTest({ onComplete }: {
           setBestWpm(s.wpm);
           try { localStorage.setItem('typing_best_wpm', String(s.wpm)); } catch {}
         }
-        onComplete(duration * 1000, s.wpm, `${duration}s`);
+        onComplete(duration * 1000, s.wpm, `${duration}s`, duration);
       }
     }, 1000);
 
@@ -178,7 +186,12 @@ export function TypingSpeedTest({ onComplete }: {
   return (
     <div>
       {/* Duration + Language — idle only */}
-      {phase === 'idle' && (
+      {phase === 'idle' && isChallenge && (
+        <div style={{ fontSize: '11px', color: 'var(--purple3)', marginBottom: '10px', textAlign: 'center' }}>
+          🔗 {durationLabel(t, duration)} · EN
+        </div>
+      )}
+      {phase === 'idle' && !isChallenge && (
         <>
           <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
             {DURATIONS.map(d => (
@@ -340,6 +353,26 @@ export function TypingSpeedTest({ onComplete }: {
               padding: '9px 22px', cursor: 'pointer',
             }}>{t.typingTest.playAgain}</button>
           </div>
+
+          {challenge && (() => {
+            const tie = finalStats.wpm === challenge.score;
+            const won = !tie && finalStats.wpm > challenge.score;
+            const verdict = tie ? t.games.challengeTie : won ? t.games.challengeWon : t.games.challengeLost;
+            const verdictColor = tie ? '#FFB300' : won ? 'var(--green2)' : '#f87171';
+            return (
+              <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {t.games.youVs.replace('{name}', challenge.name)}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', alignItems: 'center' }}>
+                  <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: '#fff' }}>{finalStats.wpm} wpm</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>vs</div>
+                  <div style={{ fontFamily: 'Poppins', fontSize: '20px', fontWeight: '700', color: 'var(--text2)' }}>{challenge.score} wpm</div>
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '13px', fontWeight: '700', color: verdictColor }}>{verdict}</div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>
