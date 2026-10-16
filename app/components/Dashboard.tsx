@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, lazy, Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import AdBanner from './AdBanner';
 import RetroWindow from './RetroWindow';
 import { useLang } from '../../lib/LanguageContext';
@@ -10,8 +9,7 @@ import { useReveal } from '../../lib/useReveal';
 import type { Translations } from '../../lib/i18n';
 import MyDay from './MyDay';
 import DailyPuzzle from './DailyPuzzle';
-
-const GlobeHero = dynamic(() => import('./GlobeHero'), { ssr: false });
+import EarthHero from './EarthHero';
 
 /* ─── Lazy widget imports ─── */
 const WorldTime          = lazy(() => import('./WorldTime'));
@@ -216,7 +214,7 @@ export default function Dashboard() {
     <>
       {!isRetro && (
         <div ref={heroRef} className="reveal">
-          <GlobeHero />
+          <EarthHero />
         </div>
       )}
       <MyDay />
