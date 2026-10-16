@@ -26,15 +26,17 @@ export default function EarthHero() {
   return (
     <>
       <section className="earth-hero hero-section">
-        <Image
-          src={heroEarth}
-          alt=""
-          fill
-          preload
-          sizes="(max-width: 480px) 100vw, (max-width: 1180px) 90vw, 900px"
-          className="earth-hero-img"
-        />
-        <div className="earth-hero-shade" aria-hidden="true" />
+        <div className="earth-hero-planet" aria-hidden="true">
+          <div className="earth-hero-glow" />
+          <Image
+            src={heroEarth}
+            alt=""
+            fill
+            preload
+            sizes="(max-width: 480px) 100vw, 560px"
+            className="earth-hero-img"
+          />
+        </div>
 
         <div className="earth-hero-content">
           <h1 className="earth-hero-title">EVERY <span>DAY</span></h1>

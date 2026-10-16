@@ -829,19 +829,50 @@ a:focus-visible {
   display: flex;
   align-items: center;
   padding: 0 !important;
-  background: #02040e;
+  background: linear-gradient(160deg, #02040e 0%, #0d1324 100%);
   border: 1px solid rgba(255,255,255,0.06);
+  container-type: inline-size;
 }
-.earth-hero-img {
-  object-fit: cover;
-  object-position: right center;
-}
-.earth-hero-shade {
+/* Faint CSS star field */
+.earth-hero::before {
+  content: '';
   position: absolute;
   inset: 0;
-  z-index: 1;
-  background: linear-gradient(90deg, #02040e 0%, rgba(2,4,14,0.85) 30%, rgba(2,4,14,0.35) 58%, rgba(2,4,14,0) 80%);
   pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 8% 18%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 22% 72%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 35% 30%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 48% 12%, rgba(255,255,255,0.55), transparent),
+    radial-gradient(1px 1px at 57% 58%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 66% 8%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 79% 22%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 92% 10%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 14% 45%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(1px 1px at 41% 88%, rgba(255,255,255,0.35), transparent);
+}
+/* Earth: upper hemisphere sitting on the bottom edge like a horizon */
+.earth-hero-planet {
+  position: absolute;
+  z-index: 1;
+  right: -6%;
+  bottom: -28px;
+  width: 54%;
+  max-width: 580px;
+  aspect-ratio: 1221 / 613;
+  pointer-events: none;
+}
+.earth-hero-glow {
+  position: absolute;
+  inset: 8% 4% -10%;
+  border-radius: 50% 50% 0 0;
+  background: radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.35) 0%, rgba(59,130,246,0.18) 45%, transparent 72%);
+  filter: blur(40px);
+}
+.earth-hero-img {
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 0 30px rgba(96,165,250,0.5));
 }
 .earth-hero-content {
   position: relative;
@@ -851,13 +882,14 @@ a:focus-visible {
   align-items: flex-start;
   text-align: left;
   gap: 10px;
-  padding: 0 2.5rem;
-  max-width: 60%;
+  padding: 0 0 0 2.5rem;
+  max-width: 51%;
 }
 .earth-hero-title {
   font-family: 'Poppins', sans-serif;
-  font-size: 3.5rem;
+  font-size: clamp(2.25rem, 7cqi, 3.5rem);
   line-height: 1.05;
+  white-space: nowrap;
   font-weight: 600;
   letter-spacing: 2px;
   color: #fff;
@@ -918,9 +950,8 @@ a:focus-visible {
 .hero-clock {
   position: absolute;
   z-index: 2;
-  right: 8%;
-  top: 50%;
-  transform: translateY(-50%);
+  right: 9%;
+  top: 22px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -952,11 +983,8 @@ a:focus-visible {
 }
 
 @media (max-width: 1180px) {
-  .earth-hero-title {
-    font-size: 2.75rem;
-  }
   .earth-hero-content {
-    padding: 0 1.75rem;
+    padding: 0 0 0 1.75rem;
   }
 }
 /* Phones: text on top, image dimmer behind it, small clock top-right */
@@ -966,12 +994,11 @@ a:focus-visible {
     min-height: 260px;
     align-items: flex-start;
   }
-  .earth-hero-img {
-    opacity: 0.6;
-    object-position: 70% center;
-  }
-  .earth-hero-shade {
-    background: linear-gradient(180deg, rgba(2,4,14,0.9) 0%, rgba(2,4,14,0.55) 55%, rgba(2,4,14,0.2) 100%);
+  .earth-hero-planet {
+    right: 0;
+    bottom: -12px;
+    width: 100%;
+    opacity: 0.5;
   }
   .earth-hero-content {
     max-width: 100%;
@@ -1000,7 +1027,6 @@ a:focus-visible {
   .hero-clock {
     top: 12px;
     right: 12px;
-    transform: none;
     gap: 2px;
   }
   .hero-clock-face {
