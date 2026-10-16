@@ -124,7 +124,7 @@ export default function Topbar() {
       </div>
 
       {/* Right icons + lang switcher */}
-      <div style={{
+      <div className="topbar-actions" style={{
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
@@ -135,6 +135,8 @@ export default function Topbar() {
         <div ref={dropRef} style={{ position: 'relative' }}>
           <button
             onClick={() => setOpen(o => !o)}
+            className="topbar-btn"
+            aria-label="Language"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -151,11 +153,11 @@ export default function Topbar() {
             }}
           >
             <span style={{ fontSize: '16px' }}>{current.flag}</span>
-            <span style={{ fontSize: '11px', color: 'var(--text2)', fontWeight: '500' }}>
+            <span className="topbar-lang-code" style={{ fontSize: '12px', color: 'var(--text2)', fontWeight: '500' }}>
               {current.code.toUpperCase()}
             </span>
-            <span style={{
-              fontSize: '8px',
+            <span className="topbar-lang-caret" style={{
+              fontSize: '12px',
               color: 'var(--text3)',
               transform: open ? 'rotate(180deg)' : 'none',
               transition: 'transform .15s',
@@ -175,6 +177,9 @@ export default function Topbar() {
               padding: '6px',
               zIndex: 200,
               width: '180px',
+              maxWidth: 'calc(100vw - 16px)',
+              maxHeight: 'calc(100dvh - 70px)',
+              overflowY: 'auto',
               boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -195,6 +200,7 @@ export default function Topbar() {
                     borderRadius: '8px',
                     color: lang === l.code ? '#fff' : 'var(--text2)',
                     padding: '6px 8px',
+                    minHeight: '40px',
                     fontSize: '12px',
                     cursor: 'pointer',
                     textAlign: 'left',
@@ -202,7 +208,7 @@ export default function Topbar() {
                   }}
                 >
                   <span style={{ fontSize: '15px', flexShrink: 0 }}>{l.flag}</span>
-                  <span style={{ fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {l.name}
                   </span>
                 </button>
@@ -216,6 +222,7 @@ export default function Topbar() {
           <button
             onClick={() => setThemeOpen(o => !o)}
             title="Change theme"
+            className="topbar-btn"
             style={{
               display: 'flex', alignItems: 'center', gap: '4px',
               background: themeOpen ? 'rgba(93,76,255,0.18)' : 'rgba(255,255,255,0.04)',
@@ -241,7 +248,7 @@ export default function Topbar() {
                   background: theme === th.id ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'transparent',
                   border: 'none', borderRadius: '8px',
                   color: theme === th.id ? '#fff' : 'var(--text2)',
-                  padding: '7px 10px', fontSize: '12px', cursor: 'pointer', textAlign: 'left', width: '100%',
+                  padding: '7px 10px', minHeight: '40px', fontSize: '13px', cursor: 'pointer', textAlign: 'left', width: '100%',
                 }}>
                   <span style={{ fontSize: '14px' }}>{th.icon}</span>
                   <span>{th.label}</span>
@@ -255,11 +262,11 @@ export default function Topbar() {
         <StreakBadge />
 
         {/* Avatar */}
-        <div style={{
+        <div className="topbar-avatar" style={{
           width: '32px', height: '32px', borderRadius: '50%',
           background: 'linear-gradient(135deg, var(--purple), var(--purple2))',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', fontSize: '11px', fontWeight: '600', color: '#fff',
+          cursor: 'pointer', fontSize: '12px', fontWeight: '600', color: '#fff',
           transition: 'transform 0.2s, box-shadow 0.2s',
         }}
         onMouseEnter={e => {

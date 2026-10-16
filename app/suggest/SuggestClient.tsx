@@ -267,7 +267,7 @@ export default function SuggestClient() {
                         rows={4}
                         style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }}
                       />
-                      <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'right', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'right', marginTop: '4px' }}>
                         {description.length}/600
                       </div>
                     </div>
@@ -349,7 +349,7 @@ export default function SuggestClient() {
                   <h2 style={{ fontSize: '15px', color: '#fff', fontFamily: 'Poppins' }}>
                     Community suggestions
                   </h2>
-                  <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
                     {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
                   </span>
                 </div>
@@ -422,7 +422,7 @@ export default function SuggestClient() {
                                 {s.title}
                               </div>
                               <span style={{
-                                fontSize: '11px',
+                                fontSize: '12px',
                                 fontWeight: '500',
                                 color: meta.color,
                                 background: meta.bg,
@@ -437,7 +437,7 @@ export default function SuggestClient() {
                             <div style={{ fontSize: '13px', color: 'var(--text3)', marginTop: '6px', lineHeight: 1.5 }}>
                               {s.description}
                             </div>
-                            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
                               {new Date(s.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                           </div>

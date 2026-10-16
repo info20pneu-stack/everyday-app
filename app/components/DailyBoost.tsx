@@ -183,11 +183,11 @@ function ActivityCard({
           <div style={{ fontSize: '13px', fontWeight: '600', color: done ? 'var(--green2)' : '#fff', marginBottom: '2px', fontFamily: 'Poppins' }}>
             {activity.name}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', lineHeight: 1.4 }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', lineHeight: 1.4 }}>
             {activity.desc}
           </div>
           {activity.durationLabel && (
-            <div style={{ fontSize: '10px', color: 'var(--purple3)', marginTop: '3px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--purple3)', marginTop: '3px' }}>
               ⏱ {activity.durationLabel}
             </div>
           )}
@@ -209,7 +209,7 @@ function ActivityCard({
             <div style={{
               position: 'absolute', inset: 0,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: remaining >= 60 ? '10px' : '12px',
+              fontSize: remaining >= 60 ? '12px' : '12px',
               fontWeight: '700', color: finished ? 'var(--green2)' : '#fff',
               fontFamily: 'Poppins',
             }}>
@@ -223,6 +223,7 @@ function ActivityCard({
             </div>
             <div style={{ display: 'flex', gap: '6px' }}>
               <button
+                className="icon-btn"
                 onClick={() => setRunning(r => !r)}
                 disabled={finished}
                 style={{
@@ -234,7 +235,7 @@ function ActivityCard({
               >
                 {running ? t.dailyBoost.pause : finished ? t.dailyBoost.finished : t.dailyBoost.start}
               </button>
-              <button
+              <button className="icon-btn"
                 onClick={reset}
                 style={{
                   padding: '5px 10px', borderRadius: '7px', border: '1px solid rgba(255,255,255,0.08)',
@@ -369,7 +370,7 @@ export default function DailyBoost() {
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '2px' }}>
             {t.dailyBoost.title}
           </h2>
-          <div style={{ fontSize: '11px', color: 'var(--text3)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
             {formatDate()}
           </div>
         </div>
@@ -378,7 +379,7 @@ export default function DailyBoost() {
 
       {/* Progress bar */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text3)', marginBottom: '5px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text3)', marginBottom: '5px' }}>
           <span>{t.dailyBoost.todaysChallenges}</span>
           <span style={{ color: allDone ? 'var(--green2)' : '#fff', fontWeight: '600' }}>{doneCount} / 4</span>
         </div>
@@ -406,7 +407,7 @@ export default function DailyBoost() {
         <div style={{ fontSize: '12px', color: 'var(--text2)', fontStyle: 'italic', lineHeight: 1.5 }}>
           „{quote.text}"
         </div>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '4px', textAlign: 'right' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px', textAlign: 'right' }}>
           — {quote.author}
         </div>
       </div>
@@ -425,7 +426,7 @@ export default function DailyBoost() {
           <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--green2)', fontFamily: 'Poppins' }}>
             {t.dailyBoost.allCompleted}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '2px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
             {streak > 1 ? t.dailyBoost.streakMessage.replace('{streak}', String(streak)) : t.dailyBoost.greatStart}
           </div>
         </div>
@@ -444,7 +445,7 @@ export default function DailyBoost() {
         ))}
       </div>
 
-      <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '1rem' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '1rem' }}>
         {t.dailyBoost.activitiesNote}
       </div>
     </div>

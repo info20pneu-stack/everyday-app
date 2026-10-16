@@ -25,8 +25,8 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const windowWidth = useWindowWidth();
 
-  // tablet (481–768 px): always force collapsed, but don't overwrite user preference
-  const isTabletForced = windowWidth !== null && windowWidth <= 768 && windowWidth > 480;
+  // tablet (481–1180 px): always force collapsed to icons, but don't overwrite user preference
+  const isTabletForced = windowWidth !== null && windowWidth <= 1180 && windowWidth > 480;
   const effectiveCollapsed = isTabletForced || collapsed;
 
   // Restore preference from localStorage after mount
@@ -154,6 +154,7 @@ export default function Sidebar() {
             justifyContent: effectiveCollapsed ? 'center' : 'flex-start',
             gap: effectiveCollapsed ? 0 : '10px',
             padding: effectiveCollapsed ? '10px 0' : '10px 14px',
+            minHeight: '44px',
             borderRadius: '14px',
             fontSize: '13px',
             color: isActive ? '#fff' : 'var(--text3)',
@@ -225,7 +226,7 @@ export default function Sidebar() {
           <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', fontFamily: 'Poppins', marginBottom: '4px' }}>
             {t.premium.title}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '.75rem', lineHeight: '1.5' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '.75rem', lineHeight: '1.5' }}>
             {t.premium.description}
           </div>
           <button style={{
@@ -245,7 +246,7 @@ export default function Sidebar() {
       )}
 
       {/* Collapsed — premium icon only */}
-      {collapsed && (
+      {effectiveCollapsed && (
         <div style={{
           padding: '8px 6px',
           display: 'flex',
@@ -254,8 +255,8 @@ export default function Sidebar() {
           <button
             title={t.buttons.upgradeNow}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '44px',
+              height: '44px',
               borderRadius: '12px',
               background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
               border: 'none',

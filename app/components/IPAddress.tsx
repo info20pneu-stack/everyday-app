@@ -33,7 +33,7 @@ const card: React.CSSProperties = {
 
 const label: React.CSSProperties = {
   color: 'var(--text3)',
-  fontSize: '0.7rem',
+  fontSize: '0.75rem',
   textTransform: 'uppercase',
   letterSpacing: '1px',
   marginBottom: '2px',

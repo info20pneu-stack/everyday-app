@@ -122,13 +122,13 @@ function RateChart({ history, accentColor }: { history: RateHistory; accentColor
         <div style={{
           position: 'absolute', top: 0, left: 0, transform: `translate(${Math.min(Math.max(hover.x - 30, 0), W - 60)}px, -2px)`,
           background: '#0f1428', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px',
-          padding: '3px 7px', fontSize: '10px', color: '#fff', whiteSpace: 'nowrap', pointerEvents: 'none',
+          padding: '3px 7px', fontSize: '12px', color: '#fff', whiteSpace: 'nowrap', pointerEvents: 'none',
         }}>
           <div style={{ color: 'var(--text3)' }}>{dates[hoverIdx]?.slice(5)}</div>
           <div style={{ fontWeight: '700' }}>{values[hoverIdx]?.toFixed(4)}</div>
         </div>
       )}
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
         <span>{min.toFixed(4)}</span>
         <span>{max.toFixed(4)}</span>
       </div>
@@ -231,7 +231,7 @@ export default function Currency() {
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>
           💵 Currency Converter
         </h2>
-        <button
+        <button className="icon-btn"
           onClick={loadRates}
           title="Refresh rates"
           disabled={fetchState === 'loading'}
@@ -258,7 +258,7 @@ export default function Currency() {
       {fetchState !== 'loading' && (
         <>
           <div style={rowStyle}>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>You send</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>You send</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <input
                 type="number"
@@ -270,7 +270,7 @@ export default function Currency() {
                 <span style={{ fontSize: '22px' }}>{fromCurr.flag}</span>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{from}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{fromCurr.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{fromCurr.name}</div>
                 </div>
                 <select value={from} onChange={e => setFrom(e.target.value)} style={selectStyle}>
                   {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
@@ -280,14 +280,14 @@ export default function Currency() {
           </div>
 
           <div style={{ textAlign: 'center', margin: '-.25rem 0', position: 'relative', zIndex: 1 }}>
-            <button
+            <button className="icon-btn"
               onClick={() => { setFrom(to); setTo(from); }}
               style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', color: '#fff' }}
             >⇅</button>
           </div>
 
           <div style={{ ...rowStyle, marginTop: '.75rem' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>You receive</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>You receive</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{ fontSize: '28px', fontWeight: '300', color: '#fff', width: '150px' }}>
                 {result.toFixed(2)}
@@ -296,7 +296,7 @@ export default function Currency() {
                 <span style={{ fontSize: '22px' }}>{toCurr.flag}</span>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{to}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{toCurr.name}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{toCurr.name}</div>
                 </div>
                 <select value={to} onChange={e => setTo(e.target.value)} style={selectStyle}>
                   {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
@@ -315,7 +315,7 @@ export default function Currency() {
                 <span style={{ color: 'var(--amber)' }}>● Static data (backup)</span>
               )}
             </span>
-            <button
+            <button className="icon-btn"
               onClick={toggleFavPair}
               title={isFavPair ? t.currency.removeFavorite : t.currency.addFavorite}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', color: isFavPair ? '#FFB300' : 'var(--text3)', lineHeight: 1 }}
@@ -324,11 +324,11 @@ export default function Currency() {
 
           {/* Favorite pairs */}
           <div style={{ marginBottom: '.75rem' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
               {t.currency.favorites}
             </div>
             {favPairs.length === 0 ? (
-              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.currency.noFavorites}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.currency.noFavorites}</div>
             ) : (
               <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                 {favPairs.map(p => (
@@ -337,7 +337,7 @@ export default function Currency() {
                     onClick={() => { setFrom(p.from); setTo(p.to); }}
                     style={{
                       padding: '4px 9px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                      fontSize: '11px', fontWeight: '600',
+                      fontSize: '12px', fontWeight: '600',
                       background: p.from === from && p.to === to ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.06)',
                       color: p.from === from && p.to === to ? 'var(--purple3)' : 'var(--text2)',
                     }}
@@ -349,20 +349,20 @@ export default function Currency() {
 
           {/* 30-day chart */}
           <div style={{ ...rowStyle }}>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
               {t.currency.chart30d} · {from}→{to}
             </div>
             {history ? (
               <RateChart history={history} accentColor="var(--purple3)" />
             ) : historyError ? (
-              <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', padding: '12px 0' }}>{t.currency.chartUnavailable}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '12px 0' }}>{t.currency.chartUnavailable}</div>
             ) : (
               <div style={{ height: '70px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite' }} />
             )}
           </div>
 
           {fetchState === 'error' && (
-            <div style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '8px', padding: '6px 12px', fontSize: '11px', color: 'var(--amber)', marginBottom: '1rem', textAlign: 'center' }}>
+            <div style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', color: 'var(--amber)', marginBottom: '1rem', textAlign: 'center' }}>
               ⚠️ Live rates unavailable · showing backup data
             </div>
           )}
@@ -377,14 +377,14 @@ export default function Currency() {
                     <span>{c.flag}</span>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>{c.code}</div>
-                      <div style={{ fontSize: '9px', color: 'var(--text3)' }}>{c.name}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.name}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>
                       {val.toFixed(val > 100 ? 1 : 4)}
                     </div>
-                    <div style={{ fontSize: '9px', color: dataSource === 'live' ? 'var(--green2)' : 'var(--text3)' }}>
+                    <div style={{ fontSize: '12px', color: dataSource === 'live' ? 'var(--green2)' : 'var(--text3)' }}>
                       {dataSource === 'live' ? 'live' : 'static'}
                     </div>
                   </div>

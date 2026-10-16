@@ -214,7 +214,7 @@ export default function SunriseSunset() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>{t.sunriseSunset.title}</h2>
-        <button onClick={load} title="Refresh" style={{
+        <button className="icon-btn" onClick={load} title="Refresh" style={{
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '8px', color: 'var(--text3)',
@@ -222,7 +222,7 @@ export default function SunriseSunset() {
         }}>↺</button>
       </div>
 
-      <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '.85rem' }}>📍 {city}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '.85rem' }}>📍 {city}</div>
 
       {/* ── Sky visualization ── */}
       <div style={{
@@ -356,7 +356,7 @@ export default function SunriseSunset() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
         {/* Sunrise */}
         <div style={statBox('255,140,0')}>
-          <div style={{ fontSize: '10px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>{t.sunriseSunset.sunrise}</div>
+          <div style={{ fontSize: '12px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>{t.sunriseSunset.sunrise}</div>
           <div style={{ fontSize: '19px', fontWeight: '600', color: '#FFB300', fontFamily: 'Poppins' }}>
             {fmt(sunrise)}
           </div>
@@ -364,7 +364,7 @@ export default function SunriseSunset() {
 
         {/* Sunset */}
         <div style={statBox('160,100,255')}>
-          <div style={{ fontSize: '10px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>{t.sunriseSunset.sunset}</div>
+          <div style={{ fontSize: '12px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>{t.sunriseSunset.sunset}</div>
           <div style={{ fontSize: '19px', fontWeight: '600', color: 'var(--purple3)', fontFamily: 'Poppins' }}>
             {fmt(sunset)}
           </div>
@@ -374,13 +374,13 @@ export default function SunriseSunset() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
         {/* Day length */}
         <div style={statBox()}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px' }}>{t.sunriseSunset.dayLength}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '3px' }}>{t.sunriseSunset.dayLength}</div>
           <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>{fmtDuration(dayLength)}</div>
         </div>
 
         {/* Countdown / golden hour */}
         <div style={statBox(isGoldenHour ? '255,160,0' : undefined)}>
-          <div style={{ fontSize: '10px', color: isGoldenHour ? 'rgba(255,160,0,0.8)' : 'var(--text3)', marginBottom: '3px' }}>
+          <div style={{ fontSize: '12px', color: isGoldenHour ? 'rgba(255,160,0,0.8)' : 'var(--text3)', marginBottom: '3px' }}>
             {isGoldenHour
               ? t.sunriseSunset.goldenHour
               : !isAboveHorizon && nowMs < sunriseMs
@@ -403,7 +403,7 @@ export default function SunriseSunset() {
 
       {/* Golden hour info row */}
       <div style={statBox()}>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>{t.sunriseSunset.goldenHour}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>{t.sunriseSunset.goldenHour}</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#FFB300' }}>
           <span>🌄 {fmt(sunrise)} – {fmt(new Date(goldenMorningEndMs))}</span>
           <span>🌆 {fmt(new Date(goldenEveningStartMs))} – {fmt(sunset)}</span>
@@ -418,7 +418,7 @@ export default function SunriseSunset() {
           border: '1px solid rgba(255,140,0,0.3)',
           borderRadius: '10px',
           padding: '.55rem 1rem',
-          fontSize: '11px',
+          fontSize: '12px',
           color: '#FFB300',
           textAlign: 'center',
         }}>
@@ -426,7 +426,7 @@ export default function SunriseSunset() {
         </div>
       )}
 
-      <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
         {t.sunriseSunset.source}
       </div>
     </div>

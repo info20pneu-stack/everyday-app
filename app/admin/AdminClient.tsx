@@ -45,7 +45,7 @@ const card: React.CSSProperties = {
 };
 
 const cardTitle: React.CSSProperties = {
-  fontSize: '11px',
+  fontSize: '12px',
   color: 'var(--text3)',
   letterSpacing: '1px',
   textTransform: 'uppercase',
@@ -91,7 +91,7 @@ function StatTile({ label, value }: { label: string; value: number }) {
       }}>
         {fmtCompact(value)}
       </div>
-      <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>{label}</div>
     </div>
   );
 }
@@ -135,7 +135,7 @@ function VisitsChart({ series }: { series: { date: string; visits: number }[] })
           );
         })}
       </svg>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
         <span>{series[0] ? fmtDate(series[0].date) : ''}</span>
         <span>{series[Math.floor(series.length / 2)] ? fmtDate(series[Math.floor(series.length / 2)].date) : ''}</span>
         <span>{series[series.length - 1] ? fmtDate(series[series.length - 1].date) : ''}</span>
@@ -385,7 +385,7 @@ export default function AdminClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {stats.topPages.map((p, i) => (
                       <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text3)', width: '16px' }}>{i + 1}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text3)', width: '16px' }}>{i + 1}</span>
                         <span style={{ flex: 1, fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {p.key}
                         </span>
@@ -404,7 +404,7 @@ export default function AdminClient() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {stats.topCountries.map((c, i) => (
                       <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '11px', color: 'var(--text3)', width: '16px' }}>{i + 1}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--text3)', width: '16px' }}>{i + 1}</span>
                         <span style={{ fontSize: '15px' }}>{flagEmoji(c.key)}</span>
                         <span style={{ flex: 1, fontSize: '12px', color: '#fff' }}>{c.key}</span>
                         <span style={{ fontSize: '12px', color: 'var(--purple3)', fontWeight: '600' }}>{c.count.toLocaleString('en-US')}</span>
@@ -427,7 +427,7 @@ export default function AdminClient() {
                 <div style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '700', color: '#fff' }}>
                   {lb.mostPlayed?.game ?? '—'}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '2px' }}>Nejhranější hra</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>Nejhranější hra</div>
               </div>
             </div>
 
@@ -464,7 +464,7 @@ export default function AdminClient() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '6px' }}>
                   <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{s.title}</div>
                   <span style={{
-                    fontSize: '10px', fontWeight: '700', whiteSpace: 'nowrap',
+                    fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap',
                     color: STATUS_COLORS[s.status], background: `${STATUS_COLORS[s.status]}1a`,
                     border: `1px solid ${STATUS_COLORS[s.status]}44`, borderRadius: '6px', padding: '2px 8px',
                   }}>
@@ -475,7 +475,7 @@ export default function AdminClient() {
                   {s.description}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--text3)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
                     👍 {s.votes} · {new Date(s.createdAt).toLocaleDateString('cs-CZ')}
                     {s.email && <> · {s.email}</>}
                   </div>
@@ -485,7 +485,7 @@ export default function AdminClient() {
                       disabled={actionBusyId === s.id}
                       style={{
                         background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)',
-                        borderRadius: '7px', color: '#4ADE80', fontSize: '11px', fontWeight: '600',
+                        borderRadius: '7px', color: '#4ADE80', fontSize: '12px', fontWeight: '600',
                         padding: '5px 10px', cursor: 'pointer',
                       }}
                     >
@@ -496,7 +496,7 @@ export default function AdminClient() {
                       disabled={actionBusyId === s.id}
                       style={{
                         background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)',
-                        borderRadius: '7px', color: '#F87171', fontSize: '11px', fontWeight: '600',
+                        borderRadius: '7px', color: '#F87171', fontSize: '12px', fontWeight: '600',
                         padding: '5px 10px', cursor: 'pointer',
                       }}
                     >

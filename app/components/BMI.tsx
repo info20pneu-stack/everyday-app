@@ -130,7 +130,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: '11px',
+  fontSize: '12px',
   color: 'var(--text3)',
   marginBottom: '4px',
 };
@@ -215,7 +215,7 @@ export default function BMI() {
                 borderRadius: '6px',
                 color: system === s ? '#fff' : 'var(--text2)',
                 padding: '3px 10px',
-                fontSize: '11px',
+                fontSize: '12px',
                 cursor: 'pointer',
                 fontWeight: system === s ? '600' : '400',
               }}
@@ -290,7 +290,7 @@ export default function BMI() {
                     placeholder={t.bmi.ft}
                     style={{ ...inputStyle, textAlign: 'center' }}
                   />
-                  <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.ft}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.ft}</div>
                 </div>
                 <div style={{ flex: 1 }}>
                   <input
@@ -301,7 +301,7 @@ export default function BMI() {
                     placeholder={t.bmi.in}
                     style={{ ...inputStyle, textAlign: 'center' }}
                   />
-                  <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.in}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.in}</div>
                 </div>
               </div>
             </>
@@ -364,7 +364,7 @@ export default function BMI() {
             marginBottom: '.875rem',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
               {t.bmi.bodyMassIndex}
             </div>
             <div style={{
@@ -426,7 +426,7 @@ export default function BMI() {
                     position: 'absolute',
                     left: `${bmiToPercent(b)}%`,
                     transform: 'translateX(-50%)',
-                    fontSize: '9px',
+                    fontSize: '12px',
                     color: 'var(--text3)',
                   }}
                 >
@@ -448,7 +448,7 @@ export default function BMI() {
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
-              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.bmi.idealWeightRange}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.bmi.idealWeightRange}</div>
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#4ade80' }}>
                 {idealRange[0]} – {idealRange[1]} {weightUnit}
               </div>
@@ -463,7 +463,7 @@ export default function BMI() {
               borderRadius: '12px',
               padding: '.875rem 1rem',
             }}>
-              <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '.5rem', letterSpacing: '.5px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '.5rem', letterSpacing: '.5px', textTransform: 'uppercase' }}>
                 {t.bmi.recommendations}
               </div>
               {recs.map((r, i) => (
@@ -473,7 +473,7 @@ export default function BMI() {
                   alignItems: 'flex-start',
                   marginBottom: i < recs.length - 1 ? '.375rem' : 0,
                 }}>
-                  <span style={{ color: cat!.color, fontSize: '10px', marginTop: '3px', flexShrink: 0 }}>●</span>
+                  <span style={{ color: cat!.color, fontSize: '12px', marginTop: '3px', flexShrink: 0 }}>●</span>
                   <span style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5 }}>{r}</span>
                 </div>
               ))}

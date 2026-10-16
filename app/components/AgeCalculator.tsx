@@ -186,7 +186,7 @@ export default function AgeCalculator() {
 
       {/* Birth date — three selects */}
       <div style={{ marginBottom: '1rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.ageCalculator.dateOfBirth}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.ageCalculator.dateOfBirth}</div>
         <div style={{ display: 'flex', gap: '6px' }}>
           {/* Day */}
           <select value={birthDay} onChange={e => { const v = Number(e.target.value); setBirthDay(v); saveDob(v, birthMonth, birthYear); }} style={selectStyle}>
@@ -202,7 +202,7 @@ export default function AgeCalculator() {
           </select>
         </div>
         {birthDay > 28 && !valid && birth.getDate() !== birthDay && (
-          <div style={{ fontSize: '11px', color: 'var(--amber)', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--amber)', marginTop: '4px' }}>
             ⚠️ {MONTH_NAMES[birthMonth - 1]} does not have {birthDay} days
           </div>
         )}
@@ -226,7 +226,7 @@ export default function AgeCalculator() {
             textAlign: 'center',
           }}>
             <div style={{
-              fontSize: '11px',
+              fontSize: '12px',
               color: 'var(--text3)',
               marginBottom: '6px',
               letterSpacing: '1px',
@@ -265,7 +265,7 @@ export default function AgeCalculator() {
             justifyContent: 'space-between',
           }}>
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '2px' }}>
                 {t.ageCalculator.nextBirthday}
               </div>
               <div style={{ fontSize: '13px', color: '#fff' }}>
@@ -284,7 +284,7 @@ export default function AgeCalculator() {
                 }}>
                   {age.nextBirthday}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.ageCalculator.daysLabel}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.daysLabel}</div>
               </div>
             )}
           </div>
@@ -304,7 +304,7 @@ export default function AgeCalculator() {
                 <span style={{ fontSize: '22px' }}>{zodiac.emoji}</span>
                 <div>
                   <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>{zodiac.sign}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.ageCalculator.zodiac}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.zodiac}</div>
                 </div>
               </div>
             )}
@@ -322,7 +322,7 @@ export default function AgeCalculator() {
                 <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>
                   {birth.toLocaleDateString('en-US', { weekday: 'long' })}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.ageCalculator.dayOfBirth}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.dayOfBirth}</div>
               </div>
             </div>
           </div>
@@ -338,9 +338,9 @@ export default function AgeCalculator() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-                <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{label}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</span>
                 <span style={{
-                  fontSize: key === 'totalSeconds' ? '11px' : '12px',
+                  fontSize: key === 'totalSeconds' ? '12px' : '12px',
                   fontWeight: '500',
                   color: key === 'totalSeconds' ? 'var(--purple3)' : '#fff',
                 }}>

@@ -229,9 +229,9 @@ export default function DailyPuzzle() {
           <div style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#fff' }}>
             {t.dailyPuzzle.title} <span style={{ color: PUZZLE_COLOR, fontWeight: '700' }}>#{puzzleNum}</span>
           </div>
-          <div style={{ fontSize: '10.5px', color: 'var(--text3)' }}>{t.dailyPuzzle.subtitle}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.dailyPuzzle.subtitle}</div>
         </div>
-        <div style={{ display: 'flex', gap: '6px', fontSize: '11px' }}>
+        <div style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
           <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', color: '#FFB300' }}>🔥 {stats.currentStreak}</span>
         </div>
       </div>
@@ -293,18 +293,20 @@ export default function DailyPuzzle() {
       </div>
 
       {/* Keyboard */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px', width: '100%', maxWidth: '500px', marginInline: 'auto' }}>
         {KB_ROWS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: '4px' }}>
+          <div key={ri} style={{ display: 'flex', gap: '4px', width: '100%', justifyContent: 'center' }}>
             {row.map(key => {
               const kc = keyColors[key];
               const bg = kc === 'correct' ? PUZZLE_COLOR : kc === 'present' ? '#b59f3b' : kc === 'absent' ? '#3a3a3c' : 'rgba(255,255,255,0.12)';
               return (
                 <button key={key} onClick={() => handleKey(key)} style={{
-                  height: '42px', width: (key === 'ENTER' || key === '⌫') ? '54px' : '30px',
+                  height: '48px', minWidth: 0, padding: 0, overflow: 'hidden',
+                  flex: (key === 'ENTER' || key === '⌫') ? '1.6 1 0' : '1 1 0',
+                  maxWidth: (key === 'ENTER' || key === '⌫') ? '64px' : '43px',
                   borderRadius: '6px', border: 'none', cursor: 'pointer',
                   background: bg, color: '#fff',
-                  fontSize: key.length > 1 ? '10px' : '13px',
+                  fontSize: key.length > 1 ? '12px' : '13px',
                   fontWeight: '700', fontFamily: 'Poppins',
                 }}>{key === 'ENTER' ? t.wordle.keyboard_enter : key === '⌫' ? t.wordle.keyboard_backspace : key}</button>
               );
@@ -325,7 +327,7 @@ export default function DailyPuzzle() {
           }}>
             {copied ? t.dailyPuzzle.copied : t.dailyPuzzle.shareResult}
           </button>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
             {t.dailyPuzzle.nextPuzzleIn} <span style={{ fontFamily: 'monospace', color: '#fff' }}>{countdown}</span>
             {phase === 'lost' ? ` · ${t.dailyPuzzle.answer.replace('{word}', target)}` : ''}
           </div>
@@ -335,7 +337,7 @@ export default function DailyPuzzle() {
       {/* Stats */}
       {stats.played > 0 && (
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
-          <div style={{ fontSize: '10.5px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
             {t.dailyPuzzle.statsTitle}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
@@ -344,18 +346,18 @@ export default function DailyPuzzle() {
             <StatBox value={stats.currentStreak} label={t.dailyPuzzle.currentStreak} />
             <StatBox value={stats.bestStreak} label={t.dailyPuzzle.maxStreak} />
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px' }}>{t.dailyPuzzle.distribution}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.dailyPuzzle.distribution}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {stats.distribution.map((count, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '10px', color: 'var(--text3)', width: '10px' }}>{i + 1}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)', width: '10px' }}>{i + 1}</span>
                 <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', height: '14px' }}>
                   <div style={{
                     width: `${(count / maxDist) * 100}%`, minWidth: count > 0 ? '14px' : 0,
                     background: PUZZLE_COLOR, height: '100%',
                     display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '4px',
                   }}>
-                    {count > 0 && <span style={{ fontSize: '9px', color: '#fff', fontWeight: '700' }}>{count}</span>}
+                    {count > 0 && <span style={{ fontSize: '12px', color: '#fff', fontWeight: '700' }}>{count}</span>}
                   </div>
                 </div>
               </div>
@@ -379,7 +381,7 @@ function StatBox({ value, label }: { value: number | string; label: string }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff' }}>{value}</div>
-      <div style={{ fontSize: '9.5px', color: 'var(--text3)' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</div>
     </div>
   );
 }

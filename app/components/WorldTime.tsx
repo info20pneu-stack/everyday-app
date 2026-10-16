@@ -297,7 +297,7 @@ export default function WorldTime() {
     border: '1px solid rgba(255,255,255,0.08)',
     borderRadius: '20px',
     padding: '4px 12px',
-    fontSize: '11px',
+    fontSize: '12px',
     color: active ? '#fff' : 'var(--text3)',
     cursor: 'pointer',
     whiteSpace: 'nowrap' as const,
@@ -318,6 +318,7 @@ export default function WorldTime() {
         {/* Left side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
           <button
+            className="icon-btn"
             onClick={() => toggleFavorite(city.name)}
             title={isFav ? 'Remove from My Cities' : atMax ? `Max ${MAX_FAV} favorites` : 'Add to My Cities'}
             style={{
@@ -339,7 +340,7 @@ export default function WorldTime() {
                 display: 'inline-block',
               }} />
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {city.country} · {city.continent}
             </div>
           </div>
@@ -351,8 +352,8 @@ export default function WorldTime() {
             {times[city.name] || '--:--:--'}
           </div>
           <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <span style={{ fontSize: '9px', color: 'var(--text3)' }}>{getOffsetLabel(city.tz)}</span>
-            <span style={{ fontSize: '10px', fontWeight: '600', color: diffColor }}>{diffLabel}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{getOffsetLabel(city.tz)}</span>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: diffColor }}>{diffLabel}</span>
           </div>
         </div>
       </div>
@@ -370,13 +371,13 @@ export default function WorldTime() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🕐 World Time</h2>
-        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{filtered.length} cities</span>
+        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{filtered.length} cities</span>
       </div>
 
       {/* My Cities */}
       {favCities.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
             ⭐ My Cities
           </div>
           <div style={{
@@ -392,11 +393,11 @@ export default function WorldTime() {
             marginTop: '10px', background: 'rgba(255,255,255,0.03)',
             border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '10px 14px',
           }}>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
               {t.worldTime.meetingPlanner}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.worldTime.myTime}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.worldTime.myTime}</span>
               <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: '700', color: '#fff', marginLeft: 'auto' }}>
                 {minutesToHHMM(plannerMin)}
               </span>
@@ -420,7 +421,7 @@ export default function WorldTime() {
                       {minutesToHHMM(total)}
                     </span>
                     {dayOffset !== 0 && (
-                      <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{dayOffset > 0 ? '+1d' : '-1d'}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{dayOffset > 0 ? '+1d' : '-1d'}</span>
                     )}
                   </div>
                 );
@@ -469,7 +470,7 @@ export default function WorldTime() {
                 <span style={{ fontSize: '16px' }}>{city.flag}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '13px', color: '#fff' }}>{city.name}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{city.country} · {city.continent}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{city.country} · {city.continent}</div>
                 </div>
                 <span style={{ fontSize: '12px', color: 'var(--blue2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                   {times[city.name] || getTime(city.tz)}
@@ -483,20 +484,20 @@ export default function WorldTime() {
       {/* Continent filter */}
       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '.5rem' }}>
         {CONTINENTS.map(c => (
-          <button key={c} onClick={() => setContinent(c)} style={btnStyle(continent === c)}>{c}</button>
+          <button key={c} className="icon-btn" onClick={() => setContinent(c)} style={btnStyle(continent === c)}>{c}</button>
         ))}
       </div>
 
       {/* Sort */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '1rem', alignItems: 'center' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text3)', marginRight: '4px' }}>Sort:</span>
+        <span style={{ fontSize: '12px', color: 'var(--text3)', marginRight: '4px' }}>Sort:</span>
         {SORTS.map(s => (
           <button key={s.value} onClick={() => setSort(s.value)} style={btnStyle(sort === s.value)}>{s.label}</button>
         ))}
       </div>
 
       {isMobile && !showAll && !search && continent === 'All' && filtered.length > listLimit && (
-        <div style={{ marginBottom: '.5rem', fontSize: '11px', color: 'var(--text3)', textAlign: 'center' }}>
+        <div style={{ marginBottom: '.5rem', fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>
           Showing {listLimit} of {filtered.length} cities
         </div>
       )}

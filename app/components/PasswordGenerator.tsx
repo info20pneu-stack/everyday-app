@@ -240,7 +240,7 @@ export default function PasswordGenerator() {
         <span style={{
           background: 'rgba(93,76,255,0.1)', border: '1px solid rgba(93,76,255,0.2)',
           borderRadius: 7, padding: '2px 8px',
-          color: 'var(--purple3)', fontSize: '0.72rem', fontFamily: 'monospace',
+          color: 'var(--purple3)', fontSize: '0.75rem', fontFamily: 'monospace',
         }}>
           ~{entropy} bit
         </span>
@@ -269,8 +269,8 @@ export default function PasswordGenerator() {
           style={{ width: '100%', accentColor: 'var(--purple2)', cursor: 'pointer' }}
         />
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.2rem' }}>
-          <span style={{ color: 'var(--text3)', fontSize: '0.68rem' }}>8</span>
-          <span style={{ color: 'var(--text3)', fontSize: '0.68rem' }}>64</span>
+          <span style={{ color: 'var(--text3)', fontSize: '0.75rem' }}>8</span>
+          <span style={{ color: 'var(--text3)', fontSize: '0.75rem' }}>64</span>
         </div>
       </div>
 
@@ -306,7 +306,7 @@ export default function PasswordGenerator() {
                 }}>
                   {label}
                 </span>
-                <span style={{ fontSize: '0.6rem', color: on ? color : 'var(--text3)', opacity: 0.8 }}>
+                <span style={{ fontSize: '0.75rem', color: on ? color : 'var(--text3)', opacity: 0.8 }}>
                   {title}
                 </span>
               </button>
@@ -352,7 +352,7 @@ export default function PasswordGenerator() {
       {/* History */}
       {history.length > 0 && (
         <div>
-          <div style={{ color: 'var(--text3)', fontSize: '0.72rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div style={{ color: 'var(--text3)', fontSize: '0.75rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {t.passwordGen.recentPasswords}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -374,7 +374,7 @@ export default function PasswordGenerator() {
                   onClick={() => navigator.clipboard.writeText(h)}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--text3)', fontSize: '0.7rem', padding: '0 0 0 0.5rem',
+                    color: 'var(--text3)', fontSize: '0.75rem', padding: '0 0 0 0.5rem',
                     flexShrink: 0,
                   }}
                   title="Copy"
@@ -397,7 +397,7 @@ export default function PasswordGenerator() {
         ].map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-            <span style={{ fontSize: '0.68rem', color: 'var(--text3)' }}>{label}</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>{label}</span>
           </div>
         ))}
       </div>

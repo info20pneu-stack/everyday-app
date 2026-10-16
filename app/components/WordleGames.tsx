@@ -287,7 +287,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
         <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#fff', flex: 1 }}>
           {mode.label} Wordle
         </span>
-        <div style={{ display: 'flex', gap: '8px', fontSize: '11px' }}>
+        <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
           <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px 7px', color: '#FFB300' }}>🔥 {streak.cur}</span>
           <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px 7px', color: 'var(--text3)' }}>🏆 {streak.best}</span>
         </div>
@@ -350,18 +350,20 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
       </div>
 
       {/* Keyboard */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px', width: '100%', maxWidth: '500px', marginInline: 'auto' }}>
         {KB_ROWS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: '4px' }}>
+          <div key={ri} style={{ display: 'flex', gap: '4px', width: '100%', justifyContent: 'center' }}>
             {row.map(key => {
               const kc = keyColors[key];
               const bg = kc === 'correct' ? mode.color : kc === 'present' ? '#b59f3b' : kc === 'absent' ? '#3a3a3c' : 'rgba(255,255,255,0.12)';
               return (
                 <button key={key} onClick={() => handleKey(key)} style={{
-                  height: '44px', width: (key === 'ENTER' || key === '⌫') ? '58px' : '32px',
+                  height: '48px', minWidth: 0, padding: 0, overflow: 'hidden',
+                  flex: (key === 'ENTER' || key === '⌫') ? '1.6 1 0' : '1 1 0',
+                  maxWidth: (key === 'ENTER' || key === '⌫') ? '64px' : '43px',
                   borderRadius: '6px', border: 'none', cursor: 'pointer',
                   background: bg, color: '#fff',
-                  fontSize: key.length > 1 ? '10px' : '13px',
+                  fontSize: key.length > 1 ? '12px' : '13px',
                   fontWeight: '700', fontFamily: 'Poppins',
                 }}>{key === 'ENTER' ? t.wordle.keyboard_enter : key === '⌫' ? t.wordle.keyboard_backspace : key}</button>
               );
@@ -382,7 +384,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
           }}>
             {copied ? t.wordle.copied : t.wordle.shareGrid}
           </button>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
             {t.wordle.newWordTomorrow}{phase === 'lost' ? ` · ${t.wordle.answer.replace('{word}', target)}` : ''}
           </div>
         </div>
@@ -417,7 +419,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
               style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
-          {subErr && <div style={{ fontSize: '11px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{subErr}</div>}
+          {subErr && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{subErr}</div>}
           <div style={{ display: 'flex', gap: '8px' }}>
             <button onClick={submitScore} disabled={!nick.trim() || subPhase === 'submitting'} style={{
               flex: 2, padding: '10px', borderRadius: '8px', border: 'none',
@@ -500,8 +502,8 @@ export default function WordleGames({ embedded = false }: { embedded?: boolean }
           >
             <div style={{ fontSize: '22px', marginBottom: '4px' }}>{m.emoji}</div>
             <div style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>{m.label}</div>
-            <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{m.desc}</div>
-            <div style={{ fontSize: '9px', color: `${m.color}cc`, marginTop: '6px', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{m.desc}</div>
+            <div style={{ fontSize: '12px', color: `${m.color}cc`, marginTop: '6px', letterSpacing: '0.5px' }}>
               {getTarget(m.id).slice(0,1)}{'·'.repeat(3)}{getTarget(m.id).slice(-1)}
             </div>
           </button>

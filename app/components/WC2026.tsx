@@ -224,10 +224,10 @@ function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick
     onMouseLeave={e => { const d = e.currentTarget; d.style.background = today ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.02)'; d.style.borderColor = today ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)'; }}>
       {/* Date/time row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
-        <span style={{ fontSize: '10px', color: today ? 'var(--green2)' : 'var(--text3)', fontWeight: today ? '700' : '400' }}>
+        <span style={{ fontSize: '12px', color: today ? 'var(--green2)' : 'var(--text3)', fontWeight: today ? '700' : '400' }}>
           {fmt.line1} · {fmt.time} {fmt.tzAbbr}
         </span>
-        <span style={{ marginLeft: 'auto', fontSize: '9px', color: 'var(--text3)', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px' }}>
+        <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px' }}>
           {m.venueName}, {m.venueCity}
         </span>
       </div>
@@ -260,19 +260,19 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px 20px', width: '100%', maxWidth: '380px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'wDetailIn 0.2s ease', position: 'relative' }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
+      <div className="modal-box" style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px 20px', width: '100%', maxWidth: '380px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'wDetailIn 0.2s ease', position: 'relative' }}>
+        <button onClick={onClose} aria-label="Close" className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
 
         {/* Group badge */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', alignItems: 'center' }}>
-          <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--green2)', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '2px 8px', letterSpacing: '1px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--green2)', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '2px 8px', letterSpacing: '1px' }}>
             GROUP {m.group}
           </span>
-          <span style={{ fontSize: '10px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px' }}>
             Matchday {m.matchday}
           </span>
           {isDone && (
-            <span style={{ fontSize: '10px', color: '#fff', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px' }}>Final</span>
+            <span style={{ fontSize: '12px', color: '#fff', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px' }}>Final</span>
           )}
         </div>
 
@@ -282,7 +282,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontSize: '40px', lineHeight: 1 }}>{m.f1}</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{m.t1}</div>
-            {t1data && <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '1px' }}>{t1data.pts} pts</div>}
+            {t1data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t1data.pts} pts</div>}
           </div>
           {/* Score / VS */}
           <div style={{ textAlign: 'center', flexShrink: 0 }}>
@@ -293,7 +293,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
             ) : (
               <>
                 <div style={{ fontFamily: 'Poppins', fontSize: '22px', fontWeight: '700', color: 'var(--text3)' }}>vs</div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>⚽ WC 2026</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>⚽ WC 2026</div>
               </>
             )}
           </div>
@@ -301,7 +301,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontSize: '40px', lineHeight: 1 }}>{m.f2}</div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{m.t2}</div>
-            {t2data && <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '1px' }}>{t2data.pts} pts</div>}
+            {t2data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t2data.pts} pts</div>}
           </div>
         </div>
 
@@ -320,7 +320,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
             <span style={{ fontSize: '14px' }}>🏟️</span>
             <div>
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{m.venueName}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{m.venueCity}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{m.venueCity}</div>
             </div>
           </div>
         </div>
@@ -336,20 +336,20 @@ function GroupTable({ letter, teams }: { letter: string; teams: WCTeam[] }) {
   const sorted = [...teams].sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga));
   return (
     <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
-      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '5px 10px', fontSize: '11px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px' }}>GROUP {letter}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '3px 8px', fontSize: '9px', color: 'var(--text3)' }}>
+      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '5px 10px', fontSize: '12px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px' }}>GROUP {letter}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '3px 8px', fontSize: '12px', color: 'var(--text3)' }}>
         <div>Team</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>V</div><div style={{textAlign:'center'}}>R</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>GD</div><div style={{textAlign:'center'}}>B</div>
       </div>
       {sorted.map((t, i) => (
         <div key={t.name} style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '5px 8px', borderTop: '1px solid rgba(255,255,255,0.04)', background: i < 2 ? 'rgba(34,197,94,0.05)' : 'transparent', borderLeft: i < 2 ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
             <span style={{ fontSize: '12px' }}>{t.flag}</span>
-            <span style={{ fontSize: '11px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+            <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
           </div>
           {[t.p, t.w, t.d, t.l].map((v, vi) => (
-            <div key={vi} style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text2)' }}>{v}</div>
+            <div key={vi} style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{v}</div>
           ))}
-          <div style={{ textAlign: 'center', fontSize: '11px', color: t.gf-t.ga > 0 ? 'var(--green2)' : 'var(--text2)' }}>{t.gf-t.ga > 0 ? `+${t.gf-t.ga}` : t.gf-t.ga}</div>
+          <div style={{ textAlign: 'center', fontSize: '12px', color: t.gf-t.ga > 0 ? 'var(--green2)' : 'var(--text2)' }}>{t.gf-t.ga > 0 ? `+${t.gf-t.ga}` : t.gf-t.ga}</div>
           <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{t.pts}</div>
         </div>
       ))}
@@ -383,7 +383,7 @@ function BracketRow({ m }: { m: BracketMatch }) {
       <span style={{ fontSize:'14px' }}>{m.f1}</span>
       <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s1!>m.s2!?'#fff':'var(--text3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{m.t1}</span>
       {m.done ? <span style={{ fontSize:'13px',fontWeight:'700',color:'#fff',fontFamily:'Poppins',fontVariantNumeric:'tabular-nums',flexShrink:0 }}>{m.s1}–{m.s2}</span>
-              : <span style={{ fontSize:'11px',color:'var(--text3)',flexShrink:0 }}>vs</span>}
+              : <span style={{ fontSize:'12px',color:'var(--text3)',flexShrink:0 }}>vs</span>}
       <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s2!>m.s1!?'#fff':'var(--text3)',flex:1,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{m.t2}</span>
       <span style={{ fontSize:'14px' }}>{m.f2}</span>
     </div>
@@ -424,14 +424,14 @@ export default function WC2026() {
 
   const viewBtn = (v: typeof view): React.CSSProperties => ({
     flex: 1, padding: '6px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-    fontSize: '11px', fontWeight: '600',
+    fontSize: '12px', fontWeight: '600',
     background: view === v ? 'linear-gradient(135deg, #16a34a, #15803d)' : 'rgba(255,255,255,0.06)',
     color: view === v ? '#fff' : 'var(--text2)',
   });
 
   const filterBtn = (active: boolean): React.CSSProperties => ({
     padding: '3px 8px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-    fontSize: '11px', fontWeight: active ? '700' : '400',
+    fontSize: '12px', fontWeight: active ? '700' : '400',
     background: active ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
     color: active ? 'var(--green2)' : 'var(--text3)',
     outline: active ? '1px solid rgba(34,197,94,0.35)' : 'none',
@@ -470,7 +470,7 @@ export default function WC2026() {
           </div>
 
           {/* Timezone info */}
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
             🕐 Your timezone: <span style={{ color: 'var(--purple3)' }}>{userTz.replace('_',' ')}</span>
           </div>
 
@@ -486,8 +486,8 @@ export default function WC2026() {
               const isToday_ = dateKey === todayStr;
               return (
                 <div key={dateKey} style={{ marginBottom: '10px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: isToday_ ? 'var(--green2)' : 'var(--text3)', marginBottom: '5px', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '9px' }}>TODAY</span>}
+                  <div style={{ fontSize: '12px', fontWeight: '700', color: isToday_ ? 'var(--green2)' : 'var(--text3)', marginBottom: '5px', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px' }}>TODAY</span>}
                     {czDay} {dayNum} {czMonth}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -504,7 +504,7 @@ export default function WC2026() {
               </div>
             )}
           </div>
-          <div style={{ fontSize:'10px',color:'var(--text3)',textAlign:'center',marginTop:'6px' }}>
+          <div style={{ fontSize:'12px',color:'var(--text3)',textAlign:'center',marginTop:'6px' }}>
             {ALL_MATCHES.length} group stage matches · {ALL_MATCHES.filter(m => m.status === 'final').length} played
           </div>
         </>
@@ -520,17 +520,17 @@ export default function WC2026() {
       {/* BRACKET view */}
       {view === 'bracket' && (
         <div>
-          <div style={{ fontSize:'11px',color:'rgba(34,197,94,0.8)',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'8px',padding:'5px 10px',marginBottom:'10px',textAlign:'center' }}>
+          <div style={{ fontSize:'12px',color:'rgba(34,197,94,0.8)',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'8px',padding:'5px 10px',marginBottom:'10px',textAlign:'center' }}>
             ✓ R16 results in · QF not started
           </div>
           {[{ label:'ROUND OF 16',matches:R16 },{ label:'QUARTER-FINALS',matches:QF },{ label:'SEMI-FINALS',matches:SF }].map(r => (
             <div key={r.label} style={{ marginBottom:'10px' }}>
-              <div style={{ fontSize:'10px',color:'var(--text3)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>{r.label}</div>
+              <div style={{ fontSize:'12px',color:'var(--text3)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>{r.label}</div>
               <div style={{ display:'flex',flexDirection:'column',gap:'3px' }}>{r.matches.map((m,i) => <BracketRow key={i} m={m} />)}</div>
             </div>
           ))}
           <div style={{ marginBottom:'10px' }}>
-            <div style={{ fontSize:'10px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 FINAL</div>
+            <div style={{ fontSize:'12px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 FINAL</div>
             <BracketRow m={FINAL} />
           </div>
         </div>

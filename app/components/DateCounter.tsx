@@ -112,9 +112,9 @@ export default function DateCounter() {
       </h2>
 
       {/* Inputs */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.75rem', marginBottom: '1rem' }}>
-        <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.from}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '.75rem', marginBottom: '1rem' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.from}</div>
           <input
             type="datetime-local"
             value={fromVal}
@@ -122,8 +122,8 @@ export default function DateCounter() {
             style={inputStyle}
           />
         </div>
-        <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.to}</div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.to}</div>
           <input
             type="datetime-local"
             value={toVal}
@@ -168,7 +168,7 @@ export default function DateCounter() {
             <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
             <span style={{ color: 'var(--purple3)' }}>{pad(diff.seconds)}</span>
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>
             + {diff.years > 0 ? `${diff.years} yr ` : ''}{diff.months > 0 ? `${diff.months} mo ` : ''}{diff.days > 0 ? `${diff.days} d` : ''}
           </div>
         </div>
@@ -199,7 +199,7 @@ export default function DateCounter() {
                 }}>
                   {val}
                 </div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>{label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>{label}</div>
               </div>
             );
           })}
@@ -216,7 +216,7 @@ export default function DateCounter() {
             <div style={{ fontSize: '18px', fontWeight: '500', fontFamily: 'Poppins', color: 'var(--purple3)' }}>
               {diff.totalDays.toLocaleString('en-US')}
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '2px' }}>{t.dateCounter.totalDays}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>{t.dateCounter.totalDays}</div>
           </div>
         </div>
       )}
@@ -236,7 +236,7 @@ export default function DateCounter() {
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '8px',
           color: 'var(--text2)',
-          fontSize: '11px',
+          fontSize: '12px',
           padding: '5px 12px',
           cursor: 'pointer',
           width: '100%',

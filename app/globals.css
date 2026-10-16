@@ -1075,7 +1075,7 @@ a:focus-visible {
   color: #fff;
 }
 .hero-stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1160,7 +1160,7 @@ a:focus-visible {
   margin-bottom: 4px;
 }
 .site-footer-desc {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text3);
   line-height: 1.4;
 }
@@ -1245,7 +1245,7 @@ a:focus-visible {
   font-family: 'Inter', sans-serif;
 }
 .right-panel-row-sub {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text3);
   margin-top: 2px;
 }
@@ -1264,7 +1264,7 @@ a:focus-visible {
   flex-shrink: 0;
 }
 .right-panel-row-change {
-  font-size: 10px;
+  font-size: 12px;
   margin-top: 2px;
 }
 .right-panel-up {
@@ -1288,7 +1288,7 @@ a:focus-visible {
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: 8px;
   padding: 6px 4px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text3);
   cursor: pointer;
@@ -1317,7 +1317,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
@@ -1333,7 +1333,7 @@ a:focus-visible {
   color: #fff;
 }
 .rp-game-status {
-  font-size: 9px;
+  font-size: 12px;
   color: var(--text3);
   margin-top: 2px;
   text-transform: uppercase;
@@ -1353,7 +1353,7 @@ a:focus-visible {
   text-align: center;
   padding: 8px 0;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: none;
   background: rgba(255,255,255,0.05);
@@ -1459,7 +1459,7 @@ a:focus-visible {
   to { opacity: 1; transform: scale(1); }
 }
 .maintenance-countdown-label {
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--text3);
@@ -1481,4 +1481,161 @@ a:focus-visible {
   .maintenance-countdown-value {
     font-size: 1.75rem;
   }
+}
+
+/* ─────────────────────────────────────────
+   Responsive — phone / tablet / desktop
+   Breakpoints: ≤480 phone · 481–1180 tablet · >1180 desktop
+───────────────────────────────────────── */
+html, body {
+  overflow-x: clip;
+}
+
+/* Topbar: icon buttons are touch-sized, layout tightens as width drops */
+.topbar-btn {
+  min-height: 44px;
+  min-width: 44px;
+  justify-content: center;
+}
+@media (max-width: 1180px) {
+  .topbar-nav {
+    display: none !important;
+  }
+  .topbar-logo-section {
+    width: auto !important;
+  }
+}
+@media (max-width: 480px) {
+  .topbar-logo-section {
+    padding: 0 0.875rem !important;
+    font-size: 15px !important;
+  }
+  .topbar-actions {
+    padding: 0 0.5rem !important;
+    gap: 4px !important;
+    margin-left: auto;
+  }
+  .topbar-lang-code,
+  .topbar-lang-caret {
+    display: none !important;
+  }
+}
+@media (max-width: 360px) {
+  .topbar-avatar {
+    display: none !important;
+  }
+}
+
+/* Dashboard tile grid: 2 cols ≤400 · 3 cols ≤1024 · 4 cols above */
+@media (max-width: 1024px) {
+  .dash-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 400px) {
+  .dash-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1025px) {
+  .dash-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.dash-grid > .card {
+  min-height: 44px;
+  min-width: 0;
+}
+
+/* Trending pills — touch-sized */
+.trending-pill {
+  min-height: 44px;
+}
+
+/* Mobile: content clears the fixed BottomNav and the iPhone home indicator */
+@media (max-width: 480px) {
+  .main-content {
+    padding-bottom: calc(64px + 1.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* Bottom nav links */
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  height: 100%;
+  padding: 4px 0;
+  position: relative;
+  text-decoration: none;
+  touch-action: pan-y;
+}
+
+/* Generic responsive table wrapper */
+.table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 480px) {
+  .hide-xs {
+    display: none !important;
+  }
+}
+
+/* Modal boxes never exceed the viewport */
+.modal-box {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  position: relative;
+}
+.modal-close {
+  width: 44px !important;
+  height: 44px !important;
+  top: 8px !important;
+  right: 8px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sports: on narrow phones the team badge already shows the abbreviation */
+@media (max-width: 400px) {
+  .team-badge-text {
+    display: none !important;
+  }
+}
+
+/* Date inputs never force their column wider than the screen */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Touch screens: every control inside page content is at least 44px tall.
+   Retro skins keep their authentic compact chrome. */
+@media (pointer: coarse) {
+  html:not([data-theme="xp"]):not([data-theme="win98"]):not([data-theme="win2000"]) .main-content :is(
+    button,
+    select,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+    [role="button"]
+  ) {
+    min-height: 44px;
+  }
+  html:not([data-theme="xp"]):not([data-theme="win98"]):not([data-theme="win2000"]) .main-content .icon-btn {
+    min-width: 44px;
+  }
+}
+
+/* Light theme: logo text must not be white on white */
+[data-theme="light"] .topbar-logo-section {
+  color: var(--text1) !important;
 }

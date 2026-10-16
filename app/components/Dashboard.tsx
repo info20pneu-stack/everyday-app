@@ -139,7 +139,7 @@ export default function Dashboard() {
             {t.dashboard.back}
           </button>
           <span style={{
-            fontSize: '11px', color: 'var(--text3)',
+            fontSize: '12px', color: 'var(--text3)',
             fontFamily: 'Poppins', letterSpacing: '1px', textTransform: 'uppercase',
           }}>
             {tile.icon} {tile.label}
@@ -188,13 +188,13 @@ export default function Dashboard() {
       >
         <span style={{ fontSize: '32px', lineHeight: 1 }}>{tile.icon}</span>
         <span style={{
-          fontSize: '10px', fontWeight: '700', letterSpacing: '1px',
+          fontSize: '12px', fontWeight: '700', letterSpacing: '1px',
           color: '#fff', fontFamily: 'Poppins, sans-serif', lineHeight: 1.2,
           textTransform: 'uppercase',
         }}>
           {tile.label}
         </span>
-        <span style={{ fontSize: '10px', color: 'var(--text3)', lineHeight: 1.35 }}>
+        <span style={{ fontSize: '12px', color: 'var(--text3)', lineHeight: 1.35 }}>
           {tile.desc}
         </span>
       </button>

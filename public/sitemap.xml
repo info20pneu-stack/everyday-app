@@ -75,6 +75,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.everyday1234567.com/news</loc>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.everyday1234567.com/age-calculator</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

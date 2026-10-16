@@ -340,13 +340,13 @@ const TeamBadge = memo(function TeamBadge({ team, align = 'left' }: { team: Team
         width: '34px', height: '34px', borderRadius: '8px', flexShrink: 0,
         background: team.color + '33', border: `1px solid ${team.color}55`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '9px', fontWeight: '700', color: team.color, letterSpacing: '0.5px',
+        fontSize: '12px', fontWeight: '700', color: team.color, letterSpacing: '0.5px',
       }}>
         {team.abbr}
       </div>
-      <div style={{ textAlign: align === 'right' ? 'right' : 'left', minWidth: 0, overflow: 'hidden' }}>
+      <div className="team-badge-text" style={{ textAlign: align === 'right' ? 'right' : 'left', minWidth: 0, overflow: 'hidden' }}>
         <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.abbr}</div>
-        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{team.record ?? '—'}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{team.record ?? '—'}</div>
       </div>
     </div>
   );
@@ -358,29 +358,29 @@ const StatusBadge = memo(function StatusBadge({ game }: { game: Game }) {
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '3px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', padding: '2px 7px' }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444', display: 'inline-block', animation: 'livePulse 1.5s infinite' }} />
-          <span style={{ fontSize: '10px', color: '#EF4444', fontWeight: '600' }}>LIVE</span>
+          <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600' }}>LIVE</span>
         </div>
-        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{game.period} · {game.time}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{game.period} · {game.time}</div>
       </div>
     );
   }
   if (game.status === 'final') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Final</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Final</div>
       </div>
     );
   }
   if (game.status === 'postponed') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '10px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Postponed</div>
+        <div style={{ fontSize: '12px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Postponed</div>
       </div>
     );
   }
   return (
     <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-      {game.date && <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '1px' }}>{game.date}</div>}
+      {game.date && <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '1px' }}>{game.date}</div>}
       <div style={{ fontSize: '12px', color: 'var(--blue2)', fontWeight: '500' }}>{game.scheduledTime}</div>
     </div>
   );
@@ -395,7 +395,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
 
       {/* Venue */}
       {detail.venue && (
-        <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', marginBottom: '10px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginBottom: '10px' }}>
           📍 {detail.venue}{detail.attendance ? ` · ${detail.attendance} spectators` : ''}
         </div>
       )}
@@ -417,7 +417,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
               {[game.away, game.home].map((team, ti) => (
                 <tr key={team.abbr}>
                   <td style={{ paddingRight: '6px' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '700', color: team.color }}>{team.abbr}</span>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: team.color }}>{team.abbr}</span>
                   </td>
                   {detail.periodScores.map((p, pi) => (
                     <td key={pi} style={{ textAlign: 'center', color: 'var(--text2)', padding: '2px 0' }}>
@@ -437,7 +437,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Top performers */}
       {detail.performers.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Top performers</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Top performers</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             {detail.performers.map((p, i) => {
               const isHome = p.team === game.home.abbr;
@@ -445,10 +445,10 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-                    <span style={{ fontSize: '9px', fontWeight: '700', color: col, background: col + '22', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>{p.team}</span>
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: col, background: col + '22', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>{p.team}</span>
                     <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.player}</span>
                   </div>
-                  <span style={{ fontSize: '11px', color: 'var(--text2)', whiteSpace: 'nowrap', flexShrink: 0 }}>{p.line}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--text2)', whiteSpace: 'nowrap', flexShrink: 0 }}>{p.line}</span>
                 </div>
               );
             })}
@@ -459,7 +459,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Team stats */}
       {detail.statLabels.length > 0 && (
         <div>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Statistiky</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Statistiky</div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
             <thead>
               <tr>
@@ -472,7 +472,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
               {detail.statLabels.map(label => (
                 <tr key={label} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
                   <td style={{ padding: '4px 0', color: '#fff', fontWeight: '500' }}>{detail.awayStats[label] ?? '—'}</td>
-                  <td style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '10px' }}>{label}</td>
+                  <td style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '12px' }}>{label}</td>
                   <td style={{ textAlign: 'right', color: '#fff', fontWeight: '500' }}>{detail.homeStats[label] ?? '—'}</td>
                 </tr>
               ))}
@@ -524,7 +524,7 @@ const GameRow = memo(function GameRow({
         )}
         <TeamBadge team={game.home} align="right" />
         {clickable && (
-          <span style={{ color: 'var(--text3)', fontSize: '11px', flexShrink: 0 }}>{expanded ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--text3)', fontSize: '12px', flexShrink: 0 }}>{expanded ? '▲' : '▼'}</span>
         )}
       </div>
 
@@ -550,9 +550,9 @@ const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: S
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: colTemplate, gap: '4px', padding: '4px 8px', marginBottom: '2px' }}>
-        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>#</div>
-        <div style={{ fontSize: '10px', color: 'var(--text3)' }}>Team</div>
-        {headers.map(h => <div key={h} style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>{h}</div>)}
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>#</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Team</div>
+        {headers.map(h => <div key={h} style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>{h}</div>)}
       </div>
       {rows.map((row, i) => (
         <div key={row.abbr} style={{
@@ -561,9 +561,9 @@ const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: S
           background: i < 3 ? 'rgba(93,76,255,0.06)' : i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
           borderLeft: i < 3 ? '2px solid rgba(93,76,255,0.4)' : '2px solid transparent',
         }}>
-          <div style={{ fontSize: '11px', color: i < 3 ? 'var(--purple3)' : 'var(--text3)', fontWeight: '600' }}>{row.rank}</div>
+          <div style={{ fontSize: '12px', color: i < 3 ? 'var(--purple3)' : 'var(--text3)', fontWeight: '600' }}>{row.rank}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-            <span style={{ fontSize: '8px', fontWeight: '700', color: row.color, background: row.color + '22', borderRadius: '4px', padding: '1px 4px', flexShrink: 0 }}>{row.abbr}</span>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: row.color, background: row.color + '22', borderRadius: '4px', padding: '1px 4px', flexShrink: 0 }}>{row.abbr}</span>
             <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.name}</span>
           </div>
           {row.cols.map((val, ci) => (
@@ -579,9 +579,9 @@ const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: S
 
 const SectionLabel = memo(function SectionLabel({ label, count }: { label: string; count: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', margin: '.75rem 0 .4rem' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', margin: '.75rem 0 .4rem' }}>
       {label}
-      <span style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '1px 7px', fontSize: '10px', color: 'var(--text2)', letterSpacing: 0, textTransform: 'none' }}>{count}</span>
+      <span style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '10px', padding: '1px 7px', fontSize: '12px', color: 'var(--text2)', letterSpacing: 0, textTransform: 'none' }}>{count}</span>
     </div>
   );
 });
@@ -612,10 +612,10 @@ function MyTeamCard({ team, onPick, onClear }: {
       border: '1px solid rgba(234,88,12,0.3)', borderRadius: '14px', padding: '12px 14px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-        <span style={{ fontSize: '10.5px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--amber)' }}>
+        <span style={{ fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--amber)' }}>
           🏆 {t.myDay.teamTitle}
         </span>
-        <button onClick={() => setEditing(e => !e)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)' }}>⚙️</button>
+        <button className="icon-btn" onClick={() => setEditing(e => !e)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)' }}>⚙️</button>
       </div>
 
       {editing ? (
@@ -636,7 +636,7 @@ function MyTeamCard({ team, onPick, onClear }: {
             {TEAMS_BY_LEAGUE[draftLeague].map(tm => <option key={tm.abbr} value={tm.abbr}>{tm.name}</option>)}
           </select>
           {team && (
-            <button onClick={() => { onClear(); setEditing(false); }} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: 'var(--text3)' }}>
+            <button onClick={() => { onClear(); setEditing(false); }} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)' }}>
               ✕ {team.abbr}
             </button>
           )}
@@ -785,7 +785,7 @@ export default function Sports() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🏆 Sporty</h2>
-        <button
+        <button className="icon-btn"
           onClick={() => fetchLeague(leagueId)}
           title="Obnovit"
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer' }}
@@ -816,7 +816,7 @@ export default function Sports() {
       {/* League tabs */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {CORE_LEAGUE_IDS.map(id => (
-          <button key={id} onClick={() => switchLeague(id)} style={{ ...tabBtn(id === leagueId), fontSize: '11px', flex: 'none', padding: '6px 10px' }}>
+          <button key={id} onClick={() => switchLeague(id)} style={{ ...tabBtn(id === leagueId), fontSize: '12px', flex: 'none', padding: '6px 10px' }}>
             <span>{LEAGUE_META[id].emoji}</span>
             <span>{LEAGUE_META[id].label}</span>
           </button>
@@ -909,7 +909,7 @@ export default function Sports() {
             </div>
           )}
           {live.length > 0 && (
-            <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
               Source: ESPN API · auto-refresh every 60s
             </div>
           )}
@@ -930,7 +930,7 @@ export default function Sports() {
               ]).map(v => (
                 <button key={v.id} onClick={() => setNhlView(v.id)} style={{
                   padding: '5px 10px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                  fontSize: '11px', fontWeight: nhlView === v.id ? '700' : '400',
+                  fontSize: '12px', fontWeight: nhlView === v.id ? '700' : '400',
                   background: nhlView === v.id ? 'rgba(255,179,0,0.15)' : 'rgba(255,255,255,0.05)',
                   color: nhlView === v.id ? '#FFB300' : 'var(--text3)',
                   outline: nhlView === v.id ? '1px solid rgba(255,179,0,0.35)' : 'none',
@@ -944,7 +944,7 @@ export default function Sports() {
             <>
               {[...NHL_EAST, ...NHL_WEST].map((conf, ci) => (
                 <div key={conf.conf} style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '10px', color: ci < 2 ? '#60a5fa' : '#f59e0b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
+                  <div style={{ fontSize: '12px', color: ci < 2 ? '#60a5fa' : '#f59e0b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
                     {ci < 2 ? '🔵 Eastern' : '🟠 Western'} — {conf.conf}
                   </div>
                   <StandingsTable rows={conf.rows} headers={conf.headers} />
@@ -956,18 +956,18 @@ export default function Sports() {
           {/* NHL Scorers */}
           {leagueId === 'nhl' && nhlView === 'scorers' && (
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '3px 8px', fontSize: '9px', color: 'var(--text3)', marginBottom: '3px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '3px 8px', fontSize: '12px', color: 'var(--text3)', marginBottom: '3px' }}>
                 <div>#</div><div>Player</div><div style={{textAlign:'center'}}>G</div><div style={{textAlign:'center'}}>A</div><div style={{textAlign:'center', fontWeight:'700'}}>Pts</div>
               </div>
               {NHL_SCORERS.map(s => (
                 <div key={s.name} style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '5px 8px', borderRadius: '7px', background: s.rank <= 3 ? 'rgba(255,179,0,0.05)' : 'rgba(255,255,255,0.02)', alignItems: 'center', marginBottom: '2px' }}>
-                  <div style={{ fontSize: '11px', color: s.rank <= 3 ? '#FFB300' : 'var(--text3)', fontWeight: '600' }}>{s.rank}</div>
+                  <div style={{ fontSize: '12px', color: s.rank <= 3 ? '#FFB300' : 'var(--text3)', fontWeight: '600' }}>{s.rank}</div>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                    <div style={{ fontSize: '9px', color: s.color, fontWeight: '700' }}>{s.team}</div>
+                    <div style={{ fontSize: '12px', color: s.color, fontWeight: '700' }}>{s.team}</div>
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text2)' }}>{s.goals}</div>
-                  <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text2)' }}>{s.assists}</div>
+                  <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{s.goals}</div>
+                  <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{s.assists}</div>
                   <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '700', color: '#fff' }}>{s.pts}</div>
                 </div>
               ))}
@@ -979,17 +979,17 @@ export default function Sports() {
             <div>
               {NHL_PLAYOFF.map(round => (
                 <div key={round.round} style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{round.round}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{round.round}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     {round.matches.map((m, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <span style={{ fontSize: '8px', fontWeight: '700', color: m.c1, background: `${m.c1}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t1}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c1, background: `${m.c1}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t1}</span>
                         {m.done ? (
                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#fff', fontFamily: 'Poppins', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{m.s1} – {m.s2}</span>
                         ) : (
-                          <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0 }}>vs</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>vs</span>
                         )}
-                        <span style={{ fontSize: '8px', fontWeight: '700', color: m.c2, background: `${m.c2}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t2}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c2, background: `${m.c2}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t2}</span>
                       </div>
                     ))}
                   </div>
@@ -1003,7 +1003,7 @@ export default function Sports() {
             <StandingsTable rows={STANDINGS[leagueId]!.rows} headers={STANDINGS[leagueId]!.headers} />
           )}
 
-          <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
             Standings: static data · season 2024-25
           </div>
         </>

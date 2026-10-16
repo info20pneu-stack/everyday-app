@@ -122,12 +122,12 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: '20px', width: '100%', maxWidth: '340px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'mDetailIn 0.2s ease' }}>
+      <div className="modal-box" style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '18px', padding: '20px', width: '100%', maxWidth: '340px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'mDetailIn 0.2s ease' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
           <div>
             <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '800', color: '#fff' }}>{ticker.symbol}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{ticker.name}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{ticker.name}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '20px', fontWeight: '700', fontFamily: 'Poppins', color: '#fff' }}>
@@ -137,7 +137,7 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
               {up ? '▲' : '▼'} {Math.abs(ticker.changePct).toFixed(2)}%
             </div>
           </div>
-          <button onClick={onClose} style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
+          <button onClick={onClose} aria-label="Close" className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
         </div>
 
         {/* Period tabs */}
@@ -145,7 +145,7 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
           {(['7D','1M','1Y'] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} style={{
               flex: 1, padding: '5px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-              fontSize: '11px', fontWeight: '700',
+              fontSize: '12px', fontWeight: '700',
               background: p === period ? `${periodUp ? '#4ade80' : '#f87171'}22` : 'rgba(255,255,255,0.05)',
               color: p === period ? (periodUp ? '#4ade80' : '#f87171') : 'var(--text3)',
               outline: p === period ? `1px solid ${periodUp ? '#4ade80' : '#f87171'}44` : 'none',
@@ -167,7 +167,7 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
           ].map(s => (
             <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '6px 8px', textAlign: 'center' }}>
               <div style={{ fontSize: '12px', fontWeight: '700', color: s.label.includes('Change') ? (pctChange >= 0 ? '#4ade80' : '#f87171') : '#fff' }}>{s.value}</div>
-              <div style={{ fontSize: '9px', color: 'var(--text3)', marginTop: '1px' }}>{s.label}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -267,7 +267,7 @@ export default function Markets() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>{t.markets.title}</h2>
         {updated && (
-          <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
             {updated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
           </span>
         )}
@@ -279,7 +279,7 @@ export default function Markets() {
           <button key={tabId} onClick={() => setTab(tabId)} style={{
             flex: 1, background: tab === tabId ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
             border: tab === tabId ? 'none' : '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
-            color: tab === tabId ? '#fff' : 'var(--text2)', padding: '5px 4px', fontSize: '10px',
+            color: tab === tabId ? '#fff' : 'var(--text2)', padding: '5px 4px', fontSize: '12px',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
           }}>
             <span>{TAB_ICONS[tabId]}</span><span>{TAB_LABELS[tabId]}</span>
@@ -290,7 +290,7 @@ export default function Markets() {
       {/* Watchlist */}
       {watchedTickers.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
             {t.markets.watchlist}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -300,7 +300,7 @@ export default function Markets() {
                 <div key={tickerKey(tab, tk.symbol)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '10px', padding: '6px 10px' }}>
                   <span style={{ color: '#FFB300' }}>★</span>
                   <span style={{ flex: 1, fontSize: '12px', color: '#fff', fontWeight: '500' }}>{tk.symbol}</span>
-                  <span style={{ fontSize: '11px', fontWeight: '600', color: up ? '#4ade80' : '#f87171' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: up ? '#4ade80' : '#f87171' }}>
                     {up ? '▲' : '▼'} {Math.abs(tk.changePct).toFixed(2)}%
                   </span>
                 </div>
@@ -313,23 +313,23 @@ export default function Markets() {
       {/* Biggest movers (across all tabs) */}
       {allTickers.length >= 3 && (
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
             {t.markets.biggestMovers}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <div>
-              <div style={{ fontSize: '10px', color: '#4ade80', marginBottom: '4px' }}>▲ {t.markets.topGainers}</div>
+              <div style={{ fontSize: '12px', color: '#4ade80', marginBottom: '4px' }}>▲ {t.markets.topGainers}</div>
               {topGainers.map(({ ticker: tk }) => (
-                <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
                   <span style={{ color: '#fff' }}>{tk.symbol}</span>
                   <span style={{ color: '#4ade80', fontWeight: '600' }}>+{tk.changePct.toFixed(2)}%</span>
                 </div>
               ))}
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: '#f87171', marginBottom: '4px' }}>▼ {t.markets.topLosers}</div>
+              <div style={{ fontSize: '12px', color: '#f87171', marginBottom: '4px' }}>▼ {t.markets.topLosers}</div>
               {topLosers.map(({ ticker: tk }) => (
-                <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
                   <span style={{ color: '#fff' }}>{tk.symbol}</span>
                   <span style={{ color: '#f87171', fontWeight: '600' }}>{tk.changePct.toFixed(2)}%</span>
                 </div>
@@ -357,7 +357,7 @@ export default function Markets() {
             onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)'}
             >
               {/* Watchlist star */}
-              <button
+              <button className="icon-btn"
                 onClick={e => { e.stopPropagation(); toggleWatch(wKey); }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: isWatched ? '#FFB300' : 'var(--text3)', padding: 0, flexShrink: 0 }}
               >{isWatched ? '★' : '☆'}</button>
@@ -365,7 +365,7 @@ export default function Markets() {
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', lineHeight: 1.2 }}>{ticker.symbol}</div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '1px' }}>{ticker.name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{ticker.name}</div>
               </div>
 
               {/* Sparkline */}
@@ -376,7 +376,7 @@ export default function Markets() {
                 <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>
                   {ticker.currency !== undefined ? ticker.currency : ''}{fmtPrice(ticker)}
                 </div>
-                <div style={{ fontSize: '10px', color, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
+                <div style={{ fontSize: '12px', color, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
                   <span>{up ? '▲' : '▼'}</span>
                   <span>{Math.abs(ticker.changePct).toFixed(2)}%</span>
                 </div>
@@ -386,7 +386,7 @@ export default function Markets() {
         })}
       </div>
 
-      <div style={{ marginTop: '.75rem', fontSize: '10px', color: 'var(--text3)', textAlign: 'center' }}>
+      <div style={{ marginTop: '.75rem', fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>
         {t.markets.simulatedNote}
       </div>
 

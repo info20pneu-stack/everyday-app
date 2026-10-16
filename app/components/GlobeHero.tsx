@@ -105,14 +105,27 @@ export default function GlobeHero() {
       .arcAltitude(0.22)
       .onPointHover(point => setHovered(point as GlobeCity | null));
 
+    const isPhone = window.matchMedia('(max-width: 480px), (pointer: coarse)').matches;
+
     const controls = globe.controls();
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35;
     controls.enableZoom = false;
+    // On touch screens a drag over the globe must scroll the page, not spin it.
+    if (isPhone) controls.enabled = false;
 
+    // Phones: cap pixel ratio and skip bloom — the extra GPU passes cost more than they add.
+    globe.renderer().setPixelRatio(Math.min(window.devicePixelRatio || 1, isPhone ? 1.5 : 2));
     // Bloom so city lights + point markers actually glow against the dark night texture.
-    const bloom = new UnrealBloomPass(new THREE.Vector2(el.clientWidth || 1, el.clientHeight || 1), 0.6, 0.4, 0.85);
-    globe.postProcessingComposer().addPass(bloom);
+    const bloom = isPhone ? null : new UnrealBloomPass(new THREE.Vector2(el.clientWidth || 1, el.clientHeight || 1), 0.6, 0.4, 0.85);
+    if (bloom) globe.postProcessingComposer().addPass(bloom);
+
+    // Stop rendering while the hero is scrolled out of view.
+    const visIo = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) globe.resumeAnimation();
+      else globe.pauseAnimation();
+    });
+    visIo.observe(el);
 
     function handleMouseMove(e: MouseEvent) {
       const rect = el!.getBoundingClientRect();
@@ -124,13 +137,14 @@ export default function GlobeHero() {
       const { width, height } = entries[0].contentRect;
       if (width > 0 && height > 0) {
         globe.width(width).height(height);
-        bloom.setSize(width, height);
+        bloom?.setSize(width, height);
       }
     });
     ro.observe(el);
 
     return () => {
       ro.disconnect();
+      visIo.disconnect();
       el.removeEventListener('mousemove', handleMouseMove);
       globe._destructor();
       el.innerHTML = '';

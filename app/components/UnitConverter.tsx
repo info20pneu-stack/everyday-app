@@ -222,7 +222,7 @@ export default function UnitConverter() {
 
       {/* From */}
       <div style={rowStyle}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.from}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.from}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input
             type="number"
@@ -244,7 +244,7 @@ export default function UnitConverter() {
 
       {/* Swap */}
       <div style={{ textAlign: 'center', margin: '-.25rem 0', position: 'relative', zIndex: 1 }}>
-        <button
+        <button className="icon-btn"
           onClick={swap}
           style={{
             background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
@@ -261,7 +261,7 @@ export default function UnitConverter() {
 
       {/* To */}
       <div style={{ ...rowStyle, marginTop: '.75rem' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.to}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.to}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ ...inputStyle, color: 'var(--blue2)', fontSize: '28px', display: 'flex', alignItems: 'center' }}>
             {fmt(result)}

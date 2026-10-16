@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import FitWidth from './FitWidth';
 import { useLang } from '../../lib/LanguageContext';
 import { recordGameCompleted } from '../../lib/streak';
 import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
@@ -230,7 +231,7 @@ function HBSubmit({ result, color, onDismiss }: {
         </select>
         <input type="text" placeholder="City (optional)" value={city} maxLength={60} onChange={e => setCity(e.target.value.slice(0, 60))} style={inputSt} />
       </div>
-      {err && <div style={{ fontSize: '11px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{err}</div>}
+      {err && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{err}</div>}
       <div style={{ display: 'flex', gap: '8px' }}>
         <button onClick={submit} disabled={!nick.trim() || phase === 'submitting'} style={{
           flex: 2, padding: '10px', borderRadius: '8px', border: 'none',
@@ -422,8 +423,8 @@ function ReactionTimeTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
       )}
 
       <div style={{ display: 'flex', gap: '4px', marginTop: '10px', flexWrap: 'wrap' }}>
-        {results.map((ms, i) => <span key={i} style={{ fontFamily: 'monospace', fontSize: '11px', color: ms <= 400 && false_ ? '#EF4444' : ms < 250 ? '#4ade80' : ms < 400 ? '#FFB300' : 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', padding: '2px 7px' }}>{ms}ms</span>)}
-        {avg !== null && results.length > 1 && <span style={{ fontFamily: 'monospace', fontSize: '11px', color: color, fontWeight: '700', background: `${color}22`, borderRadius: '5px', padding: '2px 7px' }}>avg {avg}ms</span>}
+        {results.map((ms, i) => <span key={i} style={{ fontFamily: 'monospace', fontSize: '12px', color: ms <= 400 && false_ ? '#EF4444' : ms < 250 ? '#4ade80' : ms < 400 ? '#FFB300' : 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', padding: '2px 7px' }}>{ms}ms</span>)}
+        {avg !== null && results.length > 1 && <span style={{ fontFamily: 'monospace', fontSize: '12px', color: color, fontWeight: '700', background: `${color}22`, borderRadius: '5px', padding: '2px 7px' }}>avg {avg}ms</span>}
       </div>
 
       <button onClick={onBack} style={{ marginTop: '12px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
@@ -489,7 +490,7 @@ function NumberMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', alignItems: 'center' }}>
         <div style={{ background: `${color}22`, border: `1px solid ${color}55`, borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '700', color }}>{level} digits</div>
-        {maxLevel > 0 && <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Best this round: {maxLevel}</div>}
+        {maxLevel > 0 && <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Best this round: {maxLevel}</div>}
       </div>
 
       {state === 'idle' && (
@@ -509,7 +510,7 @@ function NumberMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
           <div style={{ fontFamily: 'Poppins', fontSize: `${Math.max(28, 52 - level * 2)}px`, fontWeight: '900', color: '#fff', letterSpacing: '6px', padding: '30px 10px', background: `${color}11`, borderRadius: '14px', border: `1px solid ${color}33`, textShadow: `0 0 30px ${color}88` }}>
             {number}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>Memorize!</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>Memorize!</div>
         </div>
       )}
 
@@ -606,7 +607,7 @@ function VisualMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         <div style={{ display: 'flex', gap: '3px' }}>
           {Array.from({ length: 3 }, (_, i) => <span key={i} style={{ fontSize: '14px', opacity: i < lives ? 1 : 0.2 }}>❤️</span>)}
         </div>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginLeft: 'auto' }}>{target.size || 0} squares</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginLeft: 'auto' }}>{target.size || 0} squares</div>
       </div>
 
       {state === 'idle' && (
@@ -619,8 +620,8 @@ function VisualMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
 
       {(state === 'showing' || state === 'recall' || state === 'correct' || state === 'wrong') && (
         <div>
-          {state === 'showing' && <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', marginBottom: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Memorize!</div>}
-          {state === 'recall' && <div style={{ fontSize: '11px', color: color, textAlign: 'center', marginBottom: '8px', fontWeight: '700' }}>Click the lit squares</div>}
+          {state === 'showing' && <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginBottom: '8px', letterSpacing: '1px', textTransform: 'uppercase' }}>Memorize!</div>}
+          {state === 'recall' && <div style={{ fontSize: '12px', color: color, textAlign: 'center', marginBottom: '8px', fontWeight: '700' }}>Click the lit squares</div>}
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: '6px', maxWidth: '280px', margin: '0 auto' }}>
             {Array.from({ length: CELLS }, (_, i) => {
               const isTarget = grid[i];
@@ -728,7 +729,7 @@ function VerbalMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <div style={{ fontSize: '44px', marginBottom: '10px' }}>📖</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>Click <strong style={{ color }}>SEEN</strong> if shown before, <strong style={{ color: '#60a5fa' }}>NEW</strong> if not</div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '20px' }}>3 lives</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>3 lives</div>
           <button onClick={start} style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 20px ${color}55` }}>Start</button>
         </div>
       ) : (
@@ -812,7 +813,7 @@ function SequenceMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => voi
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
         <div style={{ background: `${color}22`, border: `1px solid ${color}55`, borderRadius: '8px', padding: '5px 12px', fontSize: '12px', fontWeight: '700', color }}>Level {level}</div>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', alignSelf: 'center' }}>{state === 'showing' ? 'Watch…' : state === 'input' ? `Click ${inputIdx + 1}/${seq.length}` : state === 'correct' ? '✓ Correct!' : ''}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', alignSelf: 'center' }}>{state === 'showing' ? 'Watch…' : state === 'input' ? `Click ${inputIdx + 1}/${seq.length}` : state === 'correct' ? '✓ Correct!' : ''}</div>
       </div>
 
       {state === 'idle' ? (
@@ -893,6 +894,7 @@ function AimTrainerTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
         {started && !done && <div style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text2)' }}>{(elapsed / 1000).toFixed(2)}s</div>}
       </div>
 
+      <FitWidth width={AIM_W}>
       <div style={{ position: 'relative', width: AIM_W, height: AIM_H, margin: '0 auto', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', overflow: 'hidden', cursor: done ? 'default' : 'crosshair' }}>
         {!done && (
           <div onClick={handleClick} style={{
@@ -907,7 +909,7 @@ function AimTrainerTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
           <div onClick={handleClick} style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,4,14,0.7)', cursor: 'pointer' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: '#fff' }}>Aim Trainer</div>
-              <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>Click the first target to start</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>Click the first target to start</div>
             </div>
           </div>
         )}
@@ -918,6 +920,7 @@ function AimTrainerTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
           </div>
         )}
       </div>
+      </FitWidth>
 
       {done && <button onClick={reset} style={{ marginTop: '10px', width: '100%', padding: '10px', borderRadius: '9px', border: '1px solid rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.15)', color, fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>↺ Try again</button>}
       <button onClick={onBack} style={{ marginTop: '10px', display: 'block', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
@@ -1063,7 +1066,7 @@ function TestRunner({ testId, onBack }: { testId: TestId; onBack: () => void }) 
             <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff' }}>
               {testId.charAt(0).toUpperCase() + testId.slice(1).replace(/([A-Z])/g, ' $1')}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{meta.desc}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{meta.desc}</div>
           </div>
         </div>
         <ResultScreen
@@ -1083,7 +1086,7 @@ function TestRunner({ testId, onBack }: { testId: TestId; onBack: () => void }) 
           <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff' }}>
             {['Reaction Time','Number Memory','Visual Memory','Verbal Memory','Sequence Memory','Aim Trainer','Mental Math'][['reaction','numbermem','visualmem','verbalmem','seqmem','aimtrainer','mentalmath'].indexOf(testId)]}
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{meta.desc}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{meta.desc}</div>
         </div>
         <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer' }}>✕</button>
       </div>
@@ -1141,7 +1144,7 @@ function MyBrainProfile({ onBack }: { onBack: () => void }) {
         <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '12px', padding: '5px 10px', cursor: 'pointer' }}>✕</button>
         <div>
           <div style={{ fontFamily: 'Poppins', fontSize: '15px', fontWeight: '700', color: '#fff' }}>{t.humanBenchmark.myBrainTitle}</div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.humanBenchmark.myBrainDesc}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.humanBenchmark.myBrainDesc}</div>
         </div>
       </div>
 
@@ -1161,7 +1164,7 @@ function MyBrainProfile({ onBack }: { onBack: () => void }) {
                 <span style={{ fontSize: '20px' }}>{m.icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '12px', fontWeight: '700', color: '#fff' }}>{TEST_NAMES[id]}</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
                     {h.length} {t.humanBenchmark.attemptsUnit}
                     {best !== null && ` · ${t.humanBenchmark.bestScore}: ${m.lowerBetter ? `${best}ms` : best}`}
                   </div>
@@ -1221,12 +1224,12 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
           <div style={{ fontSize: '26px' }}>🧠</div>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontFamily: 'Poppins', fontSize: '16px', fontWeight: '800', color: '#fff' }}>Human Benchmark</h2>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '1px' }}>Measure your cognitive abilities</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>Measure your cognitive abilities</div>
           </div>
           <button onClick={() => setActive('mybrain')} style={{
             background: 'linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.08))',
             border: '1px solid rgba(167,139,250,0.4)', borderRadius: '9px',
-            color: '#a78bfa', fontSize: '11px', fontWeight: '700', padding: '6px 10px', cursor: 'pointer',
+            color: '#a78bfa', fontSize: '12px', fontWeight: '700', padding: '6px 10px', cursor: 'pointer',
             whiteSpace: 'nowrap',
           }}>{t.humanBenchmark.myBrainTitle}</button>
         </div>
@@ -1250,13 +1253,13 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
                 <span style={{ fontSize: '22px' }}>{m.icon}</span>
                 <span style={{ fontFamily: 'Poppins', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{TEST_NAMES[id]}</span>
               </div>
-              <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '8px', lineHeight: 1.3 }}>{m.desc}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px', lineHeight: 1.3 }}>{m.desc}</div>
               {best !== null ? (
                 <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: '700', color: m.color }}>
                   {m.lowerBetter ? `${best}ms` : `${best} ${m.unit}`}
                 </div>
               ) : (
-                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Not played</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Not played</div>
               )}
             </button>
           );

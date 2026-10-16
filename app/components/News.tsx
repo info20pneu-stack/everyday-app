@@ -124,7 +124,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
           background: 'rgba(93,76,255,0.15)',
           border: '1px solid rgba(93,76,255,0.2)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '0.65rem', fontWeight: 700, color: 'var(--purple3)',
+          fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple3)',
           marginTop: '2px',
         }}>
           {index + 1}
@@ -153,7 +153,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             {ago && (
               <span style={{
-                fontSize: '0.68rem', color: 'var(--text3)',
+                fontSize: '0.75rem', color: 'var(--text3)',
                 background: 'rgba(255,255,255,0.04)',
                 border: '1px solid rgba(255,255,255,0.06)',
                 borderRadius: 5, padding: '1px 5px',
@@ -161,7 +161,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
                 {ago}
               </span>
             )}
-            <span style={{ fontSize: '0.68rem', color: 'var(--purple3)', marginLeft: 'auto', opacity: 0.7 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--purple3)', marginLeft: 'auto', opacity: 0.7 }}>
               ↗
             </span>
           </div>
@@ -274,7 +274,7 @@ export default function News() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {lastRefresh && (
-            <span style={{ color: 'var(--text3)', fontSize: '0.68rem' }}>
+            <span style={{ color: 'var(--text3)', fontSize: '0.75rem' }}>
               {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
           )}
@@ -282,6 +282,7 @@ export default function News() {
             onClick={() => loadFeed(activeId, true)}
             disabled={state === 'loading'}
             title={t.news.refresh}
+            className="icon-btn"
             style={{
               background: 'rgba(255,255,255,0.04)',
               border: '1px solid rgba(255,255,255,0.08)',
@@ -342,7 +343,7 @@ export default function News() {
             marginLeft: 'auto',
             background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
             borderRadius: 5, padding: '1px 6px',
-            color: '#4ADE80', fontSize: '0.65rem',
+            color: '#4ADE80', fontSize: '0.75rem',
           }}>
             {articles.length} {t.news.articleUnit}
           </span>
@@ -391,12 +392,12 @@ export default function News() {
           borderTop: '1px solid rgba(255,255,255,0.05)',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
-          <span style={{ fontSize: '0.68rem', color: 'var(--text3)' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>
             {t.news.source} {source.name} · {t.news.refreshNote}
           </span>
           <a
             href={source.url} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: '0.68rem', color: 'var(--purple3)', textDecoration: 'none', opacity: 0.7 }}
+            style={{ fontSize: '0.75rem', color: 'var(--purple3)', textDecoration: 'none', opacity: 0.7, display: 'inline-flex', alignItems: 'center', minHeight: '44px', padding: '0 8px' }}
           >
             RSS ↗
           </a>

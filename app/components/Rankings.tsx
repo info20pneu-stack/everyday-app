@@ -190,19 +190,19 @@ const AIModelsTab = memo(function AIModelsTab() {
     <div>
       {/* Sort bar */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '1rem', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text3)', marginRight: '2px' }}>Sort:</span>
+        <span style={{ fontSize: '12px', color: 'var(--text3)', marginRight: '2px' }}>Sort:</span>
         {SORT_OPTS.map(o => (
           <button key={o.key} onClick={() => setSort(o.key)} style={{
             background: sort === o.key ? 'rgba(93,76,255,0.2)' : 'rgba(255,255,255,0.04)',
             border: sort === o.key ? '1px solid rgba(93,76,255,0.4)' : '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '6px', fontSize: '11px', padding: '3px 10px', cursor: 'pointer',
+            borderRadius: '6px', fontSize: '12px', padding: '3px 10px', cursor: 'pointer',
             color: sort === o.key ? 'var(--purple3)' : 'var(--text3)',
           }}>{o.label}</button>
         ))}
       </div>
 
       {/* Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 52px 80px 54px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 52px 80px 54px', gap: '6px', padding: '0 10px 6px', fontSize: '12px', color: 'var(--text3)' }}>
         <span>#</span><span>Model</span>
         <span style={{ textAlign: 'center' }}>Score</span>
         <span style={{ textAlign: 'center' }}>Cena /1M</span>
@@ -226,13 +226,13 @@ const AIModelsTab = memo(function AIModelsTab() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{m.name}</span>
                 {m.badge && (
-                  <span style={{ fontSize: '9px', color: 'var(--amber)', background: 'rgba(255,179,0,0.12)', borderRadius: '4px', padding: '1px 5px' }}>{m.badge}</span>
+                  <span style={{ fontSize: '12px', color: 'var(--amber)', background: 'rgba(255,179,0,0.12)', borderRadius: '4px', padding: '1px 5px' }}>{m.badge}</span>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '9px', fontWeight: '700', color: m.providerColor, background: m.providerColor + '22', borderRadius: '4px', padding: '1px 5px' }}>{m.provider}</span>
-                <span style={{ fontSize: '10px', color: 'var(--text3)' }}>MMLU {m.mmlu}%</span>
-                <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{m.released}</span>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: m.providerColor, background: m.providerColor + '22', borderRadius: '4px', padding: '1px 5px' }}>{m.provider}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)' }}>MMLU {m.mmlu}%</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{m.released}</span>
               </div>
               {/* Score bar */}
               <div style={{ marginTop: '5px', height: '3px', borderRadius: '2px', background: 'rgba(255,255,255,0.07)' }}>
@@ -246,11 +246,11 @@ const AIModelsTab = memo(function AIModelsTab() {
             {/* Price */}
             <div style={{ textAlign: 'center' }}>
               {m.priceIn === 0 ? (
-                <span style={{ fontSize: '11px', color: 'var(--green2)', fontWeight: '600' }}>Zdarma</span>
+                <span style={{ fontSize: '12px', color: 'var(--green2)', fontWeight: '600' }}>Zdarma</span>
               ) : (
                 <>
-                  <div style={{ fontSize: '11px', color: 'var(--green2)' }}>${m.priceIn} in</div>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>${m.priceOut} out</div>
+                  <div style={{ fontSize: '12px', color: 'var(--green2)' }}>${m.priceIn} in</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>${m.priceOut} out</div>
                 </>
               )}
             </div>
@@ -261,7 +261,7 @@ const AIModelsTab = memo(function AIModelsTab() {
         ))}
       </div>
 
-      <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
         Static data · Composite score (MMLU, HumanEval, Chatbot Arena ELO)
       </div>
     </div>
@@ -319,10 +319,10 @@ const StocksTab = memo(function StocksTab() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
           {source === 'alphavantage' ? 'Alpha Vantage (backup)' : 'Yahoo Finance · daily data'}
         </span>
-        <button onClick={loadAll} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text3)', fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}>↺</button>
+        <button className="icon-btn" onClick={loadAll} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text3)', fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}>↺</button>
       </div>
 
       {allError && (
@@ -335,7 +335,7 @@ const StocksTab = memo(function StocksTab() {
       )}
 
       {/* Header */}
-      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 72px 68px 52px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 72px 68px 52px', gap: '6px', padding: '0 10px 6px', fontSize: '12px', color: 'var(--text3)' }}>
         <span>#</span><span>Akcie</span>
         <span style={{ textAlign: 'right' }}>Cena</span>
         <span style={{ textAlign: 'right' }}>Change</span>
@@ -357,12 +357,12 @@ const StocksTab = memo(function StocksTab() {
               borderRadius: '10px', padding: '9px 10px',
             }}>
               {/* Rank */}
-              <div style={{ fontSize: '11px', color: 'var(--text3)', fontWeight: '600' }}>{idx + 1}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', fontWeight: '600' }}>{idx + 1}</div>
 
               {/* Name + bar */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontSize: '9px', fontWeight: '700', color, background: color + '22', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>{symbol}</span>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color, background: color + '22', borderRadius: '4px', padding: '1px 5px', flexShrink: 0 }}>{symbol}</span>
                   <span style={{ fontSize: '12px', color: '#fff', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {data ? shortName(data.name) : name}
                   </span>
@@ -373,7 +373,7 @@ const StocksTab = memo(function StocksTab() {
                       <div style={{ position: 'absolute', top: '-1px', left: `${((data.price - data.weekLow) / (data.weekHigh - data.weekLow)) * 100}%`, transform: 'translateX(-50%)', width: '5px', height: '5px', borderRadius: '50%', background: cc }} />
                       <div style={{ height: '100%', width: `${((data.price - data.weekLow) / (data.weekHigh - data.weekLow)) * 100}%`, background: 'rgba(255,255,255,0.12)', borderRadius: '2px' }} />
                     </div>
-                    <div style={{ fontSize: '9px', color: 'var(--text3)', marginTop: '3px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '3px' }}>
                       52T ${fmtUSD(data.weekLow)} – ${fmtUSD(data.weekHigh)}
                     </div>
                   </>
@@ -383,7 +383,7 @@ const StocksTab = memo(function StocksTab() {
               {/* Price */}
               <div style={{ textAlign: 'right' }}>
                 {state === 'loading' && <div style={{ height: '14px', width: '52px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', marginLeft: 'auto', animation: 'shimmer 1.5s infinite' }} />}
-                {state === 'error'   && <span style={{ color: '#EF4444', fontSize: '11px' }}>–</span>}
+                {state === 'error'   && <span style={{ color: '#EF4444', fontSize: '12px' }}>–</span>}
                 {state === 'ok' && data && <span style={{ fontSize: '14px', fontWeight: '700', fontFamily: 'Poppins', color: '#fff' }}>${fmtUSD(data.price)}</span>}
               </div>
 
@@ -393,7 +393,7 @@ const StocksTab = memo(function StocksTab() {
                 {state === 'ok' && data && (
                   <>
                     <div style={{ fontSize: '12px', fontWeight: '600', color: cc }}>{up ? '+' : ''}{fmtUSD(data.changePct)}%</div>
-                    <div style={{ fontSize: '10px', color: cc, opacity: 0.8 }}>{up ? '+' : ''}{fmtUSD(data.change)}</div>
+                    <div style={{ fontSize: '12px', color: cc, opacity: 0.8 }}>{up ? '+' : ''}{fmtUSD(data.change)}</div>
                   </>
                 )}
               </div>
@@ -401,7 +401,7 @@ const StocksTab = memo(function StocksTab() {
               {/* Volume */}
               <div style={{ textAlign: 'right' }}>
                 {state === 'loading' && <div style={{ height: '10px', width: '32px', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', marginLeft: 'auto', animation: 'shimmer 1.5s infinite' }} />}
-                {state === 'ok' && data && <span style={{ fontSize: '11px', color: 'var(--text3)' }}>{fmtVol(data.volume)}</span>}
+                {state === 'ok' && data && <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{fmtVol(data.volume)}</span>}
               </div>
             </div>
           );
@@ -434,8 +434,8 @@ const MusicTab = memo(function MusicTab() {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-        <span style={{ fontSize: '11px', color: 'var(--text3)' }}>Apple iTunes · Most Played US</span>
-        <button onClick={load} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text3)', fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}>↺</button>
+        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>Apple iTunes · Most Played US</span>
+        <button className="icon-btn" onClick={load} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', color: 'var(--text3)', fontSize: '12px', padding: '3px 8px', cursor: 'pointer' }}>↺</button>
       </div>
 
       {state === 'loading' && (
@@ -477,10 +477,10 @@ const MusicTab = memo(function MusicTab() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <span style={{ fontSize: '13px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                    {t.explicit && <span style={{ fontSize: '8px', color: 'var(--text3)', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', padding: '1px 4px', flexShrink: 0 }}>E</span>}
+                    {t.explicit && <span style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', padding: '1px 4px', flexShrink: 0 }}>E</span>}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{t.artist}</div>
-                  {t.genre && <div style={{ fontSize: '10px', color: 'var(--text3)', marginTop: '1px' }}>{t.genre}</div>}
+                  <div style={{ fontSize: '12px', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '1px' }}>{t.artist}</div>
+                  {t.genre && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t.genre}</div>}
                 </div>
 
                 <span style={{ color: 'var(--text3)', fontSize: '12px', flexShrink: 0 }}>↗</span>
@@ -490,7 +490,7 @@ const MusicTab = memo(function MusicTab() {
         </div>
       )}
 
-      <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
         Source: Apple iTunes RSS · Last.fm: requires API key (free registration at last.fm/api)
       </div>
     </div>

@@ -109,8 +109,8 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, wa
         style={{
           display: 'grid',
           gridTemplateColumns: showCharts
-            ? '18px 24px 1fr 80px 60px 70px 76px'
-            : '18px 24px 1fr 80px 60px',
+            ? '44px 24px 1fr 80px 60px 70px 76px'
+            : '44px 1fr 80px 60px',
           gap: '6px',
           alignItems: 'center',
           background: expanded ? 'rgba(93,76,255,0.07)' : 'rgba(255,255,255,0.02)',
@@ -124,13 +124,15 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, wa
         <button
           onClick={e => { e.stopPropagation(); onToggleWatch(); }}
           title={watched ? t.crypto.watchlist : t.crypto.watchlist}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: watched ? '#FFB300' : 'var(--text3)', padding: 0 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', color: watched ? '#FFB300' : 'var(--text3)', padding: 0, width: '100%', height: '36px', margin: '-8px 0' }}
         >{watched ? '★' : '☆'}</button>
 
-        {/* Rank */}
-        <div style={{ fontSize: '11px', color: coin.market_cap_rank <= 3 ? 'var(--purple3)' : 'var(--text3)', fontWeight: '600', textAlign: 'center' }}>
-          {coin.market_cap_rank}
-        </div>
+        {/* Rank — dropped on phones to keep the star a full touch target */}
+        {showCharts && (
+          <div style={{ fontSize: '12px', color: coin.market_cap_rank <= 3 ? 'var(--purple3)' : 'var(--text3)', fontWeight: '600', textAlign: 'center' }}>
+            {coin.market_cap_rank}
+          </div>
+        )}
 
         {/* Logo + name */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
@@ -148,7 +150,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, wa
             <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {coin.name}
             </div>
-            <div style={{ fontSize: '10px', color: 'var(--text3)', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text3)', textTransform: 'uppercase' }}>
               {coin.symbol}
             </div>
           </div>
@@ -166,7 +168,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, wa
 
         {/* Market cap — hidden on mobile */}
         {showCharts && (
-          <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text2)' }}>
+          <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text2)' }}>
             {fmtBig(coin.market_cap)}
           </div>
         )}
@@ -200,7 +202,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, wa
                 : coin.circulating_supply.toLocaleString('en-US') + ' ' + coin.symbol.toUpperCase() },
             ].map(({ label, val, color }) => (
               <div key={label} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '7px 9px' }}>
-                <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '2px' }}>{label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '2px' }}>{label}</div>
                 <div style={{ fontSize: '12px', fontWeight: '500', color: color ?? '#fff' }}>{val}</div>
               </div>
             ))}
@@ -209,7 +211,7 @@ const CoinRow = memo(function CoinRow({ coin, expanded, onToggle, showCharts, wa
           {/* Full 7d sparkline */}
           {sp.length > 0 && (
             <div style={{ marginTop: '8px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '8px 10px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px' }}>{t.crypto.detail_priceHistory}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.crypto.detail_priceHistory}</div>
               <SparklineLarge prices={sp} positive={positive} id={coin.id + '-lg'} />
             </div>
           )}
@@ -258,12 +260,12 @@ const SparklineLarge = memo(function SparklineLarge({ prices, positive, id }: { 
       </svg>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3px' }}>
         {dayLabels.map(d => (
-          <span key={d} style={{ fontSize: '9px', color: 'var(--text3)' }}>{d}</span>
+          <span key={d} style={{ fontSize: '12px', color: 'var(--text3)' }}>{d}</span>
         ))}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
-        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.crypto.detail_min} {fmtPrice(min)}</span>
-        <span style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.crypto.detail_max} {fmtPrice(max)}</span>
+        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.crypto.detail_min} {fmtPrice(min)}</span>
+        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.crypto.detail_max} {fmtPrice(max)}</span>
       </div>
     </div>
   );
@@ -382,11 +384,11 @@ export default function Crypto() {
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>₿ Crypto</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {lastUpdated && (
-            <span style={{ fontSize: '10px', color: 'var(--text3)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
               {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
             </span>
           )}
-          <button
+          <button className="icon-btn"
             onClick={load}
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer' }}
           >↺</button>
@@ -408,14 +410,14 @@ export default function Crypto() {
 
       {/* Column headers */}
       {state === 'ok' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '18px 24px 1fr 80px 60px 70px 76px', gap: '6px', padding: '0 10px 6px', fontSize: '10px', color: 'var(--text3)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: showCharts ? '44px 24px 1fr 80px 60px 70px 76px' : '44px 1fr 80px 60px', gap: '6px', padding: '0 10px 6px', fontSize: '12px', color: 'var(--text3)' }}>
           <span />
-          <span style={{ textAlign: 'center' }}>#</span>
+          {showCharts && <span style={{ textAlign: 'center' }}>#</span>}
           <span>{t.crypto.col_name}</span>
           <span style={{ textAlign: 'right' }}>{t.crypto.col_price}</span>
           <span style={{ textAlign: 'right' }}>{t.crypto.col_change24h}</span>
-          <span style={{ textAlign: 'right' }}>{t.crypto.col_marketCap}</span>
-          <span style={{ textAlign: 'right' }}>{t.crypto.col_chart}</span>
+          {showCharts && <span style={{ textAlign: 'right' }}>{t.crypto.col_marketCap}</span>}
+          {showCharts && <span style={{ textAlign: 'right' }}>{t.crypto.col_chart}</span>}
         </div>
       )}
 
@@ -438,7 +440,7 @@ export default function Crypto() {
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⏳</div>
           <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '4px' }}>{t.crypto.rateLimit}</div>
-          <div style={{ color: 'var(--text3)', fontSize: '11px', marginBottom: '1rem' }}>{t.crypto.tryAgainMoment}</div>
+          <div style={{ color: 'var(--text3)', fontSize: '12px', marginBottom: '1rem' }}>{t.crypto.tryAgainMoment}</div>
           <button onClick={load} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
             {t.crypto.tryAgain}
           </button>
@@ -459,7 +461,7 @@ export default function Crypto() {
       {/* Watchlist */}
       {state === 'ok' && watchlist.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
             {t.crypto.watchlist}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -468,7 +470,7 @@ export default function Crypto() {
                 <span style={{ color: '#FFB300' }}>★</span>
                 <span style={{ flex: 1, fontSize: '12px', color: '#fff', fontWeight: '500' }}>{c.name}</span>
                 <span style={{ fontSize: '12px', fontFamily: 'Poppins', color: '#fff' }}>{fmtPrice(c.current_price)}</span>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: c.price_change_percentage_24h >= 0 ? 'var(--green2)' : '#EF4444' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: c.price_change_percentage_24h >= 0 ? 'var(--green2)' : '#EF4444' }}>
                   {fmtPct(c.price_change_percentage_24h)}
                 </span>
               </div>
@@ -480,23 +482,23 @@ export default function Crypto() {
       {/* Biggest movers */}
       {state === 'ok' && coins.length >= 3 && (
         <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
             {t.crypto.biggestMovers}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <div>
-              <div style={{ fontSize: '10px', color: 'var(--green2)', marginBottom: '4px' }}>▲ {t.crypto.topGainers}</div>
+              <div style={{ fontSize: '12px', color: 'var(--green2)', marginBottom: '4px' }}>▲ {t.crypto.topGainers}</div>
               {topGainers.map(c => (
-                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
                   <span style={{ color: '#fff' }}>{c.symbol.toUpperCase()}</span>
                   <span style={{ color: 'var(--green2)', fontWeight: '600' }}>{fmtPct(c.price_change_percentage_24h)}</span>
                 </div>
               ))}
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: '#EF4444', marginBottom: '4px' }}>▼ {t.crypto.topLosers}</div>
+              <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '4px' }}>▼ {t.crypto.topLosers}</div>
               {topLosers.map(c => (
-                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', padding: '3px 0' }}>
+                <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
                   <span style={{ color: '#fff' }}>{c.symbol.toUpperCase()}</span>
                   <span style={{ color: '#EF4444', fontWeight: '600' }}>{fmtPct(c.price_change_percentage_24h)}</span>
                 </div>
@@ -527,14 +529,14 @@ export default function Crypto() {
                 />
               ))}
               {isMobile && !search && filtered.length > listLimit && (
-                <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--text3)', paddingTop: '4px' }}>
+                <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text3)', paddingTop: '4px' }}>
                   {t.crypto.moreCoins.replace('{count}', String(filtered.length - listLimit))}
                 </div>
               )}
             </div>
           )}
 
-          <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
             Source: {source === 'coingecko' ? t.crypto.source_coingecko : t.crypto.source_coincap} · Click a coin for details and 7d chart
           </div>
         </>

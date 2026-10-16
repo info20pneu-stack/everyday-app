@@ -90,7 +90,7 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
               stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
             <text x={lbl.x.toFixed(1)} y={lbl.y.toFixed(1)}
               textAnchor="middle" dominantBaseline="middle"
-              fill="rgba(255,255,255,0.3)" fontSize="9" fontFamily="monospace">
+              fill="rgba(255,255,255,0.3)" fontSize="12" fontFamily="monospace">
               {spd}
             </text>
           </g>
@@ -127,7 +127,7 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
             {active && value > 0 ? value.toFixed(1) : '—'}
           </text>
           <text x={CX} y={CY + 50} textAnchor="middle"
-            fill="rgba(255,255,255,0.3)" fontSize="10">
+            fill="rgba(255,255,255,0.3)" fontSize="12">
             Mbps
           </text>
         </>
@@ -138,7 +138,7 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
             {t.speedTest.upload}
           </text>
           <text x={CX} y={CY + 50} textAnchor="middle"
-            fill="rgba(255,255,255,0.25)" fontSize="10">
+            fill="rgba(255,255,255,0.25)" fontSize="12">
             measuring...
           </text>
         </>
@@ -345,7 +345,7 @@ export default function SpeedTest() {
         {[stripLeadingEmoji(t.speedTest.ping), stripLeadingEmoji(t.speedTest.download), stripLeadingEmoji(t.speedTest.upload)].map((l) => (
           <div key={l} style={{
             flex: 1, textAlign: 'center',
-            fontSize: '0.65rem', color: 'var(--text3)',
+            fontSize: '0.75rem', color: 'var(--text3)',
           }}>{l}</div>
         ))}
       </div>
@@ -360,7 +360,7 @@ export default function SpeedTest() {
             textAlign: 'center', transition: 'border-color 0.4s',
           }}>
             <div style={{ fontSize: '1rem', marginBottom: '0.2rem' }}>{icon}</div>
-            <div style={{ color: 'var(--text3)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ color: 'var(--text3)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {label}
             </div>
             <div style={{
@@ -372,9 +372,9 @@ export default function SpeedTest() {
             }}>
               {value != null ? fmt(value) : '—'}
             </div>
-            <div style={{ color: 'var(--text3)', fontSize: '0.65rem', marginTop: '1px' }}>{unit}</div>
+            <div style={{ color: 'var(--text3)', fontSize: '0.75rem', marginTop: '1px' }}>{unit}</div>
             {quality && (
-              <div style={{ color: quality.color, fontSize: '0.6rem', marginTop: '3px', opacity: 0.8 }}>
+              <div style={{ color: quality.color, fontSize: '0.75rem', marginTop: '3px', opacity: 0.8 }}>
                 {quality.label}
               </div>
             )}

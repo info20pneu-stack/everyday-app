@@ -1,6 +1,7 @@
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import RetroWindow from './RetroWindow';
+import BottomNav from './BottomNav';
 
 export default function PageShell({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
           </div>
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 }

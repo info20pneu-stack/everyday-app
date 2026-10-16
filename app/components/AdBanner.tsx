@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 
 export type AdVariant = 'top' | 'sidebar' | 'inline' | 'mobile';
 
@@ -59,8 +59,19 @@ function ensureRefreshListener() {
   });
 }
 
+/* ── Phones get the 320×100 mobile banner instead of any wide unit ── */
+const PHONE_QUERY = '(max-width: 767px)';
+function subscribePhone(cb: () => void) {
+  const mq = window.matchMedia(PHONE_QUERY);
+  mq.addEventListener('change', cb);
+  return () => mq.removeEventListener('change', cb);
+}
+const isPhone = () => window.matchMedia(PHONE_QUERY).matches;
+
 export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps) {
-  const { w, h, label, format, responsive } = VARIANTS[variant];
+  const phone = useSyncExternalStore(subscribePhone, isPhone, () => false);
+  const effective: AdVariant = phone && (variant === 'top' || variant === 'inline') ? 'mobile' : variant;
+  const { w, h, label, format, responsive } = VARIANTS[effective];
   const insRef = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
 
@@ -119,7 +130,7 @@ export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps
           userSelect: 'none',
         }}>
           <span style={{
-            fontSize: variant === 'mobile' ? '9px' : '10px',
+            fontSize: '12px',
             letterSpacing: '2px',
             textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.4)',
@@ -128,7 +139,7 @@ export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps
             Advertisement
           </span>
           <span style={{
-            fontSize: variant === 'mobile' ? '14px' : '18px',
+            fontSize: effective === 'mobile' ? '14px' : '18px',
             fontWeight: '700',
             color: 'rgba(255,255,255,0.15)',
             fontFamily: 'Poppins, sans-serif',
@@ -138,7 +149,7 @@ export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps
           </span>
           {isPlaceholder && (
             <span style={{
-              fontSize: '9px',
+              fontSize: '12px',
               color: 'rgba(255,255,255,0.25)',
               marginTop: '2px',
               fontFamily: 'Inter, sans-serif',
@@ -157,6 +168,7 @@ export default function AdBanner({ variant, slot = '0000000000' }: AdBannerProps
             inset: 0,
             display: 'block',
             width: w,
+            maxWidth: '100%',
             height: h,
           }}
           data-ad-client={AD_CLIENT}

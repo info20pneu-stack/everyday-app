@@ -294,7 +294,7 @@ export default function Weather() {
       <div className="card" style={card}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
-          <span style={{ fontSize: '11px', color: 'var(--text3)' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
             {status === 'locating' ? '📍 Locating…' : '🌐 Loading…'}
           </span>
         </div>
@@ -353,7 +353,7 @@ export default function Weather() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
-        <button
+        <button className="icon-btn"
           onClick={load}
           title="Refresh"
           style={{
@@ -386,14 +386,14 @@ export default function Weather() {
               {current.temp}°
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>{desc}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Feels like {current.feels}°C</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Feels like {current.feels}°C</div>
           </div>
         </div>
       </div>
 
       {/* What to wear */}
       <div style={{ ...statBox, marginBottom: '.75rem' }}>
-        <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
           {t.weather.outfitTitle}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -406,7 +406,7 @@ export default function Weather() {
       {/* Hourly forecast */}
       {hourly.length > 0 && (
         <div style={{ marginBottom: '.75rem' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
             {t.weather.hourlyForecast}
           </div>
           <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -418,10 +418,10 @@ export default function Weather() {
                   background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
                   borderRadius: '10px', padding: '6px 4px',
                 }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{fmtHour(h.time)}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{fmtHour(h.time)}</div>
                   <div style={{ fontSize: '16px', margin: '3px 0' }}>{hEmoji}</div>
                   <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>{h.temp}°</div>
-                  {h.precip > 0 && <div style={{ fontSize: '9px', color: 'var(--blue2)' }}>{h.precip}%</div>}
+                  {h.precip > 0 && <div style={{ fontSize: '12px', color: 'var(--blue2)' }}>{h.precip}%</div>}
                 </div>
               );
             })}
@@ -432,28 +432,28 @@ export default function Weather() {
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>💧 Humidity</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>💧 Humidity</div>
           <div style={{ fontSize: '18px', fontWeight: '500', color: 'var(--blue2)' }}>{current.humidity}%</div>
         </div>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>💨 Wind</div>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.wind} <span style={{ fontSize: '11px' }}>km/h</span></div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>💨 Wind</div>
+          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.wind} <span style={{ fontSize: '12px' }}>km/h</span></div>
         </div>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>🔭 Pressure</div>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.pressure} <span style={{ fontSize: '11px' }}>hPa</span></div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>🔭 Pressure</div>
+          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.pressure} <span style={{ fontSize: '12px' }}>hPa</span></div>
         </div>
         <div style={statBox}>
-          <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '4px' }}>☀️ UV index</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>☀️ UV index</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
             <span style={{ fontSize: '18px', fontWeight: '500', color: uv.color }}>{current.uv}</span>
-            <span style={{ fontSize: '10px', color: uv.color }}>{uv.label}</span>
+            <span style={{ fontSize: '12px', color: uv.color }}>{uv.label}</span>
           </div>
         </div>
       </div>
 
       {/* 5-day forecast */}
-      <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
         5-day forecast
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
@@ -471,11 +471,11 @@ export default function Weather() {
               borderRadius: '10px',
               padding: '6px 10px',
             }}>
-              <div style={{ width: '26px', fontSize: '11px', color: isToday ? 'var(--purple3)' : 'var(--text2)', fontWeight: isToday ? '600' : '400' }}>
+              <div style={{ width: '26px', fontSize: '12px', color: isToday ? 'var(--purple3)' : 'var(--text2)', fontWeight: isToday ? '600' : '400' }}>
                 {isToday ? 'Today' : DAYS_EN[d.getDay()]}
               </div>
               <div style={{ fontSize: '18px', width: '24px', textAlign: 'center' }}>{dayEmoji}</div>
-              <div style={{ flex: 1, fontSize: '11px', color: 'var(--text3)' }}>
+              <div style={{ flex: 1, fontSize: '12px', color: 'var(--text3)' }}>
                 {day.precip > 0 && <span>🌂 {day.precip}%</span>}
               </div>
               <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
@@ -487,7 +487,7 @@ export default function Weather() {
         })}
       </div>
 
-      <div style={{ fontSize: '10px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
         Source: {source === 'open-meteo' ? 'Open-Meteo' : 'WeatherAPI (backup)'} · Nominatim OSM
       </div>
       <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>

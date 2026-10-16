@@ -61,7 +61,7 @@ function MobileDashboard() {
         >
           <span style={{ fontSize: '30px', lineHeight: 1 }}>{tile.icon}</span>
           <span style={{
-            fontSize: '11px',
+            fontSize: '12px',
             color: 'var(--text2)',
             textAlign: 'center',
             lineHeight: 1.35,

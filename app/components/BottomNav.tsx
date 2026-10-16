@@ -1,33 +1,40 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLang } from '../../lib/LanguageContext';
 
 const NAV_ITEMS = [
-  { id: 'home',    icon: '🏠', key: 'home'      as const },
-  { id: 'time',    icon: '🕐', key: 'worldTime'  as const },
-  { id: 'weather', icon: '🌤️', key: 'weather'    as const },
-  { id: 'sports',  icon: '🏆', key: 'sports'     as const },
-  { id: 'crypto',  icon: '₿',  key: 'crypto'     as const },
+  { href: '/',           icon: '🏠', key: 'home'      as const },
+  { href: '/world-time', icon: '🕐', key: 'worldTime' as const },
+  { href: '/weather',    icon: '🌤️', key: 'weather'   as const },
+  { href: '/sports',     icon: '🏆', key: 'sports'    as const },
+  { href: '/crypto',     icon: '₿',  key: 'crypto'    as const },
 ] as const;
 
 export default function BottomNav() {
   const { t } = useLang();
-  const [active, setActive] = useState<string>('home');
+  const pathname = usePathname();
+  const router = useRouter();
   const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
-  const NAV_IDS = NAV_ITEMS.map(i => i.id);
+  const activeIdx = NAV_ITEMS.findIndex(i => i.href === pathname);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
   }
 
+  // Horizontal swipe on the bar moves to the neighbouring tab
   function handleTouchEnd(e: React.TouchEvent) {
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (Math.abs(delta) < 50) return;
-    const curr = NAV_IDS.findIndex(id => id === active);
-    if (delta < 0 && curr < NAV_IDS.length - 1) setActive(NAV_IDS[curr + 1]);
-    else if (delta > 0 && curr > 0) setActive(NAV_IDS[curr - 1]);
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    const curr = activeIdx === -1 ? 0 : activeIdx;
+    const next = dx < 0 ? curr + 1 : curr - 1;
+    if (next >= 0 && next < NAV_ITEMS.length) router.push(NAV_ITEMS[next].href);
   }
 
   return (
@@ -37,26 +44,14 @@ export default function BottomNav() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {NAV_ITEMS.map(item => {
-        const isActive = active === item.id;
+      {NAV_ITEMS.map((item, i) => {
+        const isActive = i === activeIdx;
         return (
-          <button
-            key={item.id}
-            onClick={() => setActive(item.id)}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '3px',
-              flex: 1,
-              height: '100%',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 0',
-              position: 'relative',
-            }}
+          <Link
+            key={item.href}
+            href={item.href}
+            className="bottom-nav-item"
+            aria-current={isActive ? 'page' : undefined}
           >
             {/* Active indicator pill */}
             {isActive && (
@@ -81,13 +76,13 @@ export default function BottomNav() {
               {item.icon}
             </span>
             <span style={{
-              fontSize: '9px',
+              fontSize: '12px',
               color: isActive ? 'var(--purple3)' : 'var(--text3)',
               fontFamily: 'Inter, sans-serif',
               fontWeight: isActive ? '600' : '400',
-              letterSpacing: '.2px',
               transition: 'color .15s',
-              maxWidth: '54px',
+              maxWidth: '100%',
+              padding: '0 2px',
               textAlign: 'center',
               lineHeight: 1.2,
               overflow: 'hidden',
@@ -96,7 +91,7 @@ export default function BottomNav() {
             }}>
               {t.nav[item.key]}
             </span>
-          </button>
+          </Link>
         );
       })}
     </nav>

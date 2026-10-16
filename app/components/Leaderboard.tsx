@@ -53,7 +53,7 @@ export function LeaderboardPanel({
         {(['week', 'all'] as const).map(s => (
           <button key={s} onClick={() => setSeason(s)} style={{
             flex: 1, padding: '6px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '11px', fontWeight: '600',
+            fontSize: '12px', fontWeight: '600',
             background: s === season ? `${accentColor}2a` : 'rgba(255,255,255,0.05)',
             color: s === season ? accentColor : 'var(--text3)',
             outline: s === season ? `1px solid ${accentColor}66` : 'none',
@@ -93,7 +93,7 @@ export function LeaderboardPanel({
             <button onClick={() => setExpanded(ex => !ex)} style={{
               marginTop: '8px', width: '100%', padding: '7px', borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)',
-              color: 'var(--text2)', fontSize: '11px', fontWeight: '600', cursor: 'pointer',
+              color: 'var(--text2)', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
             }}>
               {expanded ? t.games.showTop20 : t.games.showTop100}
             </button>

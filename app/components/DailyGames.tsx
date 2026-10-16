@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
+import FitWidth from './FitWidth';
 import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
 import { TypingSpeedTest } from './TypingSpeedTest';
@@ -297,7 +298,7 @@ function StatChip({ label, value }: { label: string; value: string | number }) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '5px 12px', textAlign: 'center' }}>
       <div style={{ fontSize: '16px', fontWeight: '700', fontFamily: 'Poppins', color: '#fff' }}>{value}</div>
-      <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</div>
     </div>
   );
 }
@@ -307,7 +308,7 @@ function BestBadge({ label, value }: { label: string; value: string | number }) 
   return (
     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,179,0,0.1)', border: '1px solid rgba(255,179,0,0.2)', borderRadius: '8px', padding: '3px 10px' }}>
       <span style={{ fontSize: '12px' }}>🏆</span>
-      <span style={{ fontSize: '11px', color: 'var(--amber)' }}>{label}: {value}</span>
+      <span style={{ fontSize: '12px', color: 'var(--amber)' }}>{label}: {value}</span>
     </div>
   );
 }
@@ -323,7 +324,7 @@ function ChallengeVs({ challenge, myValue, lowerBetter, formatValue, t }: {
   const verdictColor = tie ? '#FFB300' : iWon ? 'var(--green2)' : '#f87171';
   return (
     <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-      <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
         {t.games.youVs.replace('{name}', challenge.name)}
       </div>
       <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', alignItems: 'center' }}>
@@ -436,6 +437,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
     borderRadius: '18px', padding: '24px 20px', width: '100%', maxWidth: '360px',
     boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
     animation: 'modalIn 0.22s cubic-bezier(.34,1.56,.64,1)',
+    maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', position: 'relative',
   };
   const inputSt: React.CSSProperties = {
     width: '100%', background: 'rgba(255,255,255,0.07)',
@@ -700,7 +702,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
         {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','stack','felixjump','typing'] as GameId[]).map(g => (
           <button key={g} onClick={() => setGame(g)} style={{
             padding: '5px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '10px', fontWeight: '600', whiteSpace: 'nowrap',
+            fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap',
             background: g === game ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
             color: g === game ? '#fff' : 'var(--text3)',
           }}>{glGameLabel[g]}</button>
@@ -712,7 +714,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
         {seasonOpts.map(p => (
           <button key={p.v} onClick={() => setSeason(p.v)} style={{
             flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '11px', fontWeight: '600',
+            fontSize: '12px', fontWeight: '600',
             background: p.v === season ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
             color: p.v === season ? 'var(--purple3)' : 'var(--text3)',
             outline: p.v === season ? '1px solid rgba(93,76,255,0.4)' : 'none',
@@ -730,7 +732,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
           ]).map(({ v, label }) => (
             <button key={v} onClick={() => setDeviceFilter(v)} style={{
               flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-              fontSize: '11px', fontWeight: '600',
+              fontSize: '12px', fontWeight: '600',
               background: v === deviceFilter ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
               color: v === deviceFilter ? 'var(--purple3)' : 'var(--text3)',
               outline: v === deviceFilter ? '1px solid rgba(93,76,255,0.4)' : 'none',
@@ -744,7 +746,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
         <select value={country} onChange={e => { setCountry(e.target.value); setCity(''); }} style={{
           flex: 1, minWidth: '130px', background: 'rgba(255,255,255,0.07)',
           border: country ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
-          borderRadius: '8px', color: '#fff', fontSize: '11px', padding: '5px 8px', outline: 'none',
+          borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '5px 8px', outline: 'none',
         }}>
           <option value="">🌍 {t.games.allCountries} ({entries.length})</option>
           {countries.map(c => (
@@ -757,7 +759,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
           <select value={city} onChange={e => setCity(e.target.value)} style={{
             flex: 1, minWidth: '90px', background: 'rgba(255,255,255,0.07)',
             border: city ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
-            borderRadius: '8px', color: '#fff', fontSize: '11px', padding: '5px 8px', outline: 'none',
+            borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '5px 8px', outline: 'none',
           }}>
             <option value="">{t.games.allCities}</option>
             {cities.map(ct => <option key={ct} value={ct}>{ct}</option>)}
@@ -772,7 +774,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
       </div>
 
       {/* Header */}
-      <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+      <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
         {country ? `${flagEmoji(country)} ${getCountryName(country, lang)}${city ? ' · ' + city : ''} — ${filtered.length} ${t.games.players}` : `🌍 ${t.games.globalTop100}`}
       </div>
 
@@ -800,7 +802,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
                 <span style={{ fontSize: '14px', flexShrink: 0 }} title={e.city || e.country}>{flagEmoji(e.country)}</span>
               )}
               {e.city && !city && (
-                <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0, maxWidth: '54px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.city}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0, maxWidth: '54px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.city}</span>
               )}
               {/* Score badge — for score-based games */}
               {game === 'mathrush' && e.score !== undefined && (
@@ -833,7 +835,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
                 </span>
               )}
               {e.moves !== undefined && (
-                <span style={{ fontSize: '10px', color: 'var(--text3)', flexShrink: 0 }}>{e.moves}t</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{e.moves}t</span>
               )}
             </div>
           ))}
@@ -841,7 +843,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
             <button onClick={() => setExpanded(ex => !ex)} style={{
               marginTop: '6px', width: '100%', padding: '7px', borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)',
-              color: 'var(--text2)', fontSize: '11px', fontWeight: '600', cursor: 'pointer',
+              color: 'var(--text2)', fontSize: '12px', fontWeight: '600', cursor: 'pointer',
             }}>
               {expanded ? t.games.showTop20 : t.games.showTop100}
             </button>
@@ -960,7 +962,7 @@ function MemoryGame({ onComplete, challengeSeed, challenge }: {
         <StatChip label={t.games.moves} value={moves} />
         <StatChip label={t.games.time} value={fmtTimeCenti(elapsedMs)} />
         <StatChip label={t.games.pairs} value={`${matched.size / 2}/${DIFFS[diff].pairs}`} />
-        <button onClick={() => initGame(diff)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '0 12px', cursor: 'pointer' }}>↺</button>
+        <button className="icon-btn" onClick={() => initGame(diff)} style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '0 12px', cursor: 'pointer' }}>↺</button>
       </div>
 
       {best[diff] && <div style={{ marginBottom: '10px' }}><BestBadge label={diff} value={`${best[diff]} ${t.games.moves}`} /></div>}
@@ -998,7 +1000,7 @@ function MemoryGame({ onComplete, challengeSeed, challenge }: {
                 }}>
                   <span style={{ fontSize: emojiSz, lineHeight: 1 }}>{flagEmoji(card.code)}</span>
                   {cols <= 6 && (
-                    <span style={{ fontSize: '7px', color: 'var(--text3)', textAlign: 'center', lineHeight: 1.1, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', lineHeight: 1.1, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>
                       {getCountryName(card.code, lang)}
                     </span>
                   )}
@@ -1157,7 +1159,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
 
       {phase === 'showing' && (
         <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px', letterSpacing: '1px', textTransform: 'uppercase' }}>
             {t.games.memorizeOrder}
           </div>
           {/* current word highlight + countdown bar */}
@@ -1179,7 +1181,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
                   animation: `wcCountdown ${WC_WORD_SHOW_MS}ms linear`,
                 }} />
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '6px' }}>
                 {showIdx + 1} / {sequence.length}
               </div>
             </div>
@@ -1203,7 +1205,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
 
       {(phase === 'recall' || phase === 'success') && (
         <div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px', textAlign: 'center', letterSpacing: '1px', textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px', textAlign: 'center', letterSpacing: '1px', textTransform: 'uppercase' }}>
             {phase === 'success' ? t.games.correctNext : `${t.games.clickInOrder} (${clicked.length + 1}/${sequence.length})`}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
@@ -1249,7 +1251,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
               {t.games.newRecord}
             </div>
           )}
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '14px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '14px' }}>
             {t.games.correctOrder} {sequence.join(' → ')}
           </div>
           <button onClick={restart} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
@@ -1466,7 +1468,7 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
         {fqDiffs.map(d => (
           <button key={d.key} onClick={() => handleDiff(d.key)} style={{
             flex: 1, padding: '6px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '11px', fontWeight: '600',
+            fontSize: '12px', fontWeight: '600',
             background: d.key === diff ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
             color: d.key === diff ? '#fff' : 'var(--text3)',
           }}>{d.label}</button>
@@ -1478,7 +1480,7 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
         <>
           {/* Progress + live timer */}
           <div style={{ marginBottom: '14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text3)', marginBottom: '5px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text3)', marginBottom: '5px' }}>
               <span>{t.games.question} {current + 1} / {TOTAL_Q}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {streak >= 2 && <span style={{ animation: 'firePulse 1s infinite', display: 'inline-block' }}>🔥 {streak}</span>}
@@ -1505,7 +1507,7 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
                 }}>
                   {flagEmoji(q.correct.code)}
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
                   {t.games.whichCountryFlag}
                 </div>
               </div>
@@ -1545,7 +1547,7 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
                     {getCountryName(q.correct.code, lang)}
                   </div>
                 </div>
-                <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '8px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
                   {t.games.whichFlagCountry}
                 </div>
               </div>
@@ -1649,7 +1651,7 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
           {/* Local top 5 */}
           {top5.length > 0 && (
             <div style={{ textAlign: 'left', marginTop: '4px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{t.games.myTop5}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{t.games.myTop5}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 {top5.map((rec, i) => {
                   const diffEmoji = rec.diff === 'easy' ? '🟢' : rec.diff === 'normal' ? '🟡' : '🔴';
@@ -1657,9 +1659,9 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)' }}>
                       <span style={{ fontSize: '13px', width: '20px', flexShrink: 0 }}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`}</span>
                       <span style={{ fontSize: '13px', fontWeight: '700', color: '#fff', minWidth: '32px' }}>{rec.score}/{TOTAL_Q}</span>
-                      <span style={{ fontSize: '11px', color: 'var(--text2)', fontFamily: 'monospace' }}>{fmtTimeSecs(rec.time)}</span>
-                      <span style={{ fontSize: '10px', color: 'var(--text3)', marginLeft: 'auto' }}>{new Date(rec.date).toLocaleDateString(lang, { day: 'numeric', month: 'short' })}</span>
-                      <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px', color: 'var(--text3)' }}>{diffEmoji}{rec.variant}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text2)', fontFamily: 'monospace' }}>{fmtTimeSecs(rec.time)}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--text3)', marginLeft: 'auto' }}>{new Date(rec.date).toLocaleDateString(lang, { day: 'numeric', month: 'short' })}</span>
+                      <span style={{ fontSize: '12px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px', color: 'var(--text3)' }}>{diffEmoji}{rec.variant}</span>
                     </div>
                   );
                 })}
@@ -1797,9 +1799,9 @@ function SlidingPuzzle({ onComplete, challengeSeed, challenge }: {
           }}>
             {fmtTimeCenti(elapsedMs)}
           </div>
-          <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{t.games.time}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.games.time}</div>
         </div>
-        <button onClick={reset} style={{
+        <button className="icon-btn" onClick={reset} style={{
           background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '8px', color: 'var(--text3)', fontSize: '13px',
           padding: '0 14px', cursor: 'pointer', alignSelf: 'stretch',
@@ -1813,7 +1815,7 @@ function SlidingPuzzle({ onComplete, challengeSeed, challenge }: {
       )}
 
       {phase === 'idle' && (
-        <div style={{ fontSize: '11px', color: 'var(--text3)', textAlign: 'center', marginBottom: '8px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginBottom: '8px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
           {t.games.clickToStart}
         </div>
       )}
@@ -2098,7 +2100,7 @@ function MathRush({ onComplete, challengeSeed, challenge }: {
           <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
           <div style={{ fontFamily: 'Poppins', fontSize: '72px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{finalScore}</div>
           <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '6px' }}>{t.games.correct} · 60s</div>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '16px' }}>Leaderboard modal loading…</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '16px' }}>Leaderboard modal loading…</div>
           <button onClick={() => setPhase('idle')} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
 
           <ChallengeVs challenge={challenge} myValue={finalScore} lowerBetter={false} formatValue={v => `${v} ✓`} t={t} />
@@ -2164,7 +2166,7 @@ function ReflexTimer({ onComplete }: { onComplete: (timeMs: number) => void }) {
   return (
     <div style={{ textAlign: 'center' }}>
       <div style={{ marginBottom: '12px' }}>
-        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{t.games.attempt} {Math.min(round, RT_ROUNDS)} / {RT_ROUNDS}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px', letterSpacing: '1px', textTransform: 'uppercase' }}>{t.games.attempt} {Math.min(round, RT_ROUNDS)} / {RT_ROUNDS}</div>
         <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
           {Array.from({ length: RT_ROUNDS }, (_, i) => (
             <div key={i} style={{ width: '28px', height: '6px', borderRadius: '3px', background: i < results.length ? 'var(--green2)' : i === results.length ? 'rgba(93,76,255,0.6)' : 'rgba(255,255,255,0.1)' }} />
@@ -2196,7 +2198,7 @@ function ReflexTimer({ onComplete }: { onComplete: (timeMs: number) => void }) {
       {results.length > 0 && phase !== 'running' && (
         <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
           {results.map((d, i) => (
-            <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontFamily: 'monospace', color: d < 100 ? 'var(--green2)' : d < 300 ? '#FFB300' : '#EF4444' }}>±{d.toFixed(0)}</div>
+            <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', fontSize: '12px', fontFamily: 'monospace', color: d < 100 ? 'var(--green2)' : d < 300 ? '#FFB300' : '#EF4444' }}>±{d.toFixed(0)}</div>
           ))}
         </div>
       )}
@@ -2351,7 +2353,7 @@ function ReactionClick({ onComplete, challengeSeed, challenge }: {
       </div>
 
       <div style={{ marginTop: '12px', display: 'flex', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }}>
-        {results.map((ms, i) => <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', fontSize: '11px', fontFamily: 'monospace', color: ms <= RC_FALSE_PENALTY ? '#EF4444' : ms < 250 ? 'var(--green2)' : ms < 400 ? '#FFB300' : 'var(--text3)' }}>{ms}ms</div>)}
+        {results.map((ms, i) => <div key={i} style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', fontSize: '12px', fontFamily: 'monospace', color: ms <= RC_FALSE_PENALTY ? '#EF4444' : ms < 250 ? 'var(--green2)' : ms < 400 ? '#FFB300' : 'var(--text3)' }}>{ms}ms</div>)}
       </div>
 
       <div style={{ marginTop: '14px', textAlign: 'center' }}>
@@ -2477,7 +2479,7 @@ function StackGame({ onComplete }: { onComplete: (timeMs: number, score: number)
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
         <StatChip label={t.games.blocks} value={score} />
-        {phase === 'playing' && <div style={{ fontSize: '11px', color: 'var(--text3)', alignSelf: 'center', marginLeft: '4px' }}>Tap to drop!</div>}
+        {phase === 'playing' && <div style={{ fontSize: '12px', color: 'var(--text3)', alignSelf: 'center', marginLeft: '4px' }}>Tap to drop!</div>}
       </div>
 
       {phase === 'idle' && (
@@ -2633,9 +2635,10 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
     <div>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
         <StatChip label={t.games.distance} value={score} />
-        {phase === 'playing' && <div style={{ fontSize: '11px', color: 'var(--text3)', alignSelf: 'center' }}>SPACE / tap to jump · double jump OK</div>}
+        {phase === 'playing' && <div style={{ fontSize: '12px', color: 'var(--text3)', alignSelf: 'center' }}>SPACE / tap to jump · double jump OK</div>}
       </div>
 
+      <FitWidth width={FJ_W}>
       <div
         ref={containerRef}
         onClick={jump}
@@ -2677,17 +2680,18 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
         {phase === 'idle' && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,4,14,0.7)' }}>
             <div style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '4px' }}>{t.games.felixJump}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>Tap / SPACE to start & jump</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Tap / SPACE to start & jump</div>
           </div>
         )}
         {/* Dead overlay */}
         {phase === 'dead' && (
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(2,4,14,0.75)' }}>
             <div style={{ fontFamily: 'Poppins', fontSize: '28px', fontWeight: '900', color: '#EF4444', marginBottom: '4px' }}>{finalScore}</div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)' }}>{t.games.distance}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.games.distance}</div>
           </div>
         )}
       </div>
+      </FitWidth>
 
       {phase === 'dead' && (
         <div style={{ textAlign: 'center', marginTop: '12px' }}>
@@ -2875,7 +2879,7 @@ export default function DailyGames() {
       <div className="card" style={CARD_BG}>
         <div style={{ marginBottom: '22px' }}>
           <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', margin: 0 }}>🎮 {t.games.title}</h2>
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>Choose a category to start playing</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>Choose a category to start playing</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -2954,7 +2958,7 @@ export default function DailyGames() {
                       display: 'inline-block', lineHeight: 1,
                     }}>›</span>
                     <span style={{
-                      fontSize: '9px', fontWeight: '700', color: catHover === cat.id ? `${cat.color}cc` : 'var(--text3)',
+                      fontSize: '12px', fontWeight: '700', color: catHover === cat.id ? `${cat.color}cc` : 'var(--text3)',
                       transition: 'color 0.22s', letterSpacing: '0.3px',
                     }}>{cat.games.length} games</span>
                   </div>
@@ -2964,7 +2968,7 @@ export default function DailyGames() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', paddingLeft: '82px' }}>
                   {cat.games.map(g => (
                     <span key={g} style={{
-                      fontSize: '9px', fontWeight: '600', padding: '3px 8px', borderRadius: '6px',
+                      fontSize: '12px', fontWeight: '600', padding: '3px 8px', borderRadius: '6px',
                       background: `${cat.color}16`, color: `${cat.color}cc`,
                       border: `1px solid ${cat.color}2a`,
                       letterSpacing: '0.2px',
@@ -3048,7 +3052,7 @@ export default function DailyGames() {
         {activeTabDefs.map(tb => (
           <button key={tb.id} onClick={() => setTab(tb.id)} style={{
             flexShrink: 0, padding: '7px 11px', borderRadius: '9px', border: 'none', cursor: 'pointer',
-            fontWeight: '600', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px',
+            fontWeight: '600', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px',
             background: tb.id === tab ? `linear-gradient(135deg,${catDef!.color},${catDef!.color}aa)` : 'rgba(255,255,255,0.05)',
             color: tb.id === tab ? '#fff' : 'var(--text2)',
             whiteSpace: 'nowrap',
@@ -3085,7 +3089,7 @@ export default function DailyGames() {
 
       {/* Leaderboard — always visible below active game */}
       <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontSize: '11px', color: 'var(--amber)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
+        <div style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
           🏆 {t.games.leaderboard}
         </div>
         <GlobalLeaderboard initialGame={tab as GameId} />

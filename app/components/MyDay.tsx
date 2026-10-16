@@ -89,7 +89,7 @@ const slotHeadStyle: React.CSSProperties = {
 };
 
 const slotLabelStyle: React.CSSProperties = {
-  fontSize: '10.5px', fontWeight: '700', letterSpacing: '0.5px',
+  fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px',
   textTransform: 'uppercase', color: 'var(--text3)',
 };
 
@@ -271,7 +271,7 @@ export default function MyDay() {
           <div style={slotStyle}>
             <div style={slotHeadStyle}>
               <span style={slotLabelStyle}>🌍 {t.myDay.citiesTitle}</span>
-              <button style={gearBtnStyle} onClick={() => setEditing(editing === 'cities' ? null : 'cities')}>⚙️</button>
+              <button className="icon-btn" style={gearBtnStyle} onClick={() => setEditing(editing === 'cities' ? null : 'cities')}>⚙️</button>
             </div>
             {editing === 'cities' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -302,7 +302,7 @@ export default function MyDay() {
                 )}
               </div>
             ) : favCities.length === 0 ? (
-              <div style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.citiesEmpty}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.citiesEmpty}</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {favCities.map(c => (
@@ -320,8 +320,8 @@ export default function MyDay() {
             <div style={slotHeadStyle}>
               <span style={slotLabelStyle}>🌤️ {t.myDay.weatherTitle}</span>
             </div>
-            {weatherStatus === 'locating' && <div style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.weatherLocating}</div>}
-            {weatherStatus === 'error' && <div style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.weatherDenied}</div>}
+            {weatherStatus === 'locating' && <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.weatherLocating}</div>}
+            {weatherStatus === 'error' && <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.weatherDenied}</div>}
             {weatherStatus === 'ok' && weather && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '30px' }}>{wmoEmoji(weather.code)}</span>
@@ -334,7 +334,7 @@ export default function MyDay() {
           <div style={slotStyle}>
             <div style={slotHeadStyle}>
               <span style={slotLabelStyle}>🏆 {t.myDay.teamTitle}</span>
-              <button style={gearBtnStyle} onClick={() => setEditing(editing === 'team' ? null : 'team')}>⚙️</button>
+              <button className="icon-btn" style={gearBtnStyle} onClick={() => setEditing(editing === 'team' ? null : 'team')}>⚙️</button>
             </div>
             {editing === 'team' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -352,7 +352,7 @@ export default function MyDay() {
                 {team && <button onClick={clearTeam} style={{ ...gearBtnStyle, alignSelf: 'flex-start' }}>✕ {team.abbr}</button>}
               </div>
             ) : !team ? (
-              <div style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.teamEmpty}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.teamEmpty}</div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px' }}>
                 <div style={{ color: '#fff', fontWeight: '600' }}>{LEAGUE_META[team.league].emoji} {team.abbr}</div>
@@ -383,7 +383,7 @@ export default function MyDay() {
           <div style={slotStyle}>
             <div style={slotHeadStyle}>
               <span style={slotLabelStyle}>₿ {t.myDay.cryptoTitle}</span>
-              <button style={gearBtnStyle} onClick={() => setEditing(editing === 'crypto' ? null : 'crypto')}>⚙️</button>
+              <button className="icon-btn" style={gearBtnStyle} onClick={() => setEditing(editing === 'crypto' ? null : 'crypto')}>⚙️</button>
             </div>
             {editing === 'crypto' ? (
               <select defaultValue={coinId ?? ''} onChange={e => e.target.value && pickCoin(e.target.value)} style={miniInputStyle}>
@@ -391,7 +391,7 @@ export default function MyDay() {
                 {COIN_OPTIONS.map(c => <option key={c.id} value={c.id}>{c.symbol} · {c.name}</option>)}
               </select>
             ) : !coin ? (
-              <div style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.cryptoEmpty}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.cryptoEmpty}</div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                 <span style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: '#fff' }}>{coin.symbol}</span>
@@ -411,7 +411,7 @@ export default function MyDay() {
           <div style={slotStyle}>
             <div style={slotHeadStyle}>
               <span style={slotLabelStyle}>🎂 {t.myDay.birthdayTitle}</span>
-              <button style={gearBtnStyle} onClick={() => setEditing(editing === 'birthday' ? null : 'birthday')}>⚙️</button>
+              <button className="icon-btn" style={gearBtnStyle} onClick={() => setEditing(editing === 'birthday' ? null : 'birthday')}>⚙️</button>
             </div>
             {editing === 'birthday' ? (
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -429,13 +429,13 @@ export default function MyDay() {
                 </select>
               </div>
             ) : !dob || !birthday ? (
-              <div style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.birthdayEmpty}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.birthdayEmpty}</div>
             ) : birthday.isToday ? (
               <div style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '700', color: 'var(--purple3)' }}>{t.myDay.birthdayToday}</div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
                 <span style={{ fontFamily: 'Poppins', fontSize: '24px', fontWeight: '700', color: '#fff' }}>{birthday.days}</span>
-                <span style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.birthdayDaysLeft}</span>
+                <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.birthdayDaysLeft}</span>
               </div>
             )}
           </div>
@@ -447,7 +447,7 @@ export default function MyDay() {
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
               <span style={{ fontFamily: 'Poppins', fontSize: '24px', fontWeight: '700', color: '#fff' }}>{boostDone}/{DAILY_BOOST_ACTIVITY_COUNT}</span>
-              <span style={{ fontSize: '11.5px', color: 'var(--text3)' }}>{t.myDay.challengeDone}</span>
+              <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.myDay.challengeDone}</span>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--purple3)', fontWeight: '600' }}>
               🔥 {streakState.currentStreak} {t.myDay.streakDays}

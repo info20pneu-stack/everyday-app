@@ -73,7 +73,7 @@ function WpmGraph({ history, t }: { history: number[]; t: Translations }) {
   const bars = history.slice(-60);
   return (
     <div style={{ marginTop: '10px' }}>
-      <div style={{ fontSize: '10px', color: 'var(--text3)', marginBottom: '3px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{t.typingTest.wpmGraph}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '3px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{t.typingTest.wpmGraph}</div>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '44px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', padding: '4px 6px' }}>
         {bars.map((v, i) => (
           <div key={i} style={{
@@ -187,7 +187,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
     <div>
       {/* Duration + Language — idle only */}
       {phase === 'idle' && isChallenge && (
-        <div style={{ fontSize: '11px', color: 'var(--purple3)', marginBottom: '10px', textAlign: 'center' }}>
+        <div style={{ fontSize: '12px', color: 'var(--purple3)', marginBottom: '10px', textAlign: 'center' }}>
           🔗 {durationLabel(t, duration)} · EN
         </div>
       )}
@@ -207,7 +207,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
             {LANG_OPTIONS.map(lo => (
               <button key={lo.code} onClick={() => setLang(lo.code)} style={{
                 padding: '3px 7px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-                fontSize: '11px', fontWeight: lo.code === lang ? '700' : '400',
+                fontSize: '12px', fontWeight: lo.code === lang ? '700' : '400',
                 background: lo.code === lang ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.04)',
                 color: lo.code === lang ? 'var(--purple3)' : 'var(--text3)',
                 outline: lo.code === lang ? '1px solid rgba(93,76,255,0.5)' : 'none',
@@ -234,7 +234,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
             ].map(({ val, label, color }) => (
               <div key={label} style={{ flex: 1, background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '5px', textAlign: 'center' }}>
                 <div style={{ fontSize: '18px', fontWeight: '800', fontFamily: 'Poppins', color }}>{val}</div>
-                <div style={{ fontSize: '9px', color: 'var(--text3)' }}>{label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</div>
               </div>
             ))}
           </div>
@@ -301,10 +301,10 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
           {bestWpm > 0 && (
             <div style={{ marginBottom: '8px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,179,0,0.1)', border: '1px solid rgba(255,179,0,0.2)', borderRadius: '8px', padding: '3px 10px' }}>
               <span>🏆</span>
-              <span style={{ fontSize: '11px', color: 'var(--amber)' }}>{t.typingTest.bestRecord.replace('{wpm}', String(bestWpm))}</span>
+              <span style={{ fontSize: '12px', color: 'var(--amber)' }}>{t.typingTest.bestRecord.replace('{wpm}', String(bestWpm))}</span>
             </div>
           )}
-          <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '10px' }}>{t.typingTest.clickToStart}</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px' }}>{t.typingTest.clickToStart}</div>
           <button onClick={startGame} style={{
             background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px',
             color: '#fff', fontSize: '14px', fontWeight: '700', padding: '10px 28px', cursor: 'pointer',
@@ -326,7 +326,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>{t.typingTest.wpmLabel}</div>
             {finalStats.wpm >= bestWpm && finalStats.wpm > 0 && (
-              <div style={{ fontSize: '11px', fontWeight: '700', color: '#FFB300', marginTop: '4px' }}>{t.typingTest.newRecord}</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#FFB300', marginTop: '4px' }}>{t.typingTest.newRecord}</div>
             )}
           </div>
 
@@ -339,7 +339,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
             ].map(({ val, label, color }) => (
               <div key={label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '7px 12px', textAlign: 'center' }}>
                 <div style={{ fontSize: '16px', fontWeight: '700', color }}>{val}</div>
-                <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</div>
               </div>
             ))}
           </div>
@@ -361,7 +361,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
             const verdictColor = tie ? '#FFB300' : won ? 'var(--green2)' : '#f87171';
             return (
               <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {t.games.youVs.replace('{name}', challenge.name)}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', alignItems: 'center' }}>

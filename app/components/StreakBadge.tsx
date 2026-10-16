@@ -46,6 +46,7 @@ export default function StreakBadge() {
       <button
         onClick={() => setOpen(o => !o)}
         title={t.streak.title}
+        className="topbar-btn"
         style={{
           display: 'flex', alignItems: 'center', gap: '4px',
           background: open ? 'rgba(255,149,0,0.18)' : 'rgba(255,255,255,0.04)',
@@ -64,7 +65,9 @@ export default function StreakBadge() {
           right: rtl ? undefined : 0, left: rtl ? 0 : undefined,
           background: '#0f1428', border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '14px', padding: '14px', zIndex: 200,
-          width: '260px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          width: '260px', maxWidth: 'calc(100vw - 16px)',
+          maxHeight: 'calc(100dvh - 70px)', overflowY: 'auto',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}>
           <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px', fontWeight: '700', color: '#fff', marginBottom: '10px' }}>
             {t.streak.title}
@@ -77,7 +80,7 @@ export default function StreakBadge() {
             <StatBox label={t.streak.totalGames} value={state.totalGamesPlayed} />
           </div>
 
-          <div style={{ fontSize: '11px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
             {t.streak.badgesTitle}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -89,7 +92,7 @@ export default function StreakBadge() {
                   opacity: unlocked ? 1 : 0.35,
                 }}>
                   <span style={{ fontSize: '15px' }}>{b.emoji}</span>
-                  <span style={{ fontSize: '11.5px', color: unlocked ? '#fff' : 'var(--text3)' }}>
+                  <span style={{ fontSize: '12px', color: unlocked ? '#fff' : 'var(--text3)' }}>
                     {badgeLabel[b.id]}
                   </span>
                 </div>
@@ -109,7 +112,7 @@ function StatBox({ label, value }: { label: string; value: number }) {
       borderRadius: '10px', padding: '8px 10px',
     }}>
       <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '16px', fontWeight: '700', color: '#fff' }}>{value}</div>
-      <div style={{ fontSize: '10px', color: 'var(--text3)' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</div>
     </div>
   );
 }
