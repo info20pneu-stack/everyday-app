@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { getNavRoutes, isRouteActive } from '../../lib/navRoutes';
 import { useLang } from '../../lib/LanguageContext';
 import AdBanner from './AdBanner';
 
@@ -21,7 +23,7 @@ function useWindowWidth() {
 
 export default function Sidebar() {
   const { t, rtl } = useLang();
-  const [active,    setActive]    = useState('home');
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const windowWidth = useWindowWidth();
 
@@ -43,27 +45,7 @@ export default function Sidebar() {
     });
   }
 
-  const navItems = [
-    { icon: '🏠', label: t.nav.home,              id: 'home'     },
-    { icon: '🕐', label: t.nav.worldTime,          id: 'worldtime'},
-    { icon: '💵', label: t.nav.currency,           id: 'currency' },
-    { icon: '📏', label: t.nav.unitConverter,      id: 'units'    },
-    { icon: '📅', label: t.nav.dateCounter,        id: 'date'     },
-    { icon: '🌤️', label: t.nav.weather,            id: 'weather'  },
-    { icon: '👤', label: t.nav.ageCalculator,      id: 'age'      },
-    { icon: '🏆', label: t.nav.sports,             id: 'sports'   },
-    { icon: '📈', label: t.nav.trending,           id: 'trending' },
-    { icon: '₿',  label: t.nav.crypto,             id: 'crypto'   },
-    { icon: '⚡', label: t.nav.dailyBoost,         id: 'boost'    },
-    { icon: '🎮', label: t.nav.dailyGames,         id: 'games'    },
-    { icon: '📊', label: t.nav.markets,            id: 'markets'  },
-    { icon: '🌐', label: t.nav.ipAddress,          id: 'ip'       },
-    { icon: '🚀', label: t.nav.speedTest,          id: 'speed'    },
-    { icon: '🔑', label: t.nav.passwordGenerator,  id: 'password' },
-    { icon: '🌅', label: t.nav.sunriseSunset,      id: 'sunrise'  },
-    { icon: '⚖️', label: t.nav.bmi,               id: 'bmi'      },
-    { icon: '💡', label: t.nav.suggest ?? 'Suggest & Vote', id: 'suggest', href: '/suggest' },
-  ];
+  const navItems = getNavRoutes(t);
 
   const w = effectiveCollapsed ? COLLAPSED_W : EXPANDED_W;
 
@@ -146,7 +128,7 @@ export default function Sidebar() {
         }}
       >
         {navItems.map(item => {
-          const isActive = active === item.id;
+          const isActive = isRouteActive(pathname, item.href);
           const itemStyle: React.CSSProperties = {
             display: 'flex',
             alignItems: 'center',
@@ -186,28 +168,16 @@ export default function Sidebar() {
               </span>
             </>
           );
-          if ('href' in item && item.href) {
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                title={effectiveCollapsed ? item.label : undefined}
-                style={itemStyle}
-                onClick={() => setActive(item.id)}
-              >
-                {inner}
-              </Link>
-            );
-          }
           return (
-            <button
+            <Link
               key={item.id}
-              onClick={() => setActive(item.id)}
+              href={item.href}
               title={effectiveCollapsed ? item.label : undefined}
+              aria-current={isActive ? 'page' : undefined}
               style={itemStyle}
             >
               {inner}
-            </button>
+            </Link>
           );
         })}
       </nav>

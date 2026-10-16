@@ -58,8 +58,8 @@ const AI_MODELS: AIModel[] = [
   { name: 'GPT-4 Turbo',       provider: 'OpenAI',     providerColor: '#10A37F', score: 84, mmlu: 86.4, priceIn: 10,   priceOut: 30,   context: '128K', contextK: 128,  released: 'Nov 2023', releasedTs: 2023.83 },
   { name: 'Llama 3 70B',       provider: 'Meta',       providerColor: '#0064E0', score: 82, mmlu: 82.0, priceIn: 0,    priceOut: 0,    context: '8K',   contextK: 8,    released: 'Apr 2024', releasedTs: 2024.30, badge: 'Open Source' },
   { name: 'Mistral Large',     provider: 'Mistral AI', providerColor: '#FF7000', score: 81, mmlu: 81.2, priceIn: 8,    priceOut: 24,   context: '32K',  contextK: 32,   released: 'Feb 2024', releasedTs: 2024.12 },
-  { name: 'Claude 3 Haiku',    provider: 'Anthropic',  providerColor: '#D97757', score: 78, mmlu: 75.2, priceIn: 0.25, priceOut: 1.25, context: '200K', contextK: 200,  released: 'Mar 2024', releasedTs: 2024.25, badge: '⚡ Rychlý' },
-  { name: 'Gemini 1.5 Flash',  provider: 'Google',     providerColor: '#4285F4', score: 77, mmlu: 78.9, priceIn: 0.35, priceOut: 1.05, context: '1M',   contextK: 1000, released: 'May 2024', releasedTs: 2024.42, badge: '⚡ Rychlý' },
+  { name: 'Claude 3 Haiku',    provider: 'Anthropic',  providerColor: '#D97757', score: 78, mmlu: 75.2, priceIn: 0.25, priceOut: 1.25, context: '200K', contextK: 200,  released: 'Mar 2024', releasedTs: 2024.25, badge: '⚡ Fast' },
+  { name: 'Gemini 1.5 Flash',  provider: 'Google',     providerColor: '#4285F4', score: 77, mmlu: 78.9, priceIn: 0.35, priceOut: 1.05, context: '1M',   contextK: 1000, released: 'May 2024', releasedTs: 2024.42, badge: '⚡ Fast' },
 ];
 
 /* ═══════════════════════ STOCK CONFIG ═══════════════════════ */

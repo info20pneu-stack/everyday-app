@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { getNavRoutes, isRouteActive } from '../../lib/navRoutes';
 import { useLang } from '../../lib/LanguageContext';
 import { LANGUAGES } from '../../lib/i18n';
 import { useTheme, type AppTheme } from '../../lib/ThemeContext';
@@ -24,19 +27,26 @@ export default function Topbar() {
 
   const current = LANGUAGES.find(l => l.code === lang)!;
 
+  const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
   const navItems = [
-    t.topbar.home,
-    t.topbar.worldTime,
-    t.topbar.converters,
-    t.topbar.weather,
-    t.topbar.sports,
-    t.topbar.more,
+    { label: t.topbar.home,       href: '/' },
+    { label: t.topbar.worldTime,  href: '/world-time' },
+    { label: t.topbar.converters, href: '/unit-converter' },
+    { label: t.topbar.weather,    href: '/weather' },
+    { label: t.topbar.sports,     href: '/sports' },
   ];
+  // "More" lists every other page
+  const moreItems = getNavRoutes(t).filter(r => !navItems.some(n => n.href === r.href));
+  const moreActive = moreItems.some(r => isRouteActive(pathname, r.href));
 
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) setOpen(false);
       if (themeRef.current && !themeRef.current.contains(e.target as Node)) setThemeOpen(false);
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
     }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -77,21 +87,50 @@ export default function Topbar() {
 
       {/* Nav */}
       <nav className="topbar-nav" style={{ display: 'flex', height: '100%', padding: '0 .75rem' }}>
-        {navItems.map((item) => (
-          <button key={item} style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text3)',
-            fontSize: '12.5px',
-            padding: '0 14px',
-            height: '100%',
-            cursor: 'pointer',
-            whiteSpace: 'nowrap',
-            fontFamily: 'Inter, sans-serif',
-          }}>
-            {item}
+        {navItems.map(item => {
+          const active = isRouteActive(pathname, item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? 'page' : undefined}
+              className={active ? 'topbar-link topbar-link-active' : 'topbar-link'}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+        <div ref={moreRef} style={{ position: 'relative', height: '100%' }}>
+          <button
+            onClick={() => setMoreOpen(o => !o)}
+            aria-expanded={moreOpen}
+            aria-haspopup="menu"
+            className={moreActive || moreOpen ? 'topbar-link topbar-link-active' : 'topbar-link'}
+          >
+            {t.topbar.more}
+            <span style={{ fontSize: '12px', marginInlineStart: '4px', display: 'inline-block', transform: moreOpen ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }}>▾</span>
           </button>
-        ))}
+          {moreOpen && (
+            <div role="menu" className="topbar-more-menu" style={{ [rtl ? 'right' : 'left']: 0 }}>
+              {moreItems.map(r => {
+                const active = isRouteActive(pathname, r.href);
+                return (
+                  <Link
+                    key={r.href}
+                    href={r.href}
+                    role="menuitem"
+                    aria-current={active ? 'page' : undefined}
+                    className={active ? 'topbar-more-item topbar-more-item-active' : 'topbar-more-item'}
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    <span style={{ fontSize: '16px', width: '20px', textAlign: 'center', flexShrink: 0 }}>{r.icon}</span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Search */}

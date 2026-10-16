@@ -678,6 +678,7 @@ const LEAGUE_META: Record<LeagueId, { emoji: string; label: string }> = {
 };
 
 export default function Sports() {
+  const { t } = useLang();
   const [leagueId, setLeagueId] = useState<LeagueId>('nhl');
   const [view, setView] = useState<'games' | 'standings'>('games');
   const [nhlView, setNhlView] = useState<NhlView>('league');
@@ -784,10 +785,10 @@ export default function Sports() {
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🏆 Sporty</h2>
+        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🏆 {t.sports.title}</h2>
         <button className="icon-btn"
           onClick={() => fetchLeague(leagueId)}
-          title="Obnovit"
+          title={t.sports.refresh}
           style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer' }}
         >↺</button>
       </div>
