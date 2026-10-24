@@ -33,6 +33,8 @@ export type Translations = {
     sports: string;
     more: string;
     search: string;
+    install: string;
+    installIosHint: string;
   };
   buttons: {
     exploreNow: string;
@@ -360,6 +362,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Sports',
       more: 'More',
       search: 'Search anything...',
+      install: 'Install app',
+      installIosHint: 'Tap Share ⬆️ and choose Add to Home Screen',
     },
     buttons: {
       exploreNow: 'Explore Now',
@@ -749,6 +753,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Sport',
       more: 'Mehr',
       search: 'Suche...',
+      install: 'App installieren',
+      installIosHint: 'Tippe auf Teilen ⬆️ und wähle „Zum Home-Bildschirm“',
     },
     buttons: {
       exploreNow: 'Jetzt erkunden',
@@ -1138,6 +1144,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Sport',
       more: 'Altro',
       search: 'Cerca...',
+      install: 'Installa app',
+      installIosHint: 'Tocca Condividi ⬆️ e scegli Aggiungi alla schermata Home',
     },
     buttons: {
       exploreNow: 'Esplora ora',
@@ -1527,6 +1535,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Sport',
       more: 'Plus',
       search: 'Rechercher...',
+      install: 'Installer l\'app',
+      installIosHint: 'Touchez Partager ⬆️ puis choisissez Sur l’écran d’accueil',
     },
     buttons: {
       exploreNow: 'Explorer',
@@ -1916,6 +1926,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Sport',
       more: 'Více',
       search: 'Hledat...',
+      install: 'Nainstalovat aplikaci',
+      installIosHint: 'Klepni na Sdílet ⬆️ a zvol Přidat na plochu',
     },
     buttons: {
       exploreNow: 'Prozkoumat',
@@ -2305,6 +2317,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Deportes',
       more: 'Más',
       search: 'Buscar...',
+      install: 'Instalar app',
+      installIosHint: 'Toca Compartir ⬆️ y elige Añadir a pantalla de inicio',
     },
     buttons: {
       exploreNow: 'Explorar ahora',
@@ -2694,6 +2708,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Sport',
       more: 'Więcej',
       search: 'Szukaj...',
+      install: 'Zainstaluj aplikację',
+      installIosHint: 'Stuknij Udostępnij ⬆️ i wybierz Do ekranu początkowego',
     },
     buttons: {
       exploreNow: 'Odkryj teraz',
@@ -3083,6 +3099,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Esportes',
       more: 'Mais',
       search: 'Pesquisar...',
+      install: 'Instalar app',
+      installIosHint: 'Toca em Partilhar ⬆️ e escolhe Adicionar ao ecrã principal',
     },
     buttons: {
       exploreNow: 'Explorar agora',
@@ -3472,6 +3490,8 @@ const t: Record<Lang, Translations> = {
       sports: 'Спорт',
       more: 'Ещё',
       search: 'Поиск...',
+      install: 'Установить приложение',
+      installIosHint: 'Нажмите «Поделиться» ⬆️ и выберите «На экран „Домой“»',
     },
     buttons: {
       exploreNow: 'Открыть',
@@ -3861,6 +3881,8 @@ const t: Record<Lang, Translations> = {
       sports: '体育',
       more: '更多',
       search: '搜索...',
+      install: '安装应用',
+      installIosHint: '点按“分享”⬆️，然后选择“添加到主屏幕”',
     },
     buttons: {
       exploreNow: '立即探索',
@@ -4250,6 +4272,8 @@ const t: Record<Lang, Translations> = {
       sports: 'スポーツ',
       more: 'もっと',
       search: '検索...',
+      install: 'アプリをインストール',
+      installIosHint: '共有 ⬆️ をタップして「ホーム画面に追加」を選択',
     },
     buttons: {
       exploreNow: '今すぐ探索',
@@ -4639,6 +4663,8 @@ const t: Record<Lang, Translations> = {
       sports: '스포츠',
       more: '더보기',
       search: '검색...',
+      install: '앱 설치',
+      installIosHint: '공유 ⬆️를 탭한 후 ‘홈 화면에 추가’를 선택하세요',
     },
     buttons: {
       exploreNow: '지금 탐색',
@@ -5028,6 +5054,8 @@ const t: Record<Lang, Translations> = {
       sports: 'الرياضة',
       more: 'المزيد',
       search: 'ابحث...',
+      install: 'تثبيت التطبيق',
+      installIosHint: 'اضغط على مشاركة ⬆️ واختر «إضافة إلى الشاشة الرئيسية»',
     },
     buttons: {
       exploreNow: 'استكشف الآن',
@@ -5417,6 +5445,8 @@ const t: Record<Lang, Translations> = {
       sports: 'खेल',
       more: 'अधिक',
       search: 'खोजें...',
+      install: 'ऐप इंस्टॉल करें',
+      installIosHint: 'शेयर ⬆️ पर टैप करें और “होम स्क्रीन में जोड़ें” चुनें',
     },
     buttons: {
       exploreNow: 'अभी देखें',

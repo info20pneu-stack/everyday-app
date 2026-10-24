@@ -8,6 +8,7 @@ import { useLang } from '../../lib/LanguageContext';
 import { LANGUAGES } from '../../lib/i18n';
 import { useTheme, type AppTheme } from '../../lib/ThemeContext';
 import StreakBadge from './StreakBadge';
+import { useInstallPrompt } from '../../lib/useInstallPrompt';
 
 const THEMES: { id: AppTheme; label: string; icon: string }[] = [
   { id: 'dark',  label: 'Dark',      icon: '🌙' },
@@ -20,6 +21,11 @@ const THEMES: { id: AppTheme; label: string; icon: string }[] = [
 export default function Topbar() {
   const { lang, setLang, t, rtl } = useLang();
   const { theme, setTheme } = useTheme();
+  const { canInstall, promptInstall, showIosHint } = useInstallPrompt();
+  // Position of the iOS install hint (viewport coords), null while closed
+  const [iosHintPos, setIosHintPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const iosHintOpen = iosHintPos !== null;
+  const installRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
@@ -43,14 +49,31 @@ export default function Topbar() {
   const moreActive = moreItems.some(r => isRouteActive(pathname, r.href));
 
   useEffect(() => {
-    function handler(e: MouseEvent) {
+    function handler(e: Event) {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) setOpen(false);
       if (themeRef.current && !themeRef.current.contains(e.target as Node)) setThemeOpen(false);
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+      if (installRef.current && !installRef.current.contains(e.target as Node)) setIosHintPos(null);
     }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setIosHintPos(null); }
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handler);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
+
+  // Centre the hint under the button, but keep it fully on screen
+  function toggleIosHint(btn: HTMLElement) {
+    if (iosHintPos) { setIosHintPos(null); return; }
+    const r = btn.getBoundingClientRect();
+    const width = Math.min(260, window.innerWidth - 16);
+    const left = Math.min(Math.max(8, r.left + r.width / 2 - width / 2), window.innerWidth - 8 - width);
+    setIosHintPos({ top: r.bottom + 8, left, width });
+  }
 
   const currentTheme = THEMES.find(th => th.id === theme) ?? THEMES[0];
 
@@ -170,6 +193,43 @@ export default function Topbar() {
         padding: '0 1rem',
         flexShrink: 0,
       }}>
+        {/* Install PWA — native prompt where offered; on iOS a "Share → Add to Home Screen" hint */}
+        {(canInstall || showIosHint) && (
+          <div ref={installRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={e => { if (canInstall) promptInstall(); else toggleIosHint(e.currentTarget); }}
+              aria-expanded={canInstall ? undefined : iosHintOpen}
+              className="topbar-btn topbar-install"
+              title={t.topbar.install}
+              aria-label={t.topbar.install}
+              style={{
+                display: 'flex', alignItems: 'center',
+                background: 'rgba(93,76,255,0.14)', border: '1px solid rgba(93,76,255,0.4)',
+                borderRadius: '8px', color: '#C4BAFF', padding: '4px 8px', cursor: 'pointer', height: '32px',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 21h14" />
+              </svg>
+            </button>
+            {iosHintPos && !canInstall && (
+              <div role="status" className="topbar-ios-hint" style={{
+                position: 'fixed', top: iosHintPos.top, left: iosHintPos.left, width: iosHintPos.width,
+                boxSizing: 'border-box', textAlign: 'center',
+                background: '#0f1428', border: '1px solid rgba(93,76,255,0.4)',
+                borderRadius: '12px', padding: '10px 12px', zIndex: 200,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                color: '#fff', fontSize: '13px', lineHeight: 1.45, whiteSpace: 'normal',
+              }}>
+                {t.topbar.installIosHint}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Language dropdown */}
         <div ref={dropRef} style={{ position: 'relative' }}>
           <button

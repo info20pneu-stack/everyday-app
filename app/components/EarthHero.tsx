@@ -1,55 +1,29 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
-import heroEarth from '../../public/images/hero-earth.png';
-import { useLang } from '../../lib/LanguageContext';
-import { useInstallPrompt } from '../../lib/useInstallPrompt';
+import heroEarth from '../../public/images/hero-earth-wide.webp';
 import HeroClock from './HeroClock';
 
 export default function EarthHero() {
-  const { t } = useLang();
-  const { canInstall, promptInstall } = useInstallPrompt();
-  const [installHint, setInstallHint] = useState<string | null>(null);
-
-  function scrollToTiles() {
-    document.querySelector('.dash-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function addToHomeScreen() {
-    if (canInstall) { promptInstall(); return; }
-    // No install prompt available (iOS Safari, already installed, unsupported browser) — explain how instead
-    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    setInstallHint(ios ? 'Tap Share, then “Add to Home Screen”.' : 'Open your browser menu and choose “Install app” or “Add to Home screen”.');
-  }
-
   return (
     <>
       <section className="earth-hero hero-section">
-        <div className="earth-hero-planet" aria-hidden="true">
-          <div className="earth-hero-glow" />
-          <Image
-            src={heroEarth}
-            alt=""
-            fill
-            preload
-            sizes="(max-width: 480px) 100vw, 560px"
-            className="earth-hero-img"
-          />
-        </div>
+        <Image
+          src={heroEarth}
+          alt=""
+          fill
+          preload
+          sizes="(max-width: 600px) 100vw, (max-width: 1200px) 90vw, 900px"
+          className="earth-hero-img"
+        />
+        {/* Shades keep the text readable: top-left under the title, bottom-left under the time, fade at the bottom */}
+        <div className="earth-hero-shade earth-hero-shade-title" aria-hidden="true" />
+        <div className="earth-hero-shade earth-hero-shade-corner" aria-hidden="true" />
+        <div className="earth-hero-shade earth-hero-shade-bottom" aria-hidden="true" />
 
         <div className="earth-hero-content">
           <h1 className="earth-hero-title">EVERY <span>DAY</span></h1>
           <p className="earth-hero-tagline">Everything you need. Every day.</p>
-          <div className="earth-hero-actions">
-            <button type="button" className="earth-hero-btn-primary" onClick={scrollToTiles}>
-              {t.buttons.exploreNow}
-            </button>
-            <button type="button" className="earth-hero-btn-outline" onClick={addToHomeScreen}>
-              Add to Home Screen
-            </button>
-          </div>
-          {installHint && <p className="earth-hero-hint" role="status">{installHint}</p>}
         </div>
 
         <HeroClock />
