@@ -23,7 +23,9 @@ const TIME: LeaderboardConfig = { scoreType: 'time', order: 'asc' };
 export const LEADERBOARD_GAMES = {
   // Daily challenge + speed games
   sliding: TIME, memory: TIME, flagquiz: POINTS, wordchain: POINTS, mathrush: POINTS,
-  reflex: TIME, reaction: TIME, stack: POINTS, felixjump: POINTS, typing: POINTS,
+  reflex: TIME, reaction: TIME, felixjump: POINTS, typing: POINTS,
+  // Retired (replaced by Sky Tower) — kept so its stored scores stay readable and in the admin summary
+  stack: POINTS,
   // Human Benchmark
   hb_reaction: TIME, hb_numbermem: POINTS, hb_visualmem: POINTS, hb_verbalmem: POINTS,
   hb_seqmem: POINTS, hb_aimtrainer: TIME, hb_mentalmath: POINTS,
@@ -117,7 +119,7 @@ export const GAMES_CATALOG: CatalogGame[] = [
 
   /* ── Mini games ── */
   { id: 'sky-tower', section: 'mini', duration: '2', icon: '🗼', route: '/games/sky-tower',
-    nameKey: 'gamesHub.name_skyTower', descKey: 'gamesHub.desc_skyTower', soon: true, leaderboard: 'skytower' },
+    nameKey: 'gamesHub.name_skyTower', descKey: 'gamesHub.desc_skyTower', leaderboard: 'skytower' },
   { id: 'daily-blocks', section: 'mini', duration: '10+', icon: '🧱', route: '/games/daily-blocks',
     nameKey: 'gamesHub.name_dailyBlocks', descKey: 'gamesHub.desc_dailyBlocks', soon: true, leaderboard: 'dailyblocks' },
   { id: 'sudoku-cube', section: 'mini', duration: '10+', icon: '🧊', route: '/games/sudoku-cube',
@@ -128,8 +130,6 @@ export const GAMES_CATALOG: CatalogGame[] = [
     nameKey: 'games.sliding', descKey: 'gamesHub.desc_sliding', leaderboard: 'sliding' },
   { id: 'wordchain', section: 'mini', duration: '2', icon: '📝', route: '/daily-games?play=wordchain',
     nameKey: 'games.wordchain', descKey: 'gamesHub.desc_wordchain', leaderboard: 'wordchain' },
-  { id: 'stack', section: 'mini', duration: '2', icon: '🏗', route: '/daily-games?play=stack',
-    nameKey: 'games.stackGame', descKey: 'gamesHub.desc_stack', leaderboard: 'stack' },
   { id: 'felixjump', section: 'mini', duration: '2', icon: '🏃', route: '/daily-games?play=felixjump',
     nameKey: 'games.felixJump', descKey: 'gamesHub.desc_felixjump', leaderboard: 'felixjump' },
   { id: 'reaction', section: 'mini', duration: '2', icon: '⚡', route: '/daily-games?play=reaction',

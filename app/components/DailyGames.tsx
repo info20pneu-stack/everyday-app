@@ -318,7 +318,7 @@ function ChallengeVs({ challenge, myValue, lowerBetter, formatValue, t }: {
 
 /* ═══════════════════════ LEADERBOARD MODAL ═══════════════════════ */
 
-type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
+type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'felixjump' | 'typing';
 type LBApiEntry = {
   id: string; game: GameId; name: string; country: string; city: string;
   timeMs: number; score?: number; moves?: number; diff?: string;
@@ -361,7 +361,6 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
     mathrush:  `🔢 ${t.games.mathrush}`,
     reflex:    `⏱ ${t.games.reflex}`,
     reaction:  `⚡ ${t.games.reaction}`,
-    stack:     `🏗 ${t.games.stackGame}`,
     felixjump: `🏃 ${t.games.felixJump}`,
     typing:    '⌨️ Typing Speed',
   };
@@ -388,11 +387,11 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
               <div style={{ fontFamily: 'Poppins', fontSize: '44px', fontWeight: '900', color: timeMs < 200 ? 'var(--green2)' : timeMs < 350 ? '#FFB300' : '#EF4444', lineHeight: 1 }}>{timeMs}ms</div>
               <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>{t.games.avgReact}</div>
             </>
-          ) : game === 'stack' || game === 'felixjump' ? (
+          ) : game === 'felixjump' ? (
             <>
               <div style={{ fontFamily: 'Poppins', fontSize: '60px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{score ?? 0}</div>
               <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
-                {game === 'stack' ? t.games.blocks : t.games.distance}
+                {t.games.distance}
               </div>
             </>
           ) : game === 'typing' && score !== undefined ? (
@@ -509,7 +508,6 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     mathrush:  `🔢 ${t.games.mathrush}`,
     reflex:    `⏱ ${t.games.reflex}`,
     reaction:  `⚡ ${t.games.reaction}`,
-    stack:     `🏗 ${t.games.stackGame}`,
     felixjump: `🏃 ${t.games.felixJump}`,
     typing:    '⌨️ Typing',
   };
@@ -522,7 +520,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
     <div style={{ marginTop: '14px' }}>
       {/* Game selector */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','stack','felixjump','typing'] as GameId[]).map(g => (
+        {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','felixjump','typing'] as GameId[]).map(g => (
           <button key={g} onClick={() => setGame(g)} style={{
             padding: '5px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer',
             fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap',
@@ -631,7 +629,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               {game === 'mathrush' && e.score !== undefined && (
                 <span style={{ fontSize: '13px', color: 'var(--purple3)', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score} · 60s</span>
               )}
-              {(game === 'stack' || game === 'felixjump') && e.score !== undefined && (
+              {game === 'felixjump' && e.score !== undefined && (
                 <span style={{ fontSize: '13px', color: 'var(--purple3)', fontWeight: '800', fontFamily: 'Poppins', flexShrink: 0 }}>{e.score}</span>
               )}
               {game === 'typing' && e.score !== undefined && (
@@ -652,7 +650,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
               {game === 'reaction' && (
                 <span style={{ fontFamily: 'monospace', fontSize: '12px', color: e.timeMs < 200 ? 'var(--green2)' : e.timeMs < 350 ? '#FFB300' : '#EF4444', flexShrink: 0 }}>{e.timeMs}ms</span>
               )}
-              {game !== 'reflex' && game !== 'reaction' && game !== 'stack' && game !== 'felixjump' && game !== 'typing' && (
+              {game !== 'reflex' && game !== 'reaction' && game !== 'felixjump' && game !== 'typing' && (
                 <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--green2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                   {fmtTimePrecise4(e.timeMs)}
                 </span>
@@ -2196,168 +2194,6 @@ function ReactionClick({ onComplete, challengeSeed, challenge }: {
   );
 }
 
-/* ═══════════════════════ STACK ═══════════════════════ */
-
-const STACK_W = 280;
-const STACK_BLOCK_H = 22;
-const STACK_MAX_BLOCKS = 12;
-
-interface StackBlock { left: number; width: number; }
-type StackPhase = 'idle' | 'playing' | 'done';
-
-function StackGame({ onComplete }: { onComplete: (timeMs: number, score: number) => void }) {
-  const { t } = useLang();
-  const [phase, setPhase] = useState<StackPhase>('idle');
-  const [blocks, setBlocks] = useState<StackBlock[]>([{ left: 0, width: STACK_W }]);
-  const [score, setScore] = useState(0);
-  const [finalScore, setFinalScore] = useState(0);
-  const [particles, setParticles] = useState<{ id: number; x: number; color: string }[]>([]);
-  const movingRef = useRef({ left: 0, direction: 1, speed: 2 });
-  const animRef = useRef(0);
-  const startMsRef = useRef(0);
-  const blocksRef = useRef<StackBlock[]>([{ left: 0, width: STACK_W }]);
-  const scoreRef = useRef(0);
-  const [movingLeft, setMovingLeft] = useState(0);
-  const [movingWidth, setMovingWidth] = useState(STACK_W);
-
-  function startGame() {
-    const base: StackBlock = { left: 0, width: STACK_W };
-    blocksRef.current = [base];
-    scoreRef.current = 0;
-    movingRef.current = { left: 0, direction: 1, speed: 2 };
-    setBlocks([base]); setScore(0); setFinalScore(0); setParticles([]);
-    setMovingLeft(0); setMovingWidth(STACK_W);
-    setPhase('playing');
-    startMsRef.current = Date.now();
-    function loop() {
-      const mv = movingRef.current;
-      mv.left += mv.direction * mv.speed;
-      const w = blocksRef.current[blocksRef.current.length - 1]?.width ?? STACK_W;
-      if (mv.left <= 0) { mv.left = 0; mv.direction = 1; }
-      if (mv.left + w >= STACK_W) { mv.left = STACK_W - w; mv.direction = -1; }
-      setMovingLeft(mv.left);
-      animRef.current = requestAnimationFrame(loop);
-    }
-    animRef.current = requestAnimationFrame(loop);
-  }
-
-  function drop() {
-    if (phase !== 'playing') return;
-    cancelAnimationFrame(animRef.current);
-    const top = blocksRef.current[blocksRef.current.length - 1];
-    const mLeft = movingRef.current.left;
-    const mRight = mLeft + top.width;
-    const tRight = top.left + top.width;
-    const overlapLeft = Math.max(mLeft, top.left);
-    const overlapRight = Math.min(mRight, tRight);
-    const overlapW = overlapRight - overlapLeft;
-    if (overlapW <= 2) {
-      playTone(220, 0.3, 'sawtooth', 0.1);
-      setFinalScore(scoreRef.current);
-      const elapsed = Date.now() - startMsRef.current;
-      setPhase('done');
-      onComplete(elapsed, scoreRef.current);
-      return;
-    }
-    playTone(440 + scoreRef.current * 30, 0.06, 'sine', 0.08);
-    const newBlock: StackBlock = { left: overlapLeft, width: overlapW };
-    const newBlocks = [...blocksRef.current, newBlock];
-    blocksRef.current = newBlocks;
-    scoreRef.current += 1;
-    setBlocks([...newBlocks]);
-    setScore(scoreRef.current);
-    setParticles(p => [...p, { id: Date.now(), x: overlapLeft + overlapW / 2, color: `hsl(${220 + scoreRef.current * 15},80%,65%)` }]);
-    setTimeout(() => setParticles(p => p.slice(1)), 600);
-    const newSpeed = 2 + scoreRef.current * 0.22;
-    movingRef.current = { left: overlapLeft, direction: Math.random() < 0.5 ? 1 : -1, speed: newSpeed };
-    setMovingLeft(overlapLeft); setMovingWidth(overlapW);
-    if (newBlocks.length > STACK_MAX_BLOCKS) {
-      setFinalScore(scoreRef.current);
-      setPhase('done');
-      onComplete(Date.now() - startMsRef.current, scoreRef.current);
-      return;
-    }
-    function loop() {
-      const mv = movingRef.current;
-      mv.left += mv.direction * mv.speed;
-      const w = movingRef.current.left + newBlock.width;
-      if (mv.left <= 0) { mv.left = 0; mv.direction = 1; }
-      if (mv.left + newBlock.width >= STACK_W) { mv.left = STACK_W - newBlock.width; mv.direction = -1; }
-      setMovingLeft(mv.left);
-      animRef.current = requestAnimationFrame(loop);
-    }
-    animRef.current = requestAnimationFrame(loop);
-  }
-
-  function reset() { cancelAnimationFrame(animRef.current); setPhase('idle'); setBlocks([{ left: 0, width: STACK_W }]); setScore(0); setParticles([]); blocksRef.current = [{ left: 0, width: STACK_W }]; scoreRef.current = 0; }
-
-  useEffect(() => () => cancelAnimationFrame(animRef.current), []);
-
-  const BLOCK_COLORS = ['#5D4CFF','#7A3FFF','#9333ea','#a855f7','#c084fc','#d8b4fe','#e9d5ff','#f0abfc','#f5d0fe','#fae8ff','#fdf4ff','#fff'];
-  const containerH = (STACK_MAX_BLOCKS + 2) * STACK_BLOCK_H;
-  const topIdx = blocks.length - 1;
-  const topWidth = blocks[topIdx]?.width ?? STACK_W;
-
-  return (
-    <div>
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
-        <StatChip label={t.games.blocks} value={score} />
-        {phase === 'playing' && <div style={{ fontSize: '12px', color: 'var(--text3)', alignSelf: 'center', marginLeft: '4px' }}>Tap to drop!</div>}
-      </div>
-
-      {phase === 'idle' && (
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          <div style={{ fontSize: '40px', marginBottom: '8px' }}>🏗</div>
-          <div style={{ fontFamily: 'Poppins', fontSize: '16px', color: '#fff', fontWeight: '700', marginBottom: '6px' }}>{t.games.stackGame}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '16px' }}>Stack blocks as precisely as possible!</div>
-          <button onClick={startGame} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>▶ Start</button>
-        </div>
-      )}
-
-      {(phase === 'playing' || phase === 'done') && (
-        <div onClick={drop} style={{ position: 'relative', width: STACK_W, margin: '0 auto', height: containerH, cursor: phase === 'playing' ? 'pointer' : 'default', userSelect: 'none' }}>
-          {/* Stacked blocks */}
-          {blocks.map((b, i) => (
-            <div key={i} style={{
-              position: 'absolute', height: STACK_BLOCK_H - 2,
-              left: b.left, width: b.width,
-              bottom: i * STACK_BLOCK_H,
-              background: BLOCK_COLORS[Math.min(i, BLOCK_COLORS.length - 1)],
-              borderRadius: '4px',
-              boxShadow: i === topIdx ? '0 0 12px rgba(93,76,255,0.6)' : 'none',
-              transition: 'width 0.1s',
-            }} />
-          ))}
-          {/* Moving block */}
-          {phase === 'playing' && (
-            <div style={{
-              position: 'absolute', height: STACK_BLOCK_H - 2,
-              left: movingLeft, width: topWidth,
-              bottom: blocks.length * STACK_BLOCK_H,
-              background: BLOCK_COLORS[Math.min(blocks.length, BLOCK_COLORS.length - 1)],
-              borderRadius: '4px',
-              boxShadow: '0 0 16px rgba(93,76,255,0.8)',
-              border: '1px solid rgba(255,255,255,0.3)',
-            }} />
-          )}
-          {/* Particles */}
-          {particles.map(p => (
-            <div key={p.id} style={{ position: 'absolute', left: p.x - 4, bottom: blocks.length * STACK_BLOCK_H, width: 8, height: 8, borderRadius: '50%', background: p.color, animation: 'cflyOut 0.5s ease-out both', pointerEvents: 'none', '--tx': '0px', '--ty': '-40px' } as React.CSSProperties} />
-          ))}
-        </div>
-      )}
-
-      {phase === 'done' && (
-        <div style={{ textAlign: 'center', marginTop: '12px' }}>
-          <div style={{ fontFamily: 'Poppins', fontSize: '48px', fontWeight: '900', color: 'var(--purple3)', lineHeight: 1 }}>{finalScore}</div>
-          <div style={{ fontSize: '13px', color: 'var(--text2)', marginBottom: '14px' }}>{t.games.blocks} stacked</div>
-          <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ═══════════════════════ FELIX JUMP ═══════════════════════ */
 
 const FJ_W = 320, FJ_H = 180;
@@ -2527,7 +2363,7 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
 
 /* ═══════════════════════ MAIN ═══════════════════════ */
 
-type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing';
+type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'reflex' | 'reaction' | 'felixjump' | 'typing';
 type CategoryId = 'daily' | 'speed' | 'hb' | 'wordle';
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string; seed?: number } | null;
 
@@ -2542,7 +2378,7 @@ interface CategoryDef {
 }
 
 const DAILY_TABS: TabId[] = ['memory', 'wordchain', 'flagquiz', 'sliding'];
-const SPEED_TABS: TabId[] = ['mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing'];
+const SPEED_TABS: TabId[] = ['mathrush', 'reflex', 'reaction', 'felixjump', 'typing'];
 
 function linkedTab(play: string | null): TabId | null {
   const tab = play as TabId | null;
@@ -2633,7 +2469,7 @@ export default function DailyGames() {
       id: 'speed', icon: '⚡', name: 'Speed Games',
       desc: 'Test your reflexes & reaction',
       color: '#EA580C', glow: 'rgba(234,88,12,0.35)',
-      games: [t.games.mathrush, t.games.reflex, t.games.reaction, t.games.stackGame, t.games.felixJump, 'TYPING SPEED'],
+      games: [t.games.mathrush, t.games.reflex, t.games.reaction, t.games.felixJump, 'TYPING SPEED'],
       firstTab: 'mathrush',
     },
     {
@@ -2660,7 +2496,6 @@ export default function DailyGames() {
     { id: 'mathrush',  label: t.games.mathrush.toUpperCase(),   emoji: '🔢' },
     { id: 'reflex',    label: t.games.reflex.toUpperCase(),     emoji: '⏱' },
     { id: 'reaction',  label: t.games.reaction.toUpperCase(),   emoji: '⚡' },
-    { id: 'stack',     label: t.games.stackGame.toUpperCase(),  emoji: '🏗' },
     { id: 'felixjump', label: t.games.felixJump.toUpperCase(),  emoji: '🏃' },
     { id: 'typing',    label: 'TYPING SPEED',                   emoji: '⌨️' },
   ];
@@ -2918,7 +2753,6 @@ export default function DailyGames() {
       {tab === 'reaction'  && <ReactionClick onComplete={(ms, seed)   => openModal('reaction',  ms, { seed })}
         challengeSeed={urlChallenge?.game === 'reaction' ? urlChallenge.seed : undefined}
         challenge={urlChallenge?.game === 'reaction' ? urlChallenge : undefined} />}
-      {tab === 'stack'     && <StackGame     onComplete={(ms, sc)     => openModal('stack',     ms, { score: sc })} />}
       {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
       {tab === 'typing'    && <TypingSpeedTest onComplete={(ms, sc, df, seed) => openModal('typing', ms, { score: sc, diff: df, seed })}
         challengeSeed={urlChallenge?.game === 'typing' ? urlChallenge.seed : undefined}
