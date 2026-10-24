@@ -7,8 +7,10 @@ import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
 import { TypingSpeedTest } from './TypingSpeedTest';
 import WordleGames from './WordleGames';
-import { recordGameCompleted, recordLeaderboardRank } from '../../lib/streak';
+import { recordGameCompleted } from '../../lib/streak';
 import type { Translations } from '../../lib/i18n';
+import { flagEmoji, getCountryName } from '../../lib/games/countries';
+import ScoreSubmitModal, { scoreModalInputStyle } from './games/ScoreSubmitModal';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -177,21 +179,6 @@ if (typeof window !== 'undefined') {
   );
 }
 
-function flagEmoji(code: string) {
-  return [...code.toUpperCase()].map(c =>
-    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
-  ).join('');
-}
-
-function getCountryName(code: string, lang: string): string {
-  try {
-    const dn = new Intl.DisplayNames([lang, 'en'], { type: 'region' });
-    return dn.of(code) ?? code;
-  } catch {
-    return code;
-  }
-}
-
 function seededShuffle<T>(arr: T[], seed: number): T[] {
   const out = [...arr];
   let s = seed;
@@ -269,14 +256,6 @@ function fmtTimePrecise4(ms: number): string {
   return `${String(mins).padStart(2,'0')}:${String(secsInt).padStart(2,'0')}.${String(frac).padStart(4,'0')}`;
 }
 
-const WORLD_COUNTRIES = [
-  'AF','AL','DZ','AR','AM','AU','AT','AZ','BH','BD','BY','BE','BO','BA','BR','BG','KH','CA',
-  'CL','CN','CO','HR','CZ','DK','EC','EG','EE','ET','FI','FR','GE','DE','GH','GR','GT','HK',
-  'HU','IN','ID','IQ','IE','IL','IT','JP','JO','KZ','KE','KW','LV','LB','LT','LU','MY','MX',
-  'MA','NL','NZ','NG','NO','OM','PK','PE','PH','PL','PT','QA','RO','RU','SA','RS','SG','SK',
-  'ZA','KR','ES','LK','SE','CH','TW','TZ','TH','TN','TR','UA','AE','GB','US','VN',
-].sort();
-
 function lsGet<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
 }
@@ -346,10 +325,6 @@ type LBApiEntry = {
   device?: 'mobile' | 'desktop'; date: number;
 };
 
-function detectDevice(): 'mobile' | 'desktop' {
-  if (typeof navigator === 'undefined') return 'desktop';
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
-}
 type LBApiResponse = { entries: LBApiEntry[]; countries: string[] };
 
 interface ModalProps {
@@ -364,7 +339,7 @@ interface ModalProps {
 }
 
 function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onShowLeaderboard }: ModalProps) {
-  const { lang, t } = useLang();
+  const { t } = useLang();
   const [challengeName, setChallengeName] = useState(() => lsGet<string>('lb_nick', ''));
   const [challengeCopied, setChallengeCopied] = useState(false);
   const canChallenge = CHALLENGE_GAMES.has(game) && seed !== undefined;
@@ -378,73 +353,6 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
     const { copied } = await shareChallengeUrl(url, text);
     if (copied) { setChallengeCopied(true); setTimeout(() => setChallengeCopied(false), 2200); }
   }
-  const [nick,       setNick]       = useState(() => lsGet<string>('lb_nick', ''));
-  const [country,    setCountry]    = useState(() => lsGet<string>('lb_country', ''));
-  const [city,       setCity]       = useState(() => lsGet<string>('lb_city', ''));
-  const [submitting, setSubmitting] = useState(false);
-  const [submitErr,  setSubmitErr]  = useState('');
-  const [phase,      setPhase]      = useState<'form' | 'confirm'>('form');
-  const [myRank,     setMyRank]     = useState<number | null>(null);
-  const device = useMemo(() => detectDevice(), []);
-
-  async function handleSubmit() {
-    if (!nick.trim() || submitting) return;
-    setSubmitting(true);
-    setSubmitErr('');
-    try {
-      lsSet('lb_nick', nick.trim());
-      lsSet('lb_country', country);
-      lsSet('lb_city', city.trim());
-      const res = await fetch('/api/leaderboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff, device }),
-      });
-      const data = await res.json() as Record<string, unknown>;
-      if (res.status === 201) {
-        const raw = await fetch(`/api/leaderboard?game=${game}`);
-        const lb = await raw.json() as LBApiResponse;
-        const idx = lb.entries.findIndex(e => e.id === (data.entry as LBApiEntry).id);
-        const rank = idx >= 0 ? idx + 1 : null;
-        setMyRank(rank);
-        if (rank !== null) recordLeaderboardRank(rank);
-        setPhase('confirm');
-      } else if (data.notBetter) {
-        setMyRank(data.rank as number);
-        recordLeaderboardRank(data.rank as number);
-        setPhase('confirm');
-      } else if (data.notInTop) {
-        setMyRank(data.rank as number);
-        recordLeaderboardRank(data.rank as number);
-        setPhase('confirm');
-      } else {
-        setSubmitErr((data.error as string) || t.games.submitError);
-      }
-    } catch {
-      setSubmitErr(t.games.connectionError);
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  const overlay: React.CSSProperties = {
-    position: 'fixed', inset: 0, zIndex: 1000,
-    background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(4px)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
-  };
-  const box: React.CSSProperties = {
-    background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(93,76,255,0.35)',
-    borderRadius: '18px', padding: '24px 20px', width: '100%', maxWidth: '360px',
-    boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
-    animation: 'modalIn 0.22s cubic-bezier(.34,1.56,.64,1)',
-    maxHeight: 'calc(100dvh - 32px)', overflowY: 'auto', position: 'relative',
-  };
-  const inputSt: React.CSSProperties = {
-    width: '100%', background: 'rgba(255,255,255,0.07)',
-    border: '1px solid rgba(255,255,255,0.15)', borderRadius: '9px',
-    color: '#fff', fontSize: '14px', padding: '10px 12px', outline: 'none',
-    boxSizing: 'border-box',
-  };
   const gameLabel: Record<GameId, string> = {
     sliding:   `🧩 ${t.games.sliding}`,
     memory:    `🃏 ${t.games.memory}`,
@@ -459,17 +367,10 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
   };
 
   return (
-    <div style={overlay} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={box}>
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <div style={{ fontSize: '28px', marginBottom: '4px' }}>🏆</div>
-          <div style={{ fontFamily: 'Poppins', fontSize: '17px', fontWeight: '700', color: '#fff' }}>
-            {gameLabel[game]} {t.games.completed}
-          </div>
-        </div>
-
-        {/* Result display */}
-        <div style={{ textAlign: 'center', marginBottom: '16px', padding: '14px 12px', background: 'rgba(93,76,255,0.1)', borderRadius: '12px', border: '1px solid rgba(93,76,255,0.25)' }}>
+    <ScoreSubmitModal
+      game={game} timeMs={timeMs} score={score} moves={moves} diff={diff}
+      title={`${gameLabel[game]} ${t.games.completed}`}
+      result={<>
           {game === 'mathrush' && score !== undefined ? (
             <>
               <div style={{ fontFamily: 'Poppins', fontSize: '60px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{score}</div>
@@ -523,16 +424,14 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
               )}
             </>
           )}
-        </div>
-
-        {/* Challenge a friend */}
-        {canChallenge && (
+      </>}
+      extra={canChallenge ? (
           <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
               <input
                 type="text" placeholder={t.games.nickPlaceholder} value={challengeName} maxLength={30}
                 onChange={e => setChallengeName(e.target.value.slice(0, 30))}
-                style={{ ...inputSt, flex: 1 }}
+                style={{ ...scoreModalInputStyle, flex: 1 }}
               />
               <button
                 onClick={sendChallenge}
@@ -549,86 +448,10 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
               </button>
             </div>
           </div>
-        )}
-
-        {phase === 'form' ? (
-          <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
-              <input
-                type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={30}
-                onChange={e => setNick(e.target.value.slice(0, 30))}
-                style={inputSt}
-              />
-              <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...inputSt, cursor: 'pointer' }}>
-                <option value="">{t.games.countryPlaceholder}</option>
-                {WORLD_COUNTRIES.map(code => (
-                  <option key={code} value={code}>
-                    {flagEmoji(code)} {getCountryName(code, lang)}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text" placeholder={t.games.cityPlaceholder} value={city} maxLength={60}
-                onChange={e => setCity(e.target.value.slice(0, 60))}
-                style={inputSt}
-              />
-            </div>
-            {submitErr && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '8px', textAlign: 'center' }}>{submitErr}</div>}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={handleSubmit}
-                disabled={!nick.trim() || submitting}
-                style={{
-                  flex: 2, background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-                  border: 'none', borderRadius: '10px', color: '#fff',
-                  fontSize: '14px', fontWeight: '600', padding: '11px', cursor: 'pointer',
-                  opacity: nick.trim() && !submitting ? 1 : 0.5,
-                }}
-              >
-                {submitting ? '…' : t.games.submitToLb}
-              </button>
-              <button onClick={onClose} style={{
-                flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600',
-                padding: '11px', cursor: 'pointer',
-              }}>
-                {t.games.skip}
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={{ textAlign: 'center', marginBottom: '18px' }}>
-              <div style={{ fontSize: '36px', marginBottom: '8px' }}>✅</div>
-              <div style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: 'var(--green2)' }}>
-                {t.games.addedToLb}
-              </div>
-              {myRank && (
-                <div style={{ fontSize: '14px', color: 'var(--text2)', marginTop: '6px' }}>
-                  {t.games.rankIs} <span style={{ color: '#FFB300', fontWeight: '700' }}>#{myRank}</span> {t.games.rankGlobal}
-                </div>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => { onShowLeaderboard(); onClose(); }} style={{
-                flex: 2, background: 'rgba(255,179,0,0.12)', border: '1px solid rgba(255,179,0,0.3)',
-                borderRadius: '10px', color: '#FFB300', fontSize: '14px', fontWeight: '600',
-                padding: '11px', cursor: 'pointer',
-              }}>
-                {t.games.showLeaderboard}
-              </button>
-              <button onClick={onClose} style={{
-                flex: 1, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600',
-                padding: '11px', cursor: 'pointer',
-              }}>
-                {t.games.close}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+      ) : undefined}
+      onClose={onClose}
+      onShowLeaderboard={onShowLeaderboard}
+    />
   );
 }
 
@@ -2721,6 +2544,18 @@ interface CategoryDef {
 const DAILY_TABS: TabId[] = ['memory', 'wordchain', 'flagquiz', 'sliding'];
 const SPEED_TABS: TabId[] = ['mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing'];
 
+function linkedTab(play: string | null): TabId | null {
+  const tab = play as TabId | null;
+  return tab && (DAILY_TABS.includes(tab) || SPEED_TABS.includes(tab)) ? tab : null;
+}
+
+function linkedCategory(play: string | null, cat: string | null): CategoryId | null {
+  if (cat === 'hb' || cat === 'wordle') return cat;
+  const tab = linkedTab(play);
+  if (!tab) return null;
+  return DAILY_TABS.includes(tab) ? 'daily' : 'speed';
+}
+
 function DGStyles() {
   return (
     <style>{`
@@ -2830,12 +2665,14 @@ export default function DailyGames() {
     { id: 'typing',    label: 'TYPING SPEED',                   emoji: '⌨️' },
   ];
 
-  const [category, setCategory] = useState<CategoryId | null>(null);
-  const [tab,       setTab]      = useState<TabId>('memory');
+  const searchParams = useSearchParams();
+
+  // Deep links from /games: ?play=<tab> opens that game, ?cat=hb|wordle opens the category
+  const [category, setCategory] = useState<CategoryId | null>(() => linkedCategory(searchParams.get('play'), searchParams.get('cat')));
+  const [tab,       setTab]      = useState<TabId>(() => linkedTab(searchParams.get('play')) ?? 'memory');
   const [modal,     setModal]    = useState<ModalState>(null);
   const [catHover,  setCatHover] = useState<CategoryId | null>(null);
 
-  const searchParams = useSearchParams();
   const urlChallenge = useMemo(() => {
     const g = searchParams.get('challenge');
     const seedStr = searchParams.get('seed');

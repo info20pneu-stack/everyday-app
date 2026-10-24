@@ -16,7 +16,7 @@ export function getNavRoutes(t: Translations): NavRoute[] {
     { id: 'trending',  icon: '📈', href: '/rankings',           label: t.nav.trending },
     { id: 'crypto',    icon: '₿',  href: '/crypto',             label: t.nav.crypto },
     { id: 'boost',     icon: '⚡', href: '/daily-boost',        label: t.nav.dailyBoost },
-    { id: 'games',     icon: '🎮', href: '/daily-games',        label: t.nav.dailyGames },
+    { id: 'games',     icon: '🎮', href: '/games',              label: t.gamesHub.title },
     { id: 'markets',   icon: '📊', href: '/markets',            label: t.nav.markets },
     { id: 'news',      icon: '📰', href: '/news',               label: t.dashboard.label_news },
     { id: 'ip',        icon: '🌐', href: '/ip-address',         label: t.nav.ipAddress },
@@ -28,9 +28,10 @@ export function getNavRoutes(t: Translations): NavRoute[] {
   ];
 }
 
-/** True when `pathname` is `href` or one of its sub-pages (/currency/usd-eur, /time/prague → world time). */
+/** True when `pathname` is `href` or one of its sub-pages (/currency/usd-eur, /time/prague → world time, /daily-games → games). */
 export function isRouteActive(pathname: string, href: string): boolean {
   if (href === '/') return pathname === '/';
   if (href === '/world-time' && pathname.startsWith('/time/')) return true;
+  if (href === '/games' && pathname.startsWith('/daily-games')) return true;
   return pathname === href || pathname.startsWith(href + '/');
 }

@@ -42,3 +42,7 @@ next-env.d.ts
 
 # responsive audit screenshots
 /screenshots/
+
+# game demos used only as reference (not part of the app)
+/games-reference/
+/games-reference.zip

@@ -1,10 +1,10 @@
 import { redis } from '../../../lib/redis';
 import { NextRequest, NextResponse } from 'next/server';
 import { createHash } from 'crypto';
+import { LEADERBOARD_GAME_IDS, getLeaderboardConfig, toSortValue } from '../../../lib/gamesCatalog';
 
-export type GameId = 'sliding' | 'memory' | 'flagquiz' | 'wordchain' | 'mathrush' | 'reflex' | 'reaction' | 'stack' | 'felixjump' | 'typing'
-  | 'hb_reaction' | 'hb_numbermem' | 'hb_visualmem' | 'hb_verbalmem' | 'hb_seqmem' | 'hb_aimtrainer' | 'hb_mentalmath'
-  | 'wordle_classic' | 'wordle_football' | 'wordle_hockey' | 'wordle_car' | 'wordle_crypto' | 'wordle_animal' | 'wordle_plant' | 'wordle_city';
+/** Leaderboard id: a key of LEADERBOARD_GAMES in lib/gamesCatalog.ts, or `<id>_<variant>` for games with variants. */
+export type GameId = string;
 
 export interface LBEntry {
   id: string;
@@ -20,25 +20,9 @@ export interface LBEntry {
   date: number;
 }
 
-export const VALID_GAMES: GameId[] = [
-  'sliding', 'memory', 'flagquiz', 'wordchain', 'mathrush', 'reflex', 'reaction', 'stack', 'felixjump', 'typing',
-  'hb_reaction', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_aimtrainer', 'hb_mentalmath',
-  'wordle_classic', 'wordle_football', 'wordle_hockey', 'wordle_car', 'wordle_crypto', 'wordle_animal', 'wordle_plant', 'wordle_city',
-];
+/** Base game ids (without variants) — used by the admin summary. */
+export const VALID_GAMES: GameId[] = LEADERBOARD_GAME_IDS;
 const MAX_ENTRIES = 1000;
-
-// Score-based games rank by highest score then fastest time.
-// We encode as: (-score * 1e6 + timeMs) so ascending sort = best first.
-// Wordle games submit score = (MAX_GUESSES + 1 - guessesUsed), so fewer guesses also sorts as "higher score".
-const SCORE_BASED: GameId[] = [
-  'flagquiz', 'wordchain', 'mathrush', 'stack', 'felixjump', 'typing', 'hb_numbermem', 'hb_visualmem', 'hb_verbalmem', 'hb_seqmem', 'hb_mentalmath',
-  'wordle_classic', 'wordle_football', 'wordle_hockey', 'wordle_car', 'wordle_crypto', 'wordle_animal', 'wordle_plant', 'wordle_city',
-];
-
-function toSortScore(game: GameId, timeMs: number, score?: number): number {
-  if (SCORE_BASED.includes(game)) return -(score ?? 0) * 1e6 + timeMs;
-  return timeMs; // time-based: lower = better
-}
 
 export function lbKey(game: GameId) { return `lb2:${game}`; }
 function ipsKey(game: GameId) { return `lb2:ips:${game}`; }
@@ -95,7 +79,7 @@ export async function GET(req: NextRequest) {
   const country = sp.get('country') ?? '';
   const city    = sp.get('city') ?? '';
 
-  if (!game || !VALID_GAMES.includes(game)) {
+  if (!game || !getLeaderboardConfig(game)) {
     return NextResponse.json({ error: 'Missing game param' }, { status: 400 });
   }
 
@@ -136,7 +120,8 @@ export async function POST(req: NextRequest) {
     body = await req.json() as PostBody;
     const { game, name, country, city, timeMs, score, moves, diff, device } = body;
 
-    if (!VALID_GAMES.includes(game) || !name?.trim() || typeof timeMs !== 'number' || timeMs <= 0) {
+    const config = typeof game === 'string' ? getLeaderboardConfig(game) : null;
+    if (!config || !name?.trim() || typeof timeMs !== 'number' || timeMs <= 0) {
       console.error('[leaderboard POST] Validation failed:', { game, name, timeMs });
       return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
     }
@@ -146,7 +131,7 @@ export async function POST(req: NextRequest) {
             ?? 'unknown';
     const ipHash  = hashIp(ip, game);
     const roundMs = Math.round(timeMs * 10) / 10;
-    const sortVal = toSortScore(game, roundMs, score);
+    const sortVal = toSortValue(config, roundMs, score);
 
     console.log('[leaderboard POST] Writing entry:', { game, name: name.trim(), roundMs, sortVal, ip: ip.slice(0, 8) + '...' });
 
