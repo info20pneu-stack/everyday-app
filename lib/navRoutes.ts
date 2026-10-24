@@ -2,7 +2,7 @@ import type { Translations } from './i18n';
 
 export type NavRoute = { id: string; icon: string; href: string; label: string };
 
-/** Every page reachable from the Sidebar / Topbar, in sidebar order. */
+/** Every page reachable from the top bar / mobile menu, in menu order. */
 export function getNavRoutes(t: Translations): NavRoute[] {
   return [
     { id: 'home',      icon: '🏠', href: '/',                   label: t.nav.home },

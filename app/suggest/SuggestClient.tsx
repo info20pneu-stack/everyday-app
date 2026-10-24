@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Script from 'next/script';
 import Topbar from '../components/Topbar';
-import Sidebar from '../components/Sidebar';
 import BottomNav from '../components/BottomNav';
 import type { Suggestion, SuggestionStatus } from '../api/suggestions/route';
 
@@ -194,7 +193,6 @@ export default function SuggestClient() {
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Topbar />
         <div style={{ display: 'flex', flex: 1 }}>
-          <Sidebar />
           <main className="main-content" style={{
             flex: 1,
             background: 'var(--bg1)',

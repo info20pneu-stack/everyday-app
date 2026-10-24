@@ -1,52 +1,71 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import heroEarth from '../../public/images/hero-earth-wide.webp';
+import { useLang } from '../../lib/LanguageContext';
+import { getNavRoutes } from '../../lib/navRoutes';
 import HeroClock from './HeroClock';
 
+/** Quick links along the bottom of the hero: nav route id → short description key. */
+const HERO_TILES = [
+  { id: 'worldtime', desc: 'worldTimeDesc' },
+  { id: 'currency', desc: 'currencyDesc' },
+  { id: 'units', desc: 'convertersDesc' },
+  { id: 'weather', desc: 'weatherDesc' },
+  { id: 'sports', desc: 'sportsDesc' },
+] as const;
+
 export default function EarthHero() {
+  const { t } = useLang();
+  const routes = getNavRoutes(t);
+  const titles: Record<string, string> = {
+    worldtime: t.topbar.worldTime,
+    currency: t.nav.currency,
+    units: t.topbar.converters,
+    weather: t.topbar.weather,
+    sports: t.topbar.sports,
+  };
+
   return (
-    <>
-      <section className="earth-hero hero-section">
-        <Image
-          src={heroEarth}
-          alt=""
-          fill
-          preload
-          sizes="(max-width: 600px) 100vw, (max-width: 1200px) 90vw, 900px"
-          className="earth-hero-img"
-        />
-        {/* Shades keep the text readable: top-left under the title, bottom-left under the time, fade at the bottom */}
-        <div className="earth-hero-shade earth-hero-shade-title" aria-hidden="true" />
-        <div className="earth-hero-shade earth-hero-shade-corner" aria-hidden="true" />
-        <div className="earth-hero-shade earth-hero-shade-bottom" aria-hidden="true" />
+    <section className="earth-hero hero-section">
+      <Image
+        src={heroEarth}
+        alt=""
+        fill
+        preload
+        sizes="(max-width: 600px) 100vw, (max-width: 1400px) 90vw, 1200px"
+        className="earth-hero-img"
+      />
+      {/* Shades keep the text readable: under the title, and the lower ~55 % for time and tiles */}
+      <div className="earth-hero-shade earth-hero-shade-title" aria-hidden="true" />
+      <div className="earth-hero-shade earth-hero-shade-bottom" aria-hidden="true" />
 
-        <div className="earth-hero-content">
-          <h1 className="earth-hero-title">EVERY <span>DAY</span></h1>
-          <p className="earth-hero-tagline">Everything you need. Every day.</p>
-        </div>
-
-        <HeroClock />
-      </section>
-
-      <div className="hero-stats">
-        <div className="hero-stat">
-          <span className="hero-stat-value">50+</span>
-          <span className="hero-stat-label">World Cities</span>
-        </div>
-        <div className="hero-stat">
-          <span className="hero-stat-value">Live</span>
-          <span className="hero-stat-label">Data Updates</span>
-        </div>
-        <div className="hero-stat">
-          <span className="hero-stat-value">20+</span>
-          <span className="hero-stat-label">Tools</span>
-        </div>
-        <div className="hero-stat">
-          <span className="hero-stat-value">24/7</span>
-          <span className="hero-stat-label">Availability</span>
-        </div>
+      <div className="earth-hero-content">
+        <h1 className="earth-hero-title">EVERY <span>DAY</span></h1>
+        <p className="earth-hero-tagline">{t.heroTiles.tagline}</p>
       </div>
-    </>
+
+      <HeroClock
+        below={
+          <div className="hero-tiles">
+            {HERO_TILES.map(tile => {
+              const route = routes.find(r => r.id === tile.id);
+              if (!route) return null;
+              return (
+                <Link key={tile.id} href={route.href} className="hero-tile">
+                  <span className="hero-tile-icon" aria-hidden="true">{route.icon}</span>
+                  <span className="hero-tile-text">
+                    <span className="hero-tile-name">{titles[tile.id]}</span>
+                    <span className="hero-tile-desc">{t.heroTiles[tile.desc]}</span>
+                  </span>
+                  <span className="hero-tile-arrow" aria-hidden="true">›</span>
+                </Link>
+              );
+            })}
+          </div>
+        }
+      />
+    </section>
   );
 }

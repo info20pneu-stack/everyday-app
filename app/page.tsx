@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import BottomNav from './components/BottomNav';
 import AdBanner from './components/AdBanner';
@@ -42,7 +41,6 @@ export default function Home() {
       </div>
 
       <div style={{ display: 'flex', flex: 1 }}>
-        <Sidebar />
 
         <main className="main-content" style={{
           flex: 1,

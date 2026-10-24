@@ -35,6 +35,14 @@ export type Translations = {
     search: string;
     install: string;
     installIosHint: string;
+    menu: string;
+    close: string;
+    settings: string;
+    appearance: string;
+    lightMode: string;
+    darkMode: string;
+    language: string;
+    noResults: string;
   };
   buttons: {
     exploreNow: string;
@@ -323,6 +331,14 @@ export type Translations = {
     desc_sudokuCube: string;
     desc_breathing: string;
   };
+  heroTiles: {
+    tagline: string;
+    worldTimeDesc: string;
+    currencyDesc: string;
+    convertersDesc: string;
+    weatherDesc: string;
+    sportsDesc: string;
+  };
   dailyPuzzle: {
     title: string; subtitle: string; notEnoughLetters: string; guessInstruction: string;
     genius: string; magnificent: string; impressive: string; splendid: string; great: string; phew: string;
@@ -364,6 +380,14 @@ const t: Record<Lang, Translations> = {
       search: 'Search anything...',
       install: 'Install app',
       installIosHint: 'Tap Share ⬆️ and choose Add to Home Screen',
+      menu: 'Menu',
+      close: 'Close',
+      settings: 'Settings',
+      appearance: 'Appearance',
+      lightMode: 'Light mode',
+      darkMode: 'Dark mode',
+      language: 'Language',
+      noResults: 'No results',
     },
     buttons: {
       exploreNow: 'Explore Now',
@@ -712,6 +736,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku wrapped around a 3D cube',
       desc_breathing: 'Calm down with guided box breathing',
     },
+    heroTiles: {
+      tagline: 'Everything you need. Every day.',
+      worldTimeDesc: '50+ cities',
+      currencyDesc: '30 currencies',
+      convertersDesc: 'Units',
+      weatherDesc: '5-day forecast',
+      sportsDesc: 'NHL, NBA, Football',
+    },
     dailyPuzzle: {
       title: "Today's Puzzle", subtitle: 'One puzzle a day. Same for the whole world.',
       notEnoughLetters: 'Not enough letters', guessInstruction: 'Guess the 5-letter word in 6 tries',
@@ -755,6 +787,14 @@ const t: Record<Lang, Translations> = {
       search: 'Suche...',
       install: 'App installieren',
       installIosHint: 'Tippe auf Teilen ⬆️ und wähle „Zum Home-Bildschirm“',
+      menu: 'Menü',
+      close: 'Schließen',
+      settings: 'Einstellungen',
+      appearance: 'Darstellung',
+      lightMode: 'Heller Modus',
+      darkMode: 'Dunkler Modus',
+      language: 'Sprache',
+      noResults: 'Keine Ergebnisse',
     },
     buttons: {
       exploreNow: 'Jetzt erkunden',
@@ -1103,6 +1143,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku rund um einen 3D-Würfel',
       desc_breathing: 'Komm mit geführter Box-Atmung zur Ruhe',
     },
+    heroTiles: {
+      tagline: 'Alles, was du brauchst. Jeden Tag.',
+      worldTimeDesc: '50+ Städte',
+      currencyDesc: '30 Währungen',
+      convertersDesc: 'Einheiten',
+      weatherDesc: '5-Tage-Vorhersage',
+      sportsDesc: 'NHL, NBA, Fußball',
+    },
     dailyPuzzle: {
       title: 'Heutiges Rätsel', subtitle: 'Ein Rätsel pro Tag. Gleich für die ganze Welt.',
       notEnoughLetters: 'Nicht genug Buchstaben', guessInstruction: 'Errate das 5-Buchstaben-Wort in 6 Versuchen',
@@ -1146,6 +1194,14 @@ const t: Record<Lang, Translations> = {
       search: 'Cerca...',
       install: 'Installa app',
       installIosHint: 'Tocca Condividi ⬆️ e scegli Aggiungi alla schermata Home',
+      menu: 'Menu',
+      close: 'Chiudi',
+      settings: 'Impostazioni',
+      appearance: 'Aspetto',
+      lightMode: 'Modalità chiara',
+      darkMode: 'Modalità scura',
+      language: 'Lingua',
+      noResults: 'Nessun risultato',
     },
     buttons: {
       exploreNow: 'Esplora ora',
@@ -1494,6 +1550,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku avvolto attorno a un cubo 3D',
       desc_breathing: 'Rilassati con la respirazione guidata',
     },
+    heroTiles: {
+      tagline: 'Tutto ciò che ti serve. Ogni giorno.',
+      worldTimeDesc: '50+ città',
+      currencyDesc: '30 valute',
+      convertersDesc: 'Unità',
+      weatherDesc: 'Previsioni a 5 giorni',
+      sportsDesc: 'NHL, NBA, Calcio',
+    },
     dailyPuzzle: {
       title: 'Indovinello di Oggi', subtitle: 'Un indovinello al giorno. Uguale per tutto il mondo.',
       notEnoughLetters: 'Non abbastanza lettere', guessInstruction: 'Indovina la parola di 5 lettere in 6 tentativi',
@@ -1537,6 +1601,14 @@ const t: Record<Lang, Translations> = {
       search: 'Rechercher...',
       install: 'Installer l\'app',
       installIosHint: 'Touchez Partager ⬆️ puis choisissez Sur l’écran d’accueil',
+      menu: 'Menu',
+      close: 'Fermer',
+      settings: 'Paramètres',
+      appearance: 'Apparence',
+      lightMode: 'Mode clair',
+      darkMode: 'Mode sombre',
+      language: 'Langue',
+      noResults: 'Aucun résultat',
     },
     buttons: {
       exploreNow: 'Explorer',
@@ -1885,6 +1957,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Un sudoku autour d’un cube 3D',
       desc_breathing: 'Apaise-toi avec la respiration guidée',
     },
+    heroTiles: {
+      tagline: 'Tout ce dont tu as besoin. Chaque jour.',
+      worldTimeDesc: '50+ villes',
+      currencyDesc: '30 devises',
+      convertersDesc: 'Unités',
+      weatherDesc: 'Prévisions sur 5 jours',
+      sportsDesc: 'NHL, NBA, Football',
+    },
     dailyPuzzle: {
       title: "Devinette du Jour", subtitle: 'Une devinette par jour. Identique pour le monde entier.',
       notEnoughLetters: 'Pas assez de lettres', guessInstruction: 'Devine le mot de 5 lettres en 6 essais',
@@ -1928,6 +2008,14 @@ const t: Record<Lang, Translations> = {
       search: 'Hledat...',
       install: 'Nainstalovat aplikaci',
       installIosHint: 'Klepni na Sdílet ⬆️ a zvol Přidat na plochu',
+      menu: 'Menu',
+      close: 'Zavřít',
+      settings: 'Nastavení',
+      appearance: 'Vzhled',
+      lightMode: 'Světlý režim',
+      darkMode: 'Tmavý režim',
+      language: 'Jazyk',
+      noResults: 'Nic nenalezeno',
     },
     buttons: {
       exploreNow: 'Prozkoumat',
@@ -2276,6 +2364,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku obtočené kolem 3D kostky',
       desc_breathing: 'Zklidni se řízeným dýcháním',
     },
+    heroTiles: {
+      tagline: 'Vše, co potřebuješ. Každý den.',
+      worldTimeDesc: '50+ měst',
+      currencyDesc: '30 měn',
+      convertersDesc: 'Jednotky',
+      weatherDesc: 'Na 5 dní',
+      sportsDesc: 'NHL, NBA, Fotbal',
+    },
     dailyPuzzle: {
       title: 'Dnešní hádanka', subtitle: 'Jedna hádanka denně. Stejná pro celý svět.',
       notEnoughLetters: 'Málo písmen', guessInstruction: 'Uhodni pětipísmenné slovo na 6 pokusů',
@@ -2319,6 +2415,14 @@ const t: Record<Lang, Translations> = {
       search: 'Buscar...',
       install: 'Instalar app',
       installIosHint: 'Toca Compartir ⬆️ y elige Añadir a pantalla de inicio',
+      menu: 'Menú',
+      close: 'Cerrar',
+      settings: 'Ajustes',
+      appearance: 'Apariencia',
+      lightMode: 'Modo claro',
+      darkMode: 'Modo oscuro',
+      language: 'Idioma',
+      noResults: 'Sin resultados',
     },
     buttons: {
       exploreNow: 'Explorar ahora',
@@ -2667,6 +2771,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku alrededor de un cubo 3D',
       desc_breathing: 'Cálmate con respiración guiada',
     },
+    heroTiles: {
+      tagline: 'Todo lo que necesitas. Cada día.',
+      worldTimeDesc: '50+ ciudades',
+      currencyDesc: '30 monedas',
+      convertersDesc: 'Unidades',
+      weatherDesc: 'Pronóstico de 5 días',
+      sportsDesc: 'NHL, NBA, Fútbol',
+    },
     dailyPuzzle: {
       title: 'Acertijo de Hoy', subtitle: 'Un acertijo al día. Igual para todo el mundo.',
       notEnoughLetters: 'Faltan letras', guessInstruction: 'Adivina la palabra de 5 letras en 6 intentos',
@@ -2710,6 +2822,14 @@ const t: Record<Lang, Translations> = {
       search: 'Szukaj...',
       install: 'Zainstaluj aplikację',
       installIosHint: 'Stuknij Udostępnij ⬆️ i wybierz Do ekranu początkowego',
+      menu: 'Menu',
+      close: 'Zamknij',
+      settings: 'Ustawienia',
+      appearance: 'Wygląd',
+      lightMode: 'Tryb jasny',
+      darkMode: 'Tryb ciemny',
+      language: 'Język',
+      noResults: 'Brak wyników',
     },
     buttons: {
       exploreNow: 'Odkryj teraz',
@@ -3058,6 +3178,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku owinięte wokół kostki 3D',
       desc_breathing: 'Uspokój się dzięki prowadzonemu oddechowi',
     },
+    heroTiles: {
+      tagline: 'Wszystko, czego potrzebujesz. Każdego dnia.',
+      worldTimeDesc: '50+ miast',
+      currencyDesc: '30 walut',
+      convertersDesc: 'Jednostki',
+      weatherDesc: 'Prognoza na 5 dni',
+      sportsDesc: 'NHL, NBA, Piłka nożna',
+    },
     dailyPuzzle: {
       title: 'Dzisiejsza Zagadka', subtitle: 'Jedna zagadka dziennie. Taka sama dla całego świata.',
       notEnoughLetters: 'Za mało liter', guessInstruction: 'Odgadnij 5-literowe słowo w 6 próbach',
@@ -3101,6 +3229,14 @@ const t: Record<Lang, Translations> = {
       search: 'Pesquisar...',
       install: 'Instalar app',
       installIosHint: 'Toca em Partilhar ⬆️ e escolhe Adicionar ao ecrã principal',
+      menu: 'Menu',
+      close: 'Fechar',
+      settings: 'Definições',
+      appearance: 'Aspeto',
+      lightMode: 'Modo claro',
+      darkMode: 'Modo escuro',
+      language: 'Idioma',
+      noResults: 'Sem resultados',
     },
     buttons: {
       exploreNow: 'Explorar agora',
@@ -3449,6 +3585,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku à volta de um cubo 3D',
       desc_breathing: 'Acalma-te com respiração guiada',
     },
+    heroTiles: {
+      tagline: 'Tudo o que precisas. Todos os dias.',
+      worldTimeDesc: '50+ cidades',
+      currencyDesc: '30 moedas',
+      convertersDesc: 'Unidades',
+      weatherDesc: 'Previsão a 5 dias',
+      sportsDesc: 'NHL, NBA, Futebol',
+    },
     dailyPuzzle: {
       title: 'Desafio de Hoje', subtitle: 'Um desafio por dia. Igual para o mundo todo.',
       notEnoughLetters: 'Letras insuficientes', guessInstruction: 'Adivinhe a palavra de 5 letras em 6 tentativas',
@@ -3492,6 +3636,14 @@ const t: Record<Lang, Translations> = {
       search: 'Поиск...',
       install: 'Установить приложение',
       installIosHint: 'Нажмите «Поделиться» ⬆️ и выберите «На экран „Домой“»',
+      menu: 'Меню',
+      close: 'Закрыть',
+      settings: 'Настройки',
+      appearance: 'Оформление',
+      lightMode: 'Светлая тема',
+      darkMode: 'Тёмная тема',
+      language: 'Язык',
+      noResults: 'Ничего не найдено',
     },
     buttons: {
       exploreNow: 'Открыть',
@@ -3840,6 +3992,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Судоку вокруг 3D-куба',
       desc_breathing: 'Успокойся с помощью дыхательной практики',
     },
+    heroTiles: {
+      tagline: 'Всё, что нужно. Каждый день.',
+      worldTimeDesc: '50+ городов',
+      currencyDesc: '30 валют',
+      convertersDesc: 'Единицы',
+      weatherDesc: 'Прогноз на 5 дней',
+      sportsDesc: 'NHL, NBA, Футбол',
+    },
     dailyPuzzle: {
       title: 'Загадка дня', subtitle: 'Одна загадка в день. Одинаковая для всего мира.',
       notEnoughLetters: 'Недостаточно букв', guessInstruction: 'Угадайте слово из 5 букв за 6 попыток',
@@ -3883,6 +4043,14 @@ const t: Record<Lang, Translations> = {
       search: '搜索...',
       install: '安装应用',
       installIosHint: '点按“分享”⬆️，然后选择“添加到主屏幕”',
+      menu: '菜单',
+      close: '关闭',
+      settings: '设置',
+      appearance: '外观',
+      lightMode: '浅色模式',
+      darkMode: '深色模式',
+      language: '语言',
+      noResults: '无结果',
     },
     buttons: {
       exploreNow: '立即探索',
@@ -4231,6 +4399,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '包裹在 3D 立方体上的数独',
       desc_breathing: '跟随引导呼吸放松身心',
     },
+    heroTiles: {
+      tagline: '你需要的一切，每一天。',
+      worldTimeDesc: '50+ 城市',
+      currencyDesc: '30 种货币',
+      convertersDesc: '单位',
+      weatherDesc: '5 天预报',
+      sportsDesc: 'NHL、NBA、足球',
+    },
     dailyPuzzle: {
       title: '今日谜题', subtitle: '每日一题，全世界相同。',
       notEnoughLetters: '字母不足', guessInstruction: '在6次尝试内猜出5个字母的单词',
@@ -4274,6 +4450,14 @@ const t: Record<Lang, Translations> = {
       search: '検索...',
       install: 'アプリをインストール',
       installIosHint: '共有 ⬆️ をタップして「ホーム画面に追加」を選択',
+      menu: 'メニュー',
+      close: '閉じる',
+      settings: '設定',
+      appearance: '外観',
+      lightMode: 'ライトモード',
+      darkMode: 'ダークモード',
+      language: '言語',
+      noResults: '該当なし',
     },
     buttons: {
       exploreNow: '今すぐ探索',
@@ -4622,6 +4806,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '3Dキューブを包む数独',
       desc_breathing: 'ガイド付き呼吸でリラックス',
     },
+    heroTiles: {
+      tagline: '必要なものすべてを、毎日。',
+      worldTimeDesc: '50以上の都市',
+      currencyDesc: '30通貨',
+      convertersDesc: '単位',
+      weatherDesc: '5日間予報',
+      sportsDesc: 'NHL・NBA・サッカー',
+    },
     dailyPuzzle: {
       title: '今日のパズル', subtitle: '1日1パズル。世界共通。',
       notEnoughLetters: '文字が足りません', guessInstruction: '6回の試行で5文字の単語を当てよう',
@@ -4665,6 +4857,14 @@ const t: Record<Lang, Translations> = {
       search: '검색...',
       install: '앱 설치',
       installIosHint: '공유 ⬆️를 탭한 후 ‘홈 화면에 추가’를 선택하세요',
+      menu: '메뉴',
+      close: '닫기',
+      settings: '설정',
+      appearance: '화면 스타일',
+      lightMode: '라이트 모드',
+      darkMode: '다크 모드',
+      language: '언어',
+      noResults: '결과 없음',
     },
     buttons: {
       exploreNow: '지금 탐색',
@@ -5013,6 +5213,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '3D 큐브를 감싼 스도쿠',
       desc_breathing: '호흡 가이드로 마음을 진정하세요',
     },
+    heroTiles: {
+      tagline: '필요한 모든 것, 매일.',
+      worldTimeDesc: '50개 이상 도시',
+      currencyDesc: '30개 통화',
+      convertersDesc: '단위',
+      weatherDesc: '5일 예보',
+      sportsDesc: 'NHL, NBA, 축구',
+    },
     dailyPuzzle: {
       title: '오늘의 퍼즐', subtitle: '하루 하나의 퍼즐. 전 세계가 동일합니다.',
       notEnoughLetters: '글자가 부족합니다', guessInstruction: '6번의 시도로 5글자 단어를 맞춰보세요',
@@ -5056,6 +5264,14 @@ const t: Record<Lang, Translations> = {
       search: 'ابحث...',
       install: 'تثبيت التطبيق',
       installIosHint: 'اضغط على مشاركة ⬆️ واختر «إضافة إلى الشاشة الرئيسية»',
+      menu: 'القائمة',
+      close: 'إغلاق',
+      settings: 'الإعدادات',
+      appearance: 'المظهر',
+      lightMode: 'الوضع الفاتح',
+      darkMode: 'الوضع الداكن',
+      language: 'اللغة',
+      noResults: 'لا توجد نتائج',
     },
     buttons: {
       exploreNow: 'استكشف الآن',
@@ -5404,6 +5620,14 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'سودوكو حول مكعب ثلاثي الأبعاد',
       desc_breathing: 'استرخِ مع تمرين تنفس موجّه',
     },
+    heroTiles: {
+      tagline: 'كل ما تحتاجه. كل يوم.',
+      worldTimeDesc: 'أكثر من 50 مدينة',
+      currencyDesc: '30 عملة',
+      convertersDesc: 'الوحدات',
+      weatherDesc: 'توقعات 5 أيام',
+      sportsDesc: 'NHL وNBA وكرة القدم',
+    },
     dailyPuzzle: {
       title: 'لغز اليوم', subtitle: 'لغز واحد يوميًا. نفسه لكل العالم.',
       notEnoughLetters: 'لا توجد حروف كافية', guessInstruction: 'خمّن الكلمة المكونة من 5 حروف في 6 محاولات',
@@ -5447,6 +5671,14 @@ const t: Record<Lang, Translations> = {
       search: 'खोजें...',
       install: 'ऐप इंस्टॉल करें',
       installIosHint: 'शेयर ⬆️ पर टैप करें और “होम स्क्रीन में जोड़ें” चुनें',
+      menu: 'मेन्यू',
+      close: 'बंद करें',
+      settings: 'सेटिंग्स',
+      appearance: 'रूप-रंग',
+      lightMode: 'लाइट मोड',
+      darkMode: 'डार्क मोड',
+      language: 'भाषा',
+      noResults: 'कोई परिणाम नहीं',
     },
     buttons: {
       exploreNow: 'अभी देखें',
@@ -5794,6 +6026,14 @@ const t: Record<Lang, Translations> = {
       desc_connectFour: 'चार-चार शब्दों के चार समूह खोजें',
       desc_sudokuCube: '3D क्यूब पर लिपटा सुडोकू',
       desc_breathing: 'गाइडेड साँस से मन शांत करें',
+    },
+    heroTiles: {
+      tagline: 'आपकी ज़रूरत की हर चीज़। हर दिन।',
+      worldTimeDesc: '50+ शहर',
+      currencyDesc: '30 मुद्राएँ',
+      convertersDesc: 'इकाइयाँ',
+      weatherDesc: '5 दिन का पूर्वानुमान',
+      sportsDesc: 'NHL, NBA, फ़ुटबॉल',
     },
     dailyPuzzle: {
       title: 'आज की पहेली', subtitle: 'रोज एक पहेली। पूरी दुनिया के लिए एक समान।',

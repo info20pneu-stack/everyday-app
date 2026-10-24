@@ -1,4 +1,3 @@
-import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import RetroWindow from './RetroWindow';
 import BottomNav from './BottomNav';
@@ -8,7 +7,6 @@ export default function PageShell({ children }: { children: React.ReactNode }) {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Topbar />
       <div style={{ display: 'flex', flex: 1 }}>
-        <Sidebar />
         <main className="main-content" style={{ flex: 1, background: 'var(--bg1)', padding: '1.25rem', minWidth: 0 }}>
           <div style={{ maxWidth: '680px', margin: '0 auto' }}>
             <RetroWindow>{children}</RetroWindow>

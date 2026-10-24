@@ -1,21 +1,35 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 
 const TICKS = Array.from({ length: 60 }, (_, i) => i);
 
-/** Visitor's local time: glass analog clock (top right) and digital time + city (bottom left of the hero). */
-export default function HeroClock() {
+/** City part of the visitor's IANA time zone, e.g. "Europe/Prague" → "Prague". */
+function localCity(): string {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+  return tz.split('/').pop()?.replace(/_/g, ' ') ?? '';
+}
+
+/** Short zone name for this date (CET/CEST switch automatically). en-US knows US zones, en-GB European ones. */
+function zoneAbbr(d: Date): string {
+  let fallback = '';
+  for (const locale of ['en-US', 'en-GB']) {
+    const name = new Intl.DateTimeFormat(locale, { timeZoneName: 'short' }).formatToParts(d).find(p => p.type === 'timeZoneName')?.value ?? '';
+    if (name && !/^(GMT|UTC)[+-−]/.test(name)) return name;
+    fallback ||= name;
+  }
+  return fallback;
+}
+
+/** Visitor's local time: glass analog clock (top right) and digital time, zone, city and date (bottom left).
+ *  `below` is rendered under the digital time in the same bottom-anchored block, so the two never overlap. */
+export default function HeroClock({ below }: { below?: ReactNode }) {
   const { lang } = useLang();
   // null until mounted — server and client clocks never agree, so render the face only at first
   const [now, setNow] = useState<Date | null>(null);
-  const [city, setCity] = useState('');
 
   useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
-    setCity(tz.split('/').pop()?.replace(/_/g, ' ') ?? '');
-
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
       const d = new Date();
@@ -37,6 +51,11 @@ export default function HeroClock() {
   const digital = now
     ? new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
     : '--:--:--';
+  const city = now ? localCity() : '';
+  const zone = now ? zoneAbbr(now) : '';
+  const date = now
+    ? new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)
+    : '';
 
   return (
     <>
@@ -65,9 +84,23 @@ export default function HeroClock() {
           <circle cx="50" cy="50" r="2" fill="#FF9500" />
         </svg>
       </div>
-      <div className="hero-time" aria-label={now ? `${digital}${city ? `, ${city}` : ''}` : undefined}>
-        <div className="hero-time-digital tabular-nums">{digital}</div>
-        {city && <div className="hero-time-city">{city}</div>}
+      <div className="hero-bottom">
+        <div className="hero-time">
+          <div className="hero-time-row">
+            <span className="hero-time-digital tabular-nums">{digital}</span>
+            {zone && <span className="hero-time-zone">{zone}</span>}
+          </div>
+          {city && (
+            <div className="hero-time-city">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B7CFF" aria-hidden="true">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+              </svg>
+              {city}
+            </div>
+          )}
+          {date && <div className="hero-time-date">— {date}</div>}
+        </div>
+        {below}
       </div>
     </>
   );
