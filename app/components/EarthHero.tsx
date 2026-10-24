@@ -65,7 +65,7 @@ export default function EarthHero() {
           <span className="hero-stat-label">Data Updates</span>
         </div>
         <div className="hero-stat">
-          <span className="hero-stat-value">9</span>
+          <span className="hero-stat-value">20+</span>
           <span className="hero-stat-label">Tools</span>
         </div>
         <div className="hero-stat">

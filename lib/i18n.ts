@@ -263,7 +263,7 @@ export type Translations = {
     badge_games10: string; badge_games100: string; badge_top100: string;
   };
   myDay: {
-    title: string; setupPrompt: string; configure: string; save: string; cancel: string;
+    title: string; setupPrompt: string; setupButton: string; configure: string; save: string; cancel: string;
     citiesTitle: string; citiesEmpty: string;
     weatherTitle: string; weatherLocating: string; weatherDenied: string;
     teamTitle: string; teamSelectLeague: string; teamSelectTeam: string;
@@ -601,7 +601,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 Leaderboard',
     },
     myDay: {
-      title: '🌤️ My Day', setupPrompt: 'Set up your day', configure: '⚙️', save: 'Save', cancel: 'Cancel',
+      title: '🌤️ My Day', setupPrompt: 'Set up your day', setupButton: 'Set up', configure: '⚙️', save: 'Save', cancel: 'Cancel',
       citiesTitle: 'My Cities', citiesEmpty: 'Add favorite cities in World Time',
       weatherTitle: 'Weather', weatherLocating: 'Locating…', weatherDenied: 'Location access denied',
       teamTitle: 'My Team', teamSelectLeague: 'League', teamSelectTeam: 'Team',
@@ -941,7 +941,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 Rangliste',
     },
     myDay: {
-      title: '🌤️ Mein Tag', setupPrompt: 'Richte deinen Tag ein', configure: '⚙️', save: 'Speichern', cancel: 'Abbrechen',
+      title: '🌤️ Mein Tag', setupPrompt: 'Richte deinen Tag ein', setupButton: 'Einrichten', configure: '⚙️', save: 'Speichern', cancel: 'Abbrechen',
       citiesTitle: 'Meine Städte', citiesEmpty: 'Favoriten in Weltzeit hinzufügen',
       weatherTitle: 'Wetter', weatherLocating: 'Standort wird ermittelt…', weatherDenied: 'Standortzugriff verweigert',
       teamTitle: 'Mein Team', teamSelectLeague: 'Liga', teamSelectTeam: 'Team',
@@ -1281,7 +1281,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 Classifica',
     },
     myDay: {
-      title: '🌤️ Il Mio Giorno', setupPrompt: 'Configura la tua giornata', configure: '⚙️', save: 'Salva', cancel: 'Annulla',
+      title: '🌤️ Il Mio Giorno', setupPrompt: 'Configura la tua giornata', setupButton: 'Configura', configure: '⚙️', save: 'Salva', cancel: 'Annulla',
       citiesTitle: 'Le Mie Città', citiesEmpty: 'Aggiungi preferiti in Ora Mondiale',
       weatherTitle: 'Meteo', weatherLocating: 'Localizzazione…', weatherDenied: 'Accesso alla posizione negato',
       teamTitle: 'La Mia Squadra', teamSelectLeague: 'Lega', teamSelectTeam: 'Squadra',
@@ -1621,7 +1621,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 Classement',
     },
     myDay: {
-      title: '🌤️ Ma Journée', setupPrompt: 'Configure ta journée', configure: '⚙️', save: 'Enregistrer', cancel: 'Annuler',
+      title: '🌤️ Ma Journée', setupPrompt: 'Configure ta journée', setupButton: 'Configurer', configure: '⚙️', save: 'Enregistrer', cancel: 'Annuler',
       citiesTitle: 'Mes Villes', citiesEmpty: 'Ajoute des favoris dans Heure Mondiale',
       weatherTitle: 'Météo', weatherLocating: 'Localisation…', weatherDenied: 'Accès à la position refusé',
       teamTitle: 'Mon Équipe', teamSelectLeague: 'Ligue', teamSelectTeam: 'Équipe',
@@ -1961,7 +1961,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 v žebříčku',
     },
     myDay: {
-      title: '🌤️ Můj Den', setupPrompt: 'Nastav si svůj den', configure: '⚙️', save: 'Uložit', cancel: 'Zrušit',
+      title: '🌤️ Můj Den', setupPrompt: 'Nastav si svůj den', setupButton: 'Nastavit', configure: '⚙️', save: 'Uložit', cancel: 'Zrušit',
       citiesTitle: 'Moje Města', citiesEmpty: 'Přidej oblíbená města ve Světovém času',
       weatherTitle: 'Počasí', weatherLocating: 'Zjišťuji polohu…', weatherDenied: 'Přístup k poloze odepřen',
       teamTitle: 'Můj Tým', teamSelectLeague: 'Liga', teamSelectTeam: 'Tým',
@@ -2301,7 +2301,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 Clasificación',
     },
     myDay: {
-      title: '🌤️ Mi Día', setupPrompt: 'Configura tu día', configure: '⚙️', save: 'Guardar', cancel: 'Cancelar',
+      title: '🌤️ Mi Día', setupPrompt: 'Configura tu día', setupButton: 'Configurar', configure: '⚙️', save: 'Guardar', cancel: 'Cancelar',
       citiesTitle: 'Mis Ciudades', citiesEmpty: 'Añade favoritos en Hora Mundial',
       weatherTitle: 'Clima', weatherLocating: 'Localizando…', weatherDenied: 'Acceso a la ubicación denegado',
       teamTitle: 'Mi Equipo', teamSelectLeague: 'Liga', teamSelectTeam: 'Equipo',
@@ -2641,7 +2641,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 w rankingu',
     },
     myDay: {
-      title: '🌤️ Mój Dzień', setupPrompt: 'Skonfiguruj swój dzień', configure: '⚙️', save: 'Zapisz', cancel: 'Anuluj',
+      title: '🌤️ Mój Dzień', setupPrompt: 'Skonfiguruj swój dzień', setupButton: 'Skonfiguruj', configure: '⚙️', save: 'Zapisz', cancel: 'Anuluj',
       citiesTitle: 'Moje Miasta', citiesEmpty: 'Dodaj ulubione w Czasie Światowym',
       weatherTitle: 'Pogoda', weatherLocating: 'Ustalanie lokalizacji…', weatherDenied: 'Odmówiono dostępu do lokalizacji',
       teamTitle: 'Mój Zespół', teamSelectLeague: 'Liga', teamSelectTeam: 'Zespół',
@@ -2981,7 +2981,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Top 100 Classificação',
     },
     myDay: {
-      title: '🌤️ Meu Dia', setupPrompt: 'Configure o seu dia', configure: '⚙️', save: 'Guardar', cancel: 'Cancelar',
+      title: '🌤️ Meu Dia', setupPrompt: 'Configure o seu dia', setupButton: 'Configurar', configure: '⚙️', save: 'Guardar', cancel: 'Cancelar',
       citiesTitle: 'Minhas Cidades', citiesEmpty: 'Adicione favoritos na Hora Mundial',
       weatherTitle: 'Clima', weatherLocating: 'Localizando…', weatherDenied: 'Acesso à localização negado',
       teamTitle: 'Meu Time', teamSelectLeague: 'Liga', teamSelectTeam: 'Time',
@@ -3321,7 +3321,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'Топ 100 в рейтинге',
     },
     myDay: {
-      title: '🌤️ Мой День', setupPrompt: 'Настройте свой день', configure: '⚙️', save: 'Сохранить', cancel: 'Отмена',
+      title: '🌤️ Мой День', setupPrompt: 'Настройте свой день', setupButton: 'Настроить', configure: '⚙️', save: 'Сохранить', cancel: 'Отмена',
       citiesTitle: 'Мои Города', citiesEmpty: 'Добавьте избранное во Всемирном времени',
       weatherTitle: 'Погода', weatherLocating: 'Определение местоположения…', weatherDenied: 'Доступ к геолокации запрещён',
       teamTitle: 'Моя Команда', teamSelectLeague: 'Лига', teamSelectTeam: 'Команда',
@@ -3661,7 +3661,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: '排行榜前100',
     },
     myDay: {
-      title: '🌤️ 我的一天', setupPrompt: '设置你的一天', configure: '⚙️', save: '保存', cancel: '取消',
+      title: '🌤️ 我的一天', setupPrompt: '设置你的一天', setupButton: '设置', configure: '⚙️', save: '保存', cancel: '取消',
       citiesTitle: '我的城市', citiesEmpty: '在世界时间中添加收藏城市',
       weatherTitle: '天气', weatherLocating: '正在定位…', weatherDenied: '位置访问被拒绝',
       teamTitle: '我的球队', teamSelectLeague: '联盟', teamSelectTeam: '球队',
@@ -4001,7 +4001,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'リーダーボード上位100',
     },
     myDay: {
-      title: '🌤️ マイデイ', setupPrompt: '今日の設定をしよう', configure: '⚙️', save: '保存', cancel: 'キャンセル',
+      title: '🌤️ マイデイ', setupPrompt: '今日の設定をしよう', setupButton: '設定', configure: '⚙️', save: '保存', cancel: 'キャンセル',
       citiesTitle: 'マイシティ', citiesEmpty: 'ワールドタイムでお気に入りを追加',
       weatherTitle: '天気', weatherLocating: '位置情報を取得中…', weatherDenied: '位置情報へのアクセスが拒否されました',
       teamTitle: 'マイチーム', teamSelectLeague: 'リーグ', teamSelectTeam: 'チーム',
@@ -4341,7 +4341,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: '리더보드 상위 100',
     },
     myDay: {
-      title: '🌤️ 나의 하루', setupPrompt: '하루를 설정하세요', configure: '⚙️', save: '저장', cancel: '취소',
+      title: '🌤️ 나의 하루', setupPrompt: '하루를 설정하세요', setupButton: '설정', configure: '⚙️', save: '저장', cancel: '취소',
       citiesTitle: '내 도시', citiesEmpty: '세계 시간에서 즐겨찾기를 추가하세요',
       weatherTitle: '날씨', weatherLocating: '위치 확인 중…', weatherDenied: '위치 접근이 거부되었습니다',
       teamTitle: '내 팀', teamSelectLeague: '리그', teamSelectTeam: '팀',
@@ -4681,7 +4681,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'أفضل 100 في لوحة الصدارة',
     },
     myDay: {
-      title: '🌤️ يومي', setupPrompt: 'قم بتخصيص يومك', configure: '⚙️', save: 'حفظ', cancel: 'إلغاء',
+      title: '🌤️ يومي', setupPrompt: 'قم بتخصيص يومك', setupButton: 'إعداد', configure: '⚙️', save: 'حفظ', cancel: 'إلغاء',
       citiesTitle: 'مدني', citiesEmpty: 'أضف مدنًا مفضلة في التوقيت العالمي',
       weatherTitle: 'الطقس', weatherLocating: 'تحديد الموقع…', weatherDenied: 'تم رفض الوصول إلى الموقع',
       teamTitle: 'فريقي', teamSelectLeague: 'الدوري', teamSelectTeam: 'الفريق',
@@ -5021,7 +5021,7 @@ const t: Record<Lang, Translations> = {
       badge_top100: 'टॉप 100 लीडरबोर्ड',
     },
     myDay: {
-      title: '🌤️ मेरा दिन', setupPrompt: 'अपना दिन सेट करें', configure: '⚙️', save: 'सहेजें', cancel: 'रद्द करें',
+      title: '🌤️ मेरा दिन', setupPrompt: 'अपना दिन सेट करें', setupButton: 'सेट करें', configure: '⚙️', save: 'सहेजें', cancel: 'रद्द करें',
       citiesTitle: 'मेरे शहर', citiesEmpty: 'वर्ल्ड टाइम में पसंदीदा शहर जोड़ें',
       weatherTitle: 'मौसम', weatherLocating: 'स्थान खोजा जा रहा है…', weatherDenied: 'स्थान की अनुमति नहीं मिली',
       teamTitle: 'मेरी टीम', teamSelectLeague: 'लीग', teamSelectTeam: 'टीम',

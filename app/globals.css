@@ -968,14 +968,14 @@ a:focus-visible {
   font-size: 15px;
   font-weight: 600;
   color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
 }
 .hero-clock-city {
   font-size: 12px;
   color: #dfe3f0;
   text-transform: uppercase;
   letter-spacing: 1px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.8);
 }
 [dir="rtl"] .hero-clock {
   right: auto;
