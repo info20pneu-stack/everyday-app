@@ -22,33 +22,41 @@ function flagEmoji(code: string) {
 }
 
 export function LeaderboardPanel({
-  game, accentColor, renderValue,
+  game, accentColor, renderValue, daily = false,
 }: {
   game: string;
   accentColor: string;
   renderValue: (e: LBEntry) => React.ReactNode;
+  /** The board itself is one day (e.g. `dailyblocks_20261024`): no week / all-time tabs. */
+  daily?: boolean;
 }) {
   const { t } = useLang();
   const [season, setSeason] = useState<'week' | 'all'>('week');
-  const [expanded, setExpanded] = useState(false);
-  const [entries, setEntries] = useState<LBEntry[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState<{ url: string; entries: LBEntry[] } | null>(null);
+  const [expandedUrl, setExpandedUrl] = useState<string | null>(null);
+  const url = `/api/leaderboard?game=${game}${daily ? '' : `&season=${season}`}`;
 
   useEffect(() => {
-    setLoading(true);
-    setExpanded(false);
-    fetch(`/api/leaderboard?game=${game}&season=${season}`)
+    let cancelled = false;
+    fetch(url)
       .then(r => r.json() as Promise<{ entries: LBEntry[] }>)
-      .then(d => setEntries(d.entries ?? []))
-      .catch(() => setEntries([]))
-      .finally(() => setLoading(false));
-  }, [game, season]);
+      .then(d => { if (!cancelled) setLoaded({ url, entries: d.entries ?? [] }); })
+      .catch(() => { if (!cancelled) setLoaded({ url, entries: [] }); });
+    return () => { cancelled = true; };
+  }, [url]);
 
+  // Derived from the request url, so switching game / tab shows "loading" and collapses the list again
+  const loading = loaded?.url !== url;
+  const entries = loading ? [] : loaded.entries;
+  const expanded = expandedUrl === url;
   const visible = entries.slice(0, expanded ? 100 : 20);
 
   return (
     <div style={{ marginTop: '12px' }}>
-      {/* Season tabs */}
+      {/* Season tabs (a daily board only has today) */}
+      {daily ? (
+        <div style={{ marginBottom: '8px', fontSize: '12px', fontWeight: '600', color: accentColor, textAlign: 'center' }}>{t.games.today}</div>
+      ) : (
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
         {(['week', 'all'] as const).map(s => (
           <button key={s} onClick={() => setSeason(s)} style={{
@@ -60,6 +68,7 @@ export function LeaderboardPanel({
           }}>{s === 'week' ? t.games.thisWeek : t.games.allTimeSeason}</button>
         ))}
       </div>
+      )}
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '16px', fontSize: '12px', color: 'var(--text3)' }}>{t.games.loading}</div>
@@ -90,7 +99,7 @@ export function LeaderboardPanel({
             ))}
           </div>
           {entries.length > 20 && (
-            <button onClick={() => setExpanded(ex => !ex)} style={{
+            <button onClick={() => setExpandedUrl(expanded ? null : url)} style={{
               marginTop: '8px', width: '100%', padding: '7px', borderRadius: '8px',
               border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)',
               color: 'var(--text2)', fontSize: '12px', fontWeight: '600', cursor: 'pointer',

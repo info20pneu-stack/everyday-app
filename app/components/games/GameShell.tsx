@@ -210,6 +210,7 @@ export default function GameShell({ gameId, leaderboardId, best, headerExtra, on
               game={lbId}
               accentColor={ACCENT}
               renderValue={(e: LBEntry) => formatLeaderboardValue(lbConfig, e, lang)}
+              daily={lbConfig.daily}
             />
           </div>
         </div>,

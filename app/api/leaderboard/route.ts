@@ -59,6 +59,21 @@ async function upsertWeekly(game: GameId, ipHash: string, sortVal: number, entry
   }
 }
 
+const DAILY_TTL_SECONDS = 30 * 24 * 60 * 60;
+
+/* Daily boards (e.g. `dailyblocks_20261024`) expire 30 days after the day's first write.
+   EXPIRE … NX only sets a TTL when the key has none, so later writes that day don't extend it. */
+async function expireDaily(game: GameId) {
+  try {
+    await Promise.all([
+      redis.expire(lbKey(game), DAILY_TTL_SECONDS, 'NX'),
+      redis.expire(ipsKey(game), DAILY_TTL_SECONDS, 'NX'),
+    ]);
+  } catch (err) {
+    console.error('[leaderboard POST] Daily expiry failed:', err);
+  }
+}
+
 function hashIp(ip: string, game: string): string {
   return createHash('sha256').update(ip + 'ea-lb-2025-' + game).digest('hex').slice(0, 24);
 }
@@ -152,8 +167,10 @@ export async function POST(req: NextRequest) {
     interface IpRecord { member: string; sortVal: number; }
     const existing = await redis.hget<IpRecord>(ipsKey(game), ipHash);
 
+    const weekly = config.daily ? async () => {} : () => upsertWeekly(game, ipHash, sortVal, entry);
+
     if (existing && sortVal >= existing.sortVal) {
-      await upsertWeekly(game, ipHash, sortVal, entry);
+      await weekly();
       const rank = await redis.zcount(lbKey(game), '-inf', String(existing.sortVal - 0.0001));
       return NextResponse.json({ notBetter: true, rank: rank + 1 }, { status: 200 });
     }
@@ -164,7 +181,7 @@ export async function POST(req: NextRequest) {
     const rank = betterCount + 1;
 
     if (adjustedCard >= MAX_ENTRIES && rank > MAX_ENTRIES) {
-      await upsertWeekly(game, ipHash, sortVal, entry);
+      await weekly();
       return NextResponse.json({ notInTop: true, rank }, { status: 200 });
     }
 
@@ -174,8 +191,9 @@ export async function POST(req: NextRequest) {
     await redis.zadd(lbKey(game), { score: sortVal, member });
     await redis.zremrangebyrank(lbKey(game), MAX_ENTRIES, -1);
     await redis.hset(ipsKey(game), { [ipHash]: { member, sortVal } });
+    if (config.daily) await expireDaily(game);
 
-    await upsertWeekly(game, ipHash, sortVal, entry);
+    await weekly();
 
     console.log('[leaderboard POST] Success, rank:', rank);
     return NextResponse.json({ success: true, entry }, { status: 201 });

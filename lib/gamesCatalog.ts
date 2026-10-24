@@ -15,6 +15,8 @@ export interface LeaderboardConfig {
   order: SortOrder;
   /** Allows per-variant boards stored as `<id>_<variant>` (e.g. a region or difficulty). */
   variants?: boolean;
+  /** One board per UTC day, stored as `<id>_<yyyymmdd>` (see dailyLeaderboardId). Implies variants. */
+  daily?: boolean;
 }
 
 const POINTS: LeaderboardConfig = { scoreType: 'points', order: 'desc' };
@@ -34,7 +36,7 @@ export const LEADERBOARD_GAMES = {
   wordle_crypto: POINTS, wordle_animal: POINTS, wordle_plant: POINTS, wordle_city: POINTS,
   // New games
   skytower: POINTS,
-  dailyblocks: POINTS,
+  dailyblocks: { ...POINTS, variants: true, daily: true },
   higherlower: POINTS,
   connectfour: { ...TIME, variants: true },
   sudokucube: { ...TIME, variants: true },
@@ -57,6 +59,16 @@ export function getLeaderboardConfig(game: string): LeaderboardConfig | null {
   if (!has(base) || !VARIANT_RE.test(variant)) return null;
   const cfg: LeaderboardConfig = LEADERBOARD_GAMES[base as LeaderboardGameId];
   return cfg.variants ? cfg : null;
+}
+
+/** UTC date key `yyyy-mm-dd` — the same for every player on Earth at the same moment. */
+export function utcDayKey(d = new Date()): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** Today's board id for a daily game, e.g. `dailyblocks_20261024`. */
+export function dailyLeaderboardId(game: LeaderboardGameId, dayKey = utcDayKey()): string {
+  return `${game}_${dayKey.replace(/-/g, '')}`;
 }
 
 /** Redis sort value — ascending order means best first. */
@@ -121,7 +133,7 @@ export const GAMES_CATALOG: CatalogGame[] = [
   { id: 'sky-tower', section: 'mini', duration: '2', icon: '🗼', route: '/games/sky-tower',
     nameKey: 'gamesHub.name_skyTower', descKey: 'gamesHub.desc_skyTower', leaderboard: 'skytower' },
   { id: 'daily-blocks', section: 'mini', duration: '10+', icon: '🧱', route: '/games/daily-blocks',
-    nameKey: 'gamesHub.name_dailyBlocks', descKey: 'gamesHub.desc_dailyBlocks', soon: true, leaderboard: 'dailyblocks' },
+    nameKey: 'gamesHub.name_dailyBlocks', descKey: 'gamesHub.desc_dailyBlocks', leaderboard: 'dailyblocks' },
   { id: 'sudoku-cube', section: 'mini', duration: '10+', icon: '🧊', route: '/games/sudoku-cube',
     nameKey: 'gamesHub.name_sudokuCube', descKey: 'gamesHub.desc_sudokuCube', soon: true, leaderboard: 'sudokucube' },
   { id: 'memory', section: 'mini', duration: '5', icon: '🃏', route: '/daily-games?play=memory',
