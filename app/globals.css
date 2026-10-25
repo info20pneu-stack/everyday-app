@@ -1592,7 +1592,7 @@ input[type="time"] {
 .tb-chip:hover, .tb-icon-btn:hover { background: rgba(255,255,255,.1); }
 .tb-chip.is-open, .tb-icon-btn.is-open { background: rgba(93,76,255,.22); border-color: rgba(110,92,255,.55); }
 .tb-install { color: #C4BAFF; background: rgba(93,76,255,.14); border-color: rgba(110,92,255,.45); }
-.tb-flag { font-size: 17px; line-height: 1; }
+.tb-flag { display: inline-flex; align-items: center; line-height: 1; }
 .tb-mode {
   display: flex;
   padding: 3px;
@@ -2563,7 +2563,15 @@ button.section-link {
   font-size: 13px;
   cursor: pointer;
 }
-.site-footer__lang option { color: #111827; background: #fff; }
+.site-footer__lang .fsel-btn {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
+  color: #d6d9f5;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+}
 @media (max-width: 480px) {
   .site-footer { padding-inline: 0.875rem; }
 }
@@ -2589,7 +2597,7 @@ button.section-link {
 [data-theme="light"] .site-footer__col a:hover { color: #111827; }
 [data-theme="light"] .site-footer__social a { color: #374151; border-color: rgba(0,0,0,.12); }
 [data-theme="light"] .site-footer__bottom { border-top-color: rgba(0,0,0,.08); }
-[data-theme="light"] .site-footer__lang select { color: #111827; border-color: rgba(0,0,0,.15); background: #fff; }
+[data-theme="light"] .site-footer__lang .fsel-btn { color: #111827; border-color: rgba(0,0,0,.15); background: #fff; }
 
 /* ─────────────────────────────────────────
    Info pages (/about, /cookies, /contact)

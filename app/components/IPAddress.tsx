@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import Flag from './Flag';
 
 type IPData = {
   ip: string;
@@ -66,11 +67,6 @@ function Row({ icon, title, children }: { icon: string; title: string; children:
   );
 }
 
-function flagEmoji(countryCode: string): string {
-  return countryCode.toUpperCase().split('').map(c =>
-    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
-  ).join('');
-}
 
 function parseOrg(org: string): { isp: string; asn: string } {
   const m = org.match(/^(AS\d+)\s+(.+)$/);
@@ -217,7 +213,7 @@ export default function IPAddress() {
 
             {/* Location */}
             <Row icon="📍" title={stripLeadingEmoji(t.ipAddress.location)}>
-              {flagEmoji(data.country_code)}{' '}
+              {data.country_code && <Flag code={data.country_code} size={20} />}{' '}
               {[data.city, data.region, data.country_name].filter(Boolean).join(', ')}
               {data.postal && (
                 <span style={{ color: 'var(--text3)', fontSize: '0.85rem' }}> · ZIP {data.postal}</span>

@@ -5,24 +5,7 @@ import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
 import { recordGameCompleted } from '../../lib/streak';
 import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
-
-const WORLD_COUNTRIES = [
-  'AF','AL','DZ','AR','AM','AU','AT','AZ','BH','BD','BY','BE','BO','BA','BR','BG','KH','CA',
-  'CL','CN','CO','HR','CZ','DK','EC','EG','EE','ET','FI','FR','GE','DE','GH','GR','HU','IN',
-  'ID','IE','IL','IT','JP','KZ','KE','KW','LV','LT','LU','MY','MX','MA','NL','NZ','NG','NO',
-  'OM','PK','PE','PH','PL','PT','QA','RO','RU','SA','RS','SG','SK','ZA','KR','ES','LK','SE',
-  'CH','TW','TH','TR','UA','AE','GB','US','VN',
-].sort();
-
-function flagEmoji(code: string) {
-  return [...code.toUpperCase()].map(c =>
-    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
-  ).join('');
-}
-
-function countryName(code: string, lang: string) {
-  try { return new Intl.DisplayNames([lang, 'en'], { type: 'region' }).of(code) ?? code; } catch { return code; }
-}
+import CountrySelect from './CountrySelect';
 
 function lsGetStr(key: string, fb: string): string {
   if (typeof window === 'undefined') return fb;
@@ -409,10 +392,10 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
               onChange={e => setNick(e.target.value.slice(0, 30))}
               style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', boxSizing: 'border-box' }}
             />
-            <select value={country} onChange={e => setCountry(e.target.value)} style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', cursor: 'pointer', boxSizing: 'border-box' }}>
-              <option value="">{t.games.countryPlaceholder}</option>
-              {WORLD_COUNTRIES.map(c => <option key={c} value={c}>{flagEmoji(c)} {countryName(c, lang)}</option>)}
-            </select>
+            <CountrySelect
+              value={country} onChange={setCountry} lang={lang} placeholder={t.games.countryPlaceholder}
+              style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', boxSizing: 'border-box' }}
+            />
             <input
               type="text" placeholder={t.games.cityPlaceholder} value={city} maxLength={60}
               onChange={e => setCity(e.target.value.slice(0, 60))}

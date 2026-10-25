@@ -4,9 +4,9 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useLang } from '../../../lib/LanguageContext';
 import { recordLeaderboardRank } from '../../../lib/streak';
-import { WORLD_COUNTRIES, flagEmoji, getCountryName } from '../../../lib/games/countries';
 import { formatTimeMs, getLeaderboardConfig } from '../../../lib/gamesCatalog';
 import { rankKey } from '../../../lib/dailyTrio';
+import CountrySelect from '../CountrySelect';
 
 /* "Save your result" window shared by all games (moved out of DailyGames).
    Pass `result` to replace the default result block; by default the leaderboard config decides:
@@ -146,14 +146,10 @@ export default function ScoreSubmitModal({
                 onChange={e => setNick(e.target.value.slice(0, 30))}
                 style={scoreModalInputStyle}
               />
-              <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...scoreModalInputStyle, cursor: 'pointer' }}>
-                <option value="">{t.games.countryPlaceholder}</option>
-                {WORLD_COUNTRIES.map(code => (
-                  <option key={code} value={code}>
-                    {flagEmoji(code)} {getCountryName(code, lang)}
-                  </option>
-                ))}
-              </select>
+              <CountrySelect
+                value={country} onChange={setCountry} lang={lang} placeholder={t.games.countryPlaceholder}
+                style={scoreModalInputStyle}
+              />
               <input
                 type="text" placeholder={t.games.cityPlaceholder} value={city} maxLength={60}
                 onChange={e => setCity(e.target.value.slice(0, 60))}

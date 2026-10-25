@@ -6,6 +6,7 @@ import { useLang } from '../../lib/LanguageContext';
 import { recordGameCompleted } from '../../lib/streak';
 import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
 import AdBanner from './AdBanner';
+import CountrySelect from './CountrySelect';
 
 /* ══════════════════════════════════════════════════════════════
    TYPES
@@ -51,14 +52,6 @@ const VERBAL_WORDS = [
   'bold','calm','dawn','edge','foam','glow','halo','iron','jolt','keen',
 ];
 
-const WORLD_COUNTRIES = [
-  'AF','AL','DZ','AR','AM','AU','AT','AZ','BH','BD','BY','BE','BO','BA','BR','BG','KH','CA',
-  'CL','CN','CO','HR','CZ','DK','EC','EG','EE','ET','FI','FR','GE','DE','GH','GR','HU','IN',
-  'ID','IE','IL','IT','JP','KZ','KE','KW','LV','LT','LU','MY','MX','MA','NL','NZ','NG','NO',
-  'OM','PK','PE','PH','PL','PT','QA','RO','RU','SA','RS','SG','SK','ZA','KR','ES','LK','SE',
-  'CH','TW','TH','TR','UA','AE','GB','US','VN',
-].sort();
-
 /* ══════════════════════════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════════════════════════ */
@@ -85,12 +78,6 @@ function hbGetHistory(testId: TestId): HistoryEntry[] {
   return hbGet<HistoryEntry[]>(hbHistoryKey(testId), []);
 }
 
-function flagEmoji(code: string) {
-  return [...code.toUpperCase()].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join('');
-}
-function countryName(code: string, lang: string) {
-  try { return new Intl.DisplayNames([lang, 'en'], { type: 'region' }).of(code) ?? code; } catch { return code; }
-}
 
 function tone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.1) {
   if (typeof window === 'undefined') return;
@@ -225,10 +212,7 @@ function HBSubmit({ result, color, onDismiss }: {
     <div style={{ marginTop: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
         <input type="text" placeholder="Nickname" value={nick} maxLength={30} onChange={e => setNick(e.target.value.slice(0, 30))} style={inputSt} />
-        <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...inputSt, cursor: 'pointer' }}>
-          <option value="">🌍 Select country…</option>
-          {WORLD_COUNTRIES.map(c => <option key={c} value={c}>{flagEmoji(c)} {countryName(c, lang)}</option>)}
-        </select>
+        <CountrySelect value={country} onChange={setCountry} lang={lang} placeholder="Select country…" style={inputSt} />
         <input type="text" placeholder="City (optional)" value={city} maxLength={60} onChange={e => setCity(e.target.value.slice(0, 60))} style={inputSt} />
       </div>
       {err && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{err}</div>}

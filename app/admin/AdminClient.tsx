@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Flag from '../components/Flag';
 
 /* ═══════════════════════ Types ═══════════════════════ */
 
@@ -62,12 +63,6 @@ const STATUS_COLORS: Record<SuggestionStatus, string> = {
   'Zamítnuto': '#F87171',
 };
 
-function flagEmoji(countryCode: string): string {
-  if (!countryCode || countryCode.length !== 2 || countryCode === 'XX') return '🏳️';
-  return countryCode.toUpperCase().split('').map(c =>
-    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
-  ).join('');
-}
 
 function fmtDate(d: string): string {
   const [, m, day] = d.split('-');
@@ -405,7 +400,7 @@ export default function AdminClient() {
                     {stats.topCountries.map((c, i) => (
                       <div key={c.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span style={{ fontSize: '12px', color: 'var(--text3)', width: '16px' }}>{i + 1}</span>
-                        <span style={{ fontSize: '15px' }}>{flagEmoji(c.key)}</span>
+                        <span style={{ display: 'inline-flex', width: '20px' }}>{c.key && c.key !== 'XX' ? <Flag code={c.key} size={18} /> : '🏳️'}</span>
                         <span style={{ flex: 1, fontSize: '12px', color: '#fff' }}>{c.key}</span>
                         <span style={{ fontSize: '12px', color: 'var(--purple3)', fontWeight: '600' }}>{c.count.toLocaleString('en-US')}</span>
                       </div>

@@ -11,6 +11,7 @@ import { useTheme, type AppTheme } from '../../lib/ThemeContext';
 import { useInstallPrompt } from '../../lib/useInstallPrompt';
 import { GAMES_CATALOG, gameText } from '../../lib/gamesCatalog';
 import { useIsClient } from '../../lib/games/useIsClient';
+import Flag from './Flag';
 
 /* Main navigation: 64 px glass bar on desktop (≥ 1024 px), compact 54 px bar + drawer below. */
 
@@ -200,7 +201,7 @@ export default function Topbar() {
         <button key={l.code} type="button" role="menuitemradio" aria-checked={lang === l.code}
           className={`tb-lang-item${lang === l.code ? ' is-active' : ''}`}
           onClick={() => { setLang(l.code); setMenu(null); }}>
-          <span className="tb-flag">{l.flag}</span><span className="tb-ellipsis">{l.name}</span>
+          <span className="tb-flag"><Flag code={l.country} size={20} /></span><span className="tb-ellipsis">{l.name}</span>
         </button>
       ))}
     </div>
@@ -293,7 +294,7 @@ export default function Topbar() {
         <div className="tb-pos" data-menu="lang">
           <button type="button" className={`tb-chip${menu === 'lang' ? ' is-open' : ''}`} aria-label={t.topbar.language}
             aria-expanded={menu === 'lang'} aria-haspopup="menu" onClick={() => toggle('lang')}>
-            <span className="tb-flag">{current.flag}</span>
+            <span className="tb-flag"><Flag code={current.country} size={20} /></span>
             <span className="tb-lang-code">{current.code.toUpperCase()}</span>
           </button>
           {menu === 'lang' && langMenu}

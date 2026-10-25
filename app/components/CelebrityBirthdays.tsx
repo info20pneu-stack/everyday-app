@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { BirthdayCeleb, Category, HistoricalEvent, BirthdaysResponse } from '../api/birthdays/route';
+import FlagText from './FlagText';
 
 /* ── Helpers ── */
 function getLocaleCountry(): string {
@@ -106,7 +107,7 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
             </div>
             {celeb.country && (
               <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>
-                <span style={{ marginRight: '4px' }}>{celeb.countryFlag}</span>{celeb.country} · b. {celeb.year}
+                <span style={{ marginRight: '4px', display: 'inline-flex', verticalAlign: 'middle' }}><FlagText text={celeb.countryFlag} size={16} /></span>{celeb.country} · b. {celeb.year}
               </div>
             )}
           </div>
@@ -159,7 +160,7 @@ function CelebCard({ celeb, rank, onClick }: { celeb: BirthdayCeleb; rank: numbe
         <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{celeb.name}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
           <span style={{ fontSize: '12px', background: `${meta.color}22`, color: meta.color, borderRadius: '4px', padding: '1px 5px', whiteSpace: 'nowrap' }}>{celeb.profession}</span>
-          {celeb.countryFlag && <span style={{ fontSize: '12px' }}>{celeb.countryFlag}</span>}
+          {celeb.countryFlag && <span style={{ display: 'inline-flex' }}><FlagText text={celeb.countryFlag} size={16} /></span>}
           <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{celeb.year}</span>
         </div>
       </div>

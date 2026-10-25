@@ -17,6 +17,8 @@ export interface LeaderboardConfig {
   variants?: boolean;
   /** One board per UTC day, stored as `<id>_<yyyymmdd>` (see dailyLeaderboardId). Implies variants. */
   daily?: boolean;
+  /** With `daily`: one daily board per region, stored as `<id>_<region>_<yyyymmdd>`. */
+  regional?: boolean;
 }
 
 const POINTS: LeaderboardConfig = { scoreType: 'points', order: 'desc' };
@@ -38,7 +40,8 @@ export const LEADERBOARD_GAMES = {
   skytower: POINTS,
   dailyblocks: { ...POINTS, variants: true, daily: true },
   higherlower: { ...POINTS, variants: true, daily: true },
-  connectfour: { ...TIME, variants: true },
+  // One daily board per region: connectfour_<region>_<yyyymmdd>
+  connectfour: { ...TIME, variants: true, daily: true, regional: true },
   sudokucube: { ...TIME, variants: true },
 } satisfies Record<string, LeaderboardConfig>;
 
@@ -49,16 +52,22 @@ export const LEADERBOARD_GAME_IDS = Object.keys(LEADERBOARD_GAMES) as Leaderboar
 const VARIANT_RE = /^[a-z0-9]{1,16}$/;
 const has = (key: string) => Object.prototype.hasOwnProperty.call(LEADERBOARD_GAMES, key);
 
-/** Config for a leaderboard id, including variant ids like `connectfour_cz`. Null when unknown. */
+/** Config for a leaderboard id, including variant ids like `dailyblocks_20261024`
+ *  or `connectfour_cz_20261024` (region + day). Null when unknown. */
 export function getLeaderboardConfig(game: string): LeaderboardConfig | null {
   if (has(game)) return LEADERBOARD_GAMES[game as LeaderboardGameId];
-  const cut = game.lastIndexOf('_');
-  if (cut <= 0) return null;
-  const base = game.slice(0, cut);
-  const variant = game.slice(cut + 1);
-  if (!has(base) || !VARIANT_RE.test(variant)) return null;
-  const cfg: LeaderboardConfig = LEADERBOARD_GAMES[base as LeaderboardGameId];
-  return cfg.variants ? cfg : null;
+  const parts = game.split('_');
+  // Try one variant segment, then two (a daily board of a game with regions)
+  for (const n of [1, 2]) {
+    if (parts.length <= n) break;
+    const base = parts.slice(0, -n).join('_');
+    const variants = parts.slice(-n);
+    if (!has(base) || !variants.every(v => VARIANT_RE.test(v))) continue;
+    const cfg: LeaderboardConfig = LEADERBOARD_GAMES[base as LeaderboardGameId];
+    if (n === 1 && cfg.variants && !cfg.regional) return cfg;
+    if (n === 2 && cfg.daily && cfg.regional) return cfg;
+  }
+  return null;
 }
 
 /** UTC date key `yyyy-mm-dd` — the same for every player on Earth at the same moment. */
@@ -69,6 +78,11 @@ export function utcDayKey(d = new Date()): string {
 /** Today's board id for a daily game, e.g. `dailyblocks_20261024`. */
 export function dailyLeaderboardId(game: LeaderboardGameId, dayKey = utcDayKey()): string {
   return `${game}_${dayKey.replace(/-/g, '')}`;
+}
+
+/** Today's board for one variant of a daily game, e.g. `connectfour_cz_20261024`. */
+export function dailyVariantLeaderboardId(game: LeaderboardGameId, variant: string, dayKey = utcDayKey()): string {
+  return `${game}_${variant}_${dayKey.replace(/-/g, '')}`;
 }
 
 /** Redis sort value — ascending order means best first. */
@@ -156,7 +170,7 @@ export const GAMES_CATALOG: CatalogGame[] = [
   { id: 'higher-lower', section: 'quiz', duration: '2', icon: '↕️', route: '/games/higher-lower',
     nameKey: 'gamesHub.name_higherLower', descKey: 'gamesHub.desc_higherLower', leaderboard: 'higherlower' },
   { id: 'connect-four', section: 'quiz', duration: '5', icon: '🔗', route: '/games/connect-four',
-    nameKey: 'gamesHub.name_connectFour', descKey: 'gamesHub.desc_connectFour', soon: true, leaderboard: 'connectfour' },
+    nameKey: 'gamesHub.name_connectFour', descKey: 'gamesHub.desc_connectFour', leaderboard: 'connectfour' },
   { id: 'flagquiz', section: 'quiz', duration: '2', icon: '🌍', route: '/daily-games?play=flagquiz',
     nameKey: 'games.flagquiz', descKey: 'gamesHub.desc_flagquiz', leaderboard: 'flagquiz' },
   { id: 'mathrush', section: 'quiz', duration: '2', icon: '🔢', route: '/daily-games?play=mathrush',

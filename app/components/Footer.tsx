@@ -8,6 +8,7 @@ import { homeStrings } from '../../lib/homeI18n';
 import { SOCIAL_LINKS } from '../../lib/siteConfig';
 import { formatCurrencies } from '../../lib/homeI18n';
 import { CURRENCY_COUNT } from '../../lib/currencies';
+import FlagSelect from './FlagSelect';
 
 /* Pages without the site chrome */
 const HIDDEN_ON = ['/maintenance', '/admin'];
@@ -96,13 +97,13 @@ export default function Footer() {
 
       <div className="site-footer__bottom">
         <span>© 2026 EVERY DAY</span>
-        <label className="site-footer__lang">
+        <div className="site-footer__lang">
           <span aria-hidden="true">🌐</span>
-          <span className="sr-only">{f.language}</span>
-          <select value={lang} onChange={e => setLang(e.target.value as Lang)} aria-label={f.language}>
-            {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}
-          </select>
-        </label>
+          <FlagSelect
+            value={lang} onChange={v => setLang(v as Lang)} label={f.language}
+            options={LANGUAGES.map(l => ({ value: l.code, flag: l.country, label: l.name }))}
+          />
+        </div>
       </div>
     </footer>
   );

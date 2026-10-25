@@ -9,6 +9,7 @@ import {
   ROUNDS, buildPairs, formatValue, itemName, type CategoryId, type HLPair,
 } from '../../../lib/games/higherLowerData';
 import GameShell, { useGameShell } from './GameShell';
+import Flag from '../Flag';
 import { HL_BEST_KEY, HL_DAYS_KEY, hlDoneKey } from '../../../lib/dailyTrio';
 
 /* Higher or Lower — port of games-reference/higher-lower.
@@ -297,7 +298,7 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
           </div>
           <div className="hl-arena">
             <div className="hl-card hl-card-a">
-              <div className="hl-emoji" aria-hidden="true">{pair.a.emoji}</div>
+              <div className="hl-emoji" aria-hidden="true">{pair.a.country ? <Flag code={pair.a.country} size={54} /> : pair.a.emoji}</div>
               <div className="hl-name">{itemName(pair.a, lang)}</div>
               <div className="hl-val tabular-nums">{formatValue(pair.cat, pair.a.value, lang)}</div>
               <div className="hl-unit">{unit[pair.cat]}</div>
@@ -306,7 +307,7 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
               {lastOk === true ? '✓' : lastOk === false ? '✗' : 'VS'}
             </div>
             <div className={`hl-card hl-card-b${lastOk === true ? ' ok' : lastOk === false ? ' no' : ''}`}>
-              <div className="hl-emoji" aria-hidden="true">{pair.b.emoji}</div>
+              <div className="hl-emoji" aria-hidden="true">{pair.b.country ? <Flag code={pair.b.country} size={54} /> : pair.b.emoji}</div>
               <div className="hl-name">{itemName(pair.b, lang)}</div>
               <div className="hl-val tabular-nums" aria-live="polite">
                 {shown == null ? '?' : formatValue(pair.cat, shown, lang)}

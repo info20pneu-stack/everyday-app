@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import FlagText from './FlagText';
 
 /* ── Types ── */
 interface WCTeam { name: string; flag: string; p: number; w: number; d: number; l: number; gf: number; ga: number; pts: number; }
@@ -233,7 +234,7 @@ function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick
       </div>
       {/* Teams + score */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '16px' }}>{m.f1}</span>
+        <span style={{ display: 'inline-flex' }}><FlagText text={m.f1} size={20} /></span>
         <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s1! > m.s2!) ? '#fff' : 'var(--text2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.t1}</span>
         {isDone ? (
           <span style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Poppins', color: '#fff', flexShrink: 0 }}>
@@ -243,7 +244,7 @@ function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick
           <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>vs</span>
         )}
         <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s2! > m.s1!) ? '#fff' : 'var(--text2)', flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.t2}</span>
-        <span style={{ fontSize: '16px' }}>{m.f2}</span>
+        <span style={{ display: 'inline-flex' }}><FlagText text={m.f2} size={20} /></span>
       </div>
     </div>
   );
@@ -280,7 +281,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           {/* Team 1 */}
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '40px', lineHeight: 1 }}>{m.f1}</div>
+            <div style={{ lineHeight: 0 }}><FlagText text={m.f1} size={52} /></div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{m.t1}</div>
             {t1data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t1data.pts} pts</div>}
           </div>
@@ -299,7 +300,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
           </div>
           {/* Team 2 */}
           <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ fontSize: '40px', lineHeight: 1 }}>{m.f2}</div>
+            <div style={{ lineHeight: 0 }}><FlagText text={m.f2} size={52} /></div>
             <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{m.t2}</div>
             {t2data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t2data.pts} pts</div>}
           </div>
@@ -343,7 +344,7 @@ function GroupTable({ letter, teams }: { letter: string; teams: WCTeam[] }) {
       {sorted.map((t, i) => (
         <div key={t.name} style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '5px 8px', borderTop: '1px solid rgba(255,255,255,0.04)', background: i < 2 ? 'rgba(34,197,94,0.05)' : 'transparent', borderLeft: i < 2 ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-            <span style={{ fontSize: '12px' }}>{t.flag}</span>
+            <span style={{ display: 'inline-flex' }}><FlagText text={t.flag} size={16} /></span>
             <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
           </div>
           {[t.p, t.w, t.d, t.l].map((v, vi) => (
@@ -380,12 +381,12 @@ const FINAL: BracketMatch = { t1:'TBD',f1:'?',t2:'TBD',f2:'?' };
 function BracketRow({ m }: { m: BracketMatch }) {
   return (
     <div style={{ background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'8px',padding:'6px 10px',display:'flex',alignItems:'center',gap:'4px' }}>
-      <span style={{ fontSize:'14px' }}>{m.f1}</span>
+      <span style={{ display: 'inline-flex' }}><FlagText text={m.f1} size={18} /></span>
       <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s1!>m.s2!?'#fff':'var(--text3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{m.t1}</span>
       {m.done ? <span style={{ fontSize:'13px',fontWeight:'700',color:'#fff',fontFamily:'Poppins',fontVariantNumeric:'tabular-nums',flexShrink:0 }}>{m.s1}–{m.s2}</span>
               : <span style={{ fontSize:'12px',color:'var(--text3)',flexShrink:0 }}>vs</span>}
       <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s2!>m.s1!?'#fff':'var(--text3)',flex:1,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{m.t2}</span>
-      <span style={{ fontSize:'14px' }}>{m.f2}</span>
+      <span style={{ display: 'inline-flex' }}><FlagText text={m.f2} size={18} /></span>
     </div>
   );
 }

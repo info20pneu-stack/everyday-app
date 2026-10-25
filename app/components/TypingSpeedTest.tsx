@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import FlagText from './FlagText';
 
 const TYPING_TEXTS: Record<string, string> = {
   en: "The quick brown fox jumps over the lazy dog. A skilled typist can achieve remarkable speed through dedicated practice and proper technique. Speed develops from muscle memory built over time with consistent effort.",
@@ -211,7 +212,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
                 background: lo.code === lang ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.04)',
                 color: lo.code === lang ? 'var(--purple3)' : 'var(--text3)',
                 outline: lo.code === lang ? '1px solid rgba(93,76,255,0.5)' : 'none',
-              }}>{lo.label}</button>
+              }}><FlagText text={lo.label} size={16} /></button>
             ))}
           </div>
         </>

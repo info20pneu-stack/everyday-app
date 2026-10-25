@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import { CURRENCIES } from '../../lib/currencies';
+import FlagText from './FlagText';
 
 const STATIC_RATES = Object.fromEntries(CURRENCIES.map(c => [c.code, c.rate]));
 
@@ -242,7 +243,7 @@ export default function Currency() {
                 style={{ background: 'none', border: 'none', color: '#fff', fontSize: '28px', fontWeight: '300', width: '150px', outline: 'none' }}
               />
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '22px' }}>{fromCurr.flag}</span>
+                <span style={{ display: 'inline-flex' }}><FlagText text={fromCurr.flag} size={28} /></span>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{from}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{fromCurr.name}</div>
@@ -268,7 +269,7 @@ export default function Currency() {
                 {result.toFixed(2)}
               </div>
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '22px' }}>{toCurr.flag}</span>
+                <span style={{ display: 'inline-flex' }}><FlagText text={toCurr.flag} size={28} /></span>
                 <div>
                   <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{to}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{toCurr.name}</div>
@@ -349,7 +350,7 @@ export default function Currency() {
                 <div key={c.code} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '.625rem .875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
                   onClick={() => setTo(c.code)}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>{c.flag}</span>
+                    <span style={{ display: 'inline-flex' }}><FlagText text={c.flag} size={20} /></span>
                     <div>
                       <div style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>{c.code}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.name}</div>

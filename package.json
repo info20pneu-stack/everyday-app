@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cards": "node scripts/convert-cards.mjs"
+    "cards": "node scripts/convert-cards.mjs",
+    "flags": "npx tsx scripts/copy-flags.ts"
   },
   "dependencies": {
     "@upstash/redis": "^1.38.0",
@@ -21,6 +22,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "country-flag-icons": "^1.6.20",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "sharp": "^0.34.5",

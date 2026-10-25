@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import FlagText from './FlagText';
 
 /* ─── Feed definitions ─── */
 type Source = { id: string; name: string; flag: string; url: string; lang: string };
@@ -320,7 +321,7 @@ export default function News() {
               whiteSpace: 'nowrap',
             }}
           >
-            <span>{s.flag}</span>
+            <span style={{ display: 'inline-flex' }}><FlagText text={s.flag} size={16} /></span>
             <span>{s.name}</span>
           </button>
         ))}
@@ -335,7 +336,7 @@ export default function News() {
           border: '1px solid rgba(93,76,255,0.12)',
           borderRadius: 8,
         }}>
-          <span style={{ fontSize: '0.9rem' }}>{source.flag}</span>
+          <span style={{ display: 'inline-flex' }}><FlagText text={source.flag} size={16} /></span>
           <span style={{ color: 'var(--text2)', fontSize: '0.78rem', fontWeight: 500 }}>
             {source.name}
           </span>

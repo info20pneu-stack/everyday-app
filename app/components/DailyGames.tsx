@@ -9,7 +9,9 @@ import { TypingSpeedTest } from './TypingSpeedTest';
 import WordleGames from './WordleGames';
 import { recordGameCompleted } from '../../lib/streak';
 import type { Translations } from '../../lib/i18n';
-import { flagEmoji, getCountryName } from '../../lib/games/countries';
+import { getCountryName } from '../../lib/games/countries';
+import Flag from './Flag';
+import FlagSelect from './FlagSelect';
 import ScoreSubmitModal, { scoreModalInputStyle } from './games/ScoreSubmitModal';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
@@ -564,18 +566,20 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
 
       {/* Country/city filters */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
-        <select value={country} onChange={e => { setCountry(e.target.value); setCity(''); }} style={{
-          flex: 1, minWidth: '130px', background: 'rgba(255,255,255,0.07)',
-          border: country ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
-          borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '5px 8px', outline: 'none',
-        }}>
-          <option value="">🌍 {t.games.allCountries} ({entries.length})</option>
-          {countries.map(c => (
-            <option key={c} value={c}>
-              {flagEmoji(c)} {getCountryName(c, lang)} ({entries.filter(e => e.country === c).length})
-            </option>
-          ))}
-        </select>
+        <div style={{ flex: 1, minWidth: '130px', display: 'flex' }}>
+          <FlagSelect
+            value={country} onChange={v => { setCountry(v); setCity(''); }} label={t.games.allCountries} flagSize={16}
+            options={[
+              { value: '', flag: 'world', label: `${t.games.allCountries} (${entries.length})` },
+              ...countries.map(c => ({ value: c, flag: c, label: `${getCountryName(c, lang)} (${entries.filter(e => e.country === c).length})` })),
+            ]}
+            style={{
+              width: '100%', minHeight: '30px', background: 'rgba(255,255,255,0.07)',
+              border: country ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '0 8px',
+            }}
+          />
+        </div>
         {country && cities.length > 1 && (
           <select value={city} onChange={e => setCity(e.target.value)} style={{
             flex: 1, minWidth: '90px', background: 'rgba(255,255,255,0.07)',
@@ -596,7 +600,9 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
 
       {/* Header */}
       <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>
-        {country ? `${flagEmoji(country)} ${getCountryName(country, lang)}${city ? ' · ' + city : ''} — ${filtered.length} ${t.games.players}` : `🌍 ${t.games.globalTop100}`}
+        {country
+          ? <><Flag code={country} size={16} /> {`${getCountryName(country, lang)}${city ? ' · ' + city : ''} — ${filtered.length} ${t.games.players}`}</>
+          : `🌍 ${t.games.globalTop100}`}
       </div>
 
       {loading ? (
@@ -620,7 +626,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
                 {e.name}
               </span>
               {e.country && !country && (
-                <span style={{ fontSize: '14px', flexShrink: 0 }} title={e.city || e.country}>{flagEmoji(e.country)}</span>
+                <span style={{ display: 'inline-flex', flexShrink: 0 }} title={e.city || e.country}><Flag code={e.country} size={18} label={e.country} /></span>
               )}
               {e.city && !city && (
                 <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0, maxWidth: '54px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{e.city}</span>
@@ -819,7 +825,7 @@ function MemoryGame({ onComplete, challengeSeed, challenge }: {
                   alignItems: 'center', justifyContent: 'center', gap: '1px',
                   boxShadow: isActive ? '0 0 14px rgba(93,76,255,0.55)' : 'none',
                 }}>
-                  <span style={{ fontSize: emojiSz, lineHeight: 1 }}>{flagEmoji(card.code)}</span>
+                  <Flag code={card.code} size={Math.round(emojiSz * 1.25)} />
                   {cols <= 6 && (
                     <span style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', lineHeight: 1.1, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>
                       {getCountryName(card.code, lang)}
@@ -1321,12 +1327,12 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
             <>
               <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                 <div style={{
-                  display: 'inline-block', fontSize: '96px', lineHeight: 1,
+                  display: 'inline-block', lineHeight: 0,
                   background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
                   borderRadius: '18px', padding: '14px 24px',
                   boxShadow: '0 0 40px rgba(93,76,255,0.12)',
                 }}>
-                  {flagEmoji(q.correct.code)}
+                  <Flag code={q.correct.code} size={128} />
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
                   {t.games.whichCountryFlag}
@@ -1384,7 +1390,7 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
                       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
                       boxShadow: shadow, animation: anim, transition: 'all 0.2s',
                     }}>
-                      <span style={{ fontSize: '52px', lineHeight: 1 }}>{flagEmoji(opt.code)}</span>
+                      <Flag code={opt.code} size={66} />
                       {state === 'answered' && isC  && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: '14px', color: 'var(--green2)' }}>✓</span>}
                       {state === 'answered' && isS && !isC && <span style={{ position: 'absolute', top: 6, right: 8, fontSize: '14px', color: '#EF4444' }}>✗</span>}
                     </button>

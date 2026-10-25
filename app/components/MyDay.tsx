@@ -15,6 +15,7 @@ import {
   TEAMS_BY_LEAGUE, LEAGUE_META, type League, type TeamOption,
   type MyTeam, loadMyTeam, saveMyTeam, type MatchInfo, fetchMyTeamMatches,
 } from '../../lib/teams';
+import FlagText from './FlagText';
 
 /* ═══════════════════════ storage ═══════════════════════ */
 
@@ -457,7 +458,7 @@ function CitiesEditor({ h, lang, cities, onChange }: { h: HomeStrings['myDay']; 
       <div className="md-chips">
         {cities.map(c => (
           <span key={c.name} className="md-chip">
-            {c.flag} {localizedCity(c.name, lang)}
+            <FlagText text={c.flag} size={16} /> {localizedCity(c.name, lang)}
             <button type="button" aria-label="✕" onClick={() => save(names.filter(n => n !== c.name))}>✕</button>
           </span>
         ))}
@@ -468,7 +469,7 @@ function CitiesEditor({ h, lang, cities, onChange }: { h: HomeStrings['myDay']; 
           <div className="md-results">
             {hits.map(c => (
               <button key={c.name} type="button" onClick={() => { save([...names, c.name]); setQ(''); }}>
-                {c.flag} {localizedCity(c.name, lang)}
+                <FlagText text={c.flag} size={16} /> {localizedCity(c.name, lang)}
               </button>
             ))}
           </div>

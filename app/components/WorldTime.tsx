@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 import { useLang } from '../../lib/LanguageContext';
+import FlagText from './FlagText';
 
 export type City = {
   name: string;
@@ -330,7 +331,7 @@ export default function WorldTime() {
               transition: 'opacity 0.15s',
             }}
           >⭐</button>
-          <span style={{ fontSize: '18px', flexShrink: 0 }}>{city.flag}</span>
+          <span style={{ display: 'inline-flex', flexShrink: 0 }}><FlagText text={city.flag} size={22} /></span>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{city.name}</span>
@@ -415,7 +416,7 @@ export default function WorldTime() {
                 const dayOffset = Math.floor(total / 1440);
                 return (
                   <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                    <span>{c.flag}</span>
+                    <span style={{ display: 'inline-flex' }}><FlagText text={c.flag} size={16} /></span>
                     <span style={{ color: 'var(--text2)', flex: 1 }}>{c.name}</span>
                     <span style={{ fontFamily: 'monospace', fontWeight: '700', color: 'var(--purple3)' }}>
                       {minutesToHHMM(total)}
@@ -467,7 +468,7 @@ export default function WorldTime() {
                 onMouseEnter={e => (e.currentTarget.style.background = 'rgba(93,76,255,0.12)')}
                 onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <span style={{ fontSize: '16px' }}>{city.flag}</span>
+                <span style={{ display: 'inline-flex' }}><FlagText text={city.flag} size={20} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '13px', color: '#fff' }}>{city.name}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{city.country} · {city.continent}</div>

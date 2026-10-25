@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import Flag from './Flag';
 
 export type LBEntry = {
   id: string;
@@ -14,12 +15,6 @@ export type LBEntry = {
   device?: 'mobile' | 'desktop';
   date: number;
 };
-
-function flagEmoji(code: string) {
-  return [...code.toUpperCase()].map(c =>
-    String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)
-  ).join('');
-}
 
 export function LeaderboardPanel({
   game, accentColor, renderValue, daily = false,
@@ -90,7 +85,7 @@ export function LeaderboardPanel({
                   {e.name}
                 </span>
                 {e.country && (
-                  <span style={{ fontSize: '13px', flexShrink: 0 }} title={e.city || e.country}>{flagEmoji(e.country)}</span>
+                  <span style={{ display: 'inline-flex', flexShrink: 0 }} title={e.city || e.country}><Flag code={e.country} size={18} label={e.country} /></span>
                 )}
                 <span style={{ fontFamily: 'monospace', fontSize: '12px', color: accentColor, fontWeight: '700', flexShrink: 0 }}>
                   {renderValue(e)}
