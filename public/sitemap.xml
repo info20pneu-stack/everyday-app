@@ -90,6 +90,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.everyday1234567.com/tools</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.everyday1234567.com/celebrity-birthdays</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.everyday1234567.com/bmi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

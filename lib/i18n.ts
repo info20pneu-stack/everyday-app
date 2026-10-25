@@ -199,6 +199,7 @@ export type Translations = {
     desc_news: string; desc_celebBirthdays: string; desc_sunriseSunset: string;
     desc_ipAddress: string; desc_speedTest: string; desc_passwordGen: string;
     desc_bmi: string; desc_suggestVote: string; loading: string;
+    toolsTitle: string; allTools: string;
   };
   dateCounter: {
     title: string; from: string; to: string; inThePast: string; inTheFuture: string;
@@ -611,6 +612,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pause', finished: 'Done!', start: '▶ Start', timer: 'Timer',
     },
     dashboard: {
+      toolsTitle: 'Tools', allTools: 'All tools',
       back: '← Back',
       label_worldTime: 'World Time', label_currency: 'Currency', label_weather: 'Weather',
       label_sports: 'Sports', label_crypto: 'Crypto', label_markets: 'Markets',
@@ -1096,6 +1098,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pause', finished: 'Fertig!', start: '▶ Start', timer: 'Timer',
     },
     dashboard: {
+      toolsTitle: 'Werkzeuge', allTools: 'Alle Werkzeuge',
       back: '← Zurück',
       label_worldTime: 'Weltzeit', label_currency: 'Währung', label_weather: 'Wetter',
       label_sports: 'Sport', label_crypto: 'Krypto', label_markets: 'Märkte',
@@ -1581,6 +1584,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pausa', finished: 'Fatto!', start: '▶ Inizia', timer: 'Timer',
     },
     dashboard: {
+      toolsTitle: 'Strumenti', allTools: 'Tutti gli strumenti',
       back: '← Indietro',
       label_worldTime: 'Ora mondiale', label_currency: 'Valuta', label_weather: 'Meteo',
       label_sports: 'Sport', label_crypto: 'Crypto', label_markets: 'Mercati',
@@ -2066,6 +2070,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pause', finished: 'Terminé !', start: '▶ Démarrer', timer: 'Minuteur',
     },
     dashboard: {
+      toolsTitle: 'Outils', allTools: 'Tous les outils',
       back: '← Retour',
       label_worldTime: 'Heure mondiale', label_currency: 'Devise', label_weather: 'Météo',
       label_sports: 'Sport', label_crypto: 'Crypto', label_markets: 'Marchés',
@@ -2551,6 +2556,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pauza', finished: 'Hotovo!', start: '▶ Start', timer: 'Časovač',
     },
     dashboard: {
+      toolsTitle: 'Nástroje', allTools: 'Všechny nástroje',
       back: '← Zpět',
       label_worldTime: 'Světový čas', label_currency: 'Měna', label_weather: 'Počasí',
       label_sports: 'Sport', label_crypto: 'Krypto', label_markets: 'Trhy',
@@ -3036,6 +3042,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pausa', finished: '¡Hecho!', start: '▶ Empezar', timer: 'Temporizador',
     },
     dashboard: {
+      toolsTitle: 'Herramientas', allTools: 'Todas las herramientas',
       back: '← Atrás',
       label_worldTime: 'Hora mundial', label_currency: 'Divisas', label_weather: 'Tiempo',
       label_sports: 'Deportes', label_crypto: 'Cripto', label_markets: 'Mercados',
@@ -3521,6 +3528,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pauza', finished: 'Gotowe!', start: '▶ Start', timer: 'Minutnik',
     },
     dashboard: {
+      toolsTitle: 'Narzędzia', allTools: 'Wszystkie narzędzia',
       back: '← Wstecz',
       label_worldTime: 'Czas światowy', label_currency: 'Waluta', label_weather: 'Pogoda',
       label_sports: 'Sport', label_crypto: 'Krypto', label_markets: 'Rynki',
@@ -4006,6 +4014,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Pausar', finished: 'Feito!', start: '▶ Iniciar', timer: 'Cronômetro',
     },
     dashboard: {
+      toolsTitle: 'Ferramentas', allTools: 'Todas as ferramentas',
       back: '← Voltar',
       label_worldTime: 'Hora mundial', label_currency: 'Moeda', label_weather: 'Tempo',
       label_sports: 'Esportes', label_crypto: 'Cripto', label_markets: 'Mercados',
@@ -4491,6 +4500,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ Пауза', finished: 'Готово!', start: '▶ Начать', timer: 'Таймер',
     },
     dashboard: {
+      toolsTitle: 'Инструменты', allTools: 'Все инструменты',
       back: '← Назад',
       label_worldTime: 'Мировое время', label_currency: 'Валюта', label_weather: 'Погода',
       label_sports: 'Спорт', label_crypto: 'Крипто', label_markets: 'Рынки',
@@ -4976,6 +4986,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ 暂停', finished: '完成！', start: '▶ 开始', timer: '计时器',
     },
     dashboard: {
+      toolsTitle: '工具', allTools: '全部工具',
       back: '← 返回',
       label_worldTime: '世界时间', label_currency: '货币', label_weather: '天气',
       label_sports: '体育', label_crypto: '加密货币', label_markets: '市场',
@@ -5461,6 +5472,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ 一時停止', finished: '完了！', start: '▶ 開始', timer: 'タイマー',
     },
     dashboard: {
+      toolsTitle: 'ツール', allTools: 'すべてのツール',
       back: '← 戻る',
       label_worldTime: '世界時計', label_currency: '通貨', label_weather: '天気',
       label_sports: 'スポーツ', label_crypto: '暗号通貨', label_markets: 'マーケット',
@@ -5946,6 +5958,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ 일시 정지', finished: '완료!', start: '▶ 시작', timer: '타이머',
     },
     dashboard: {
+      toolsTitle: '도구', allTools: '모든 도구',
       back: '← 뒤로',
       label_worldTime: '세계 시각', label_currency: '통화', label_weather: '날씨',
       label_sports: '스포츠', label_crypto: '암호화폐', label_markets: '시장',
@@ -6431,6 +6444,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ إيقاف مؤقت', finished: 'تم!', start: '▶ ابدأ', timer: 'مؤقت',
     },
     dashboard: {
+      toolsTitle: 'الأدوات', allTools: 'كل الأدوات',
       back: '← رجوع',
       label_worldTime: 'التوقيت العالمي', label_currency: 'العملة', label_weather: 'الطقس',
       label_sports: 'الرياضة', label_crypto: 'العملات الرقمية', label_markets: 'الأسواق',
@@ -6916,6 +6930,7 @@ const t: Record<Lang, Translations> = {
       pause: '⏸ रोकें', finished: 'पूर्ण!', start: '▶ शुरू करें', timer: 'टाइमर',
     },
     dashboard: {
+      toolsTitle: 'टूल्स', allTools: 'सभी टूल्स',
       back: '← वापस',
       label_worldTime: 'विश्व समय', label_currency: 'मुद्रा', label_weather: 'मौसम',
       label_sports: 'खेल', label_crypto: 'क्रिप्टो', label_markets: 'बाज़ार',

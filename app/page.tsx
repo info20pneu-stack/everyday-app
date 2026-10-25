@@ -5,6 +5,7 @@ import AdBanner from './components/AdBanner';
 import Dashboard from './components/Dashboard';
 import DashboardRightPanel from './components/DashboardRightPanel';
 import Footer from './components/Footer';
+import { getCardImageIds } from '../lib/cardImages';
 
 export const metadata: Metadata = {
   title: 'EVERY DAY | Time, Weather, Sports, Converter and More',
@@ -48,7 +49,7 @@ export default function Home() {
           padding: '1.25rem',
           minWidth: 0,
         }}>
-          <Dashboard />
+          <Dashboard imageIds={getCardImageIds()} />
         </main>
 
         <DashboardRightPanel />
