@@ -70,6 +70,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.everyday1234567.com/games/higher-lower</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.everyday1234567.com/daily-games</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>

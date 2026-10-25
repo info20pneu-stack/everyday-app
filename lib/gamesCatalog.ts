@@ -37,7 +37,7 @@ export const LEADERBOARD_GAMES = {
   // New games
   skytower: POINTS,
   dailyblocks: { ...POINTS, variants: true, daily: true },
-  higherlower: POINTS,
+  higherlower: { ...POINTS, variants: true, daily: true },
   connectfour: { ...TIME, variants: true },
   sudokucube: { ...TIME, variants: true },
 } satisfies Record<string, LeaderboardConfig>;
@@ -151,7 +151,7 @@ export const GAMES_CATALOG: CatalogGame[] = [
 
   /* ── Quizzes ── */
   { id: 'higher-lower', section: 'quiz', duration: '2', icon: '↕️', route: '/games/higher-lower',
-    nameKey: 'gamesHub.name_higherLower', descKey: 'gamesHub.desc_higherLower', soon: true, leaderboard: 'higherlower' },
+    nameKey: 'gamesHub.name_higherLower', descKey: 'gamesHub.desc_higherLower', leaderboard: 'higherlower' },
   { id: 'connect-four', section: 'quiz', duration: '5', icon: '🔗', route: '/games/connect-four',
     nameKey: 'gamesHub.name_connectFour', descKey: 'gamesHub.desc_connectFour', soon: true, leaderboard: 'connectfour' },
   { id: 'flagquiz', section: 'quiz', duration: '2', icon: '🌍', route: '/daily-games?play=flagquiz',

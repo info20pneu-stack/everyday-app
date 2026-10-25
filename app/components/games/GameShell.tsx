@@ -37,6 +37,8 @@ export interface GameShellApi {
   startRound: () => void;
   /** Personal record for this leaderboard, or null. */
   best: StoredBest | null;
+  /** Opens the leaderboard window (no-op when the game has no leaderboard). */
+  openLeaderboard: () => void;
 }
 
 type StoredBest = { timeMs: number; score?: number };
@@ -139,7 +141,7 @@ export default function GameShell({ gameId, leaderboardId, best, headerExtra, on
     return { newRecord };
   }
 
-  const api: GameShellApi = { onGameOver, startRound, best: shownBest };
+  const api: GameShellApi = { onGameOver, startRound, best: shownBest, openLeaderboard: () => setLbOpen(true) };
 
   useEffect(() => {
     if (!lbOpen) return;
