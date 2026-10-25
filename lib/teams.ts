@@ -121,7 +121,17 @@ export const LEAGUE_META: Record<League, { label: string; emoji: string; sportPa
 export type MyTeam = { league: League; abbr: string };
 export const MY_TEAM_KEY = 'myday_team_v1';
 
-export type MatchInfo = { dateStr: string; homeAway: 'vs' | '@'; oppName: string; score: string | null };
+export type MatchInfo = { dateStr: string; date: string; homeAway: 'vs' | '@'; oppName: string; score: string | null };
+
+/** ESPN sends a score as a number/string on scoreboards and as { value, displayValue } in team schedules. */
+function scoreText(s: unknown): string | null {
+  if (s == null) return null;
+  if (typeof s === 'object') {
+    const o = s as { displayValue?: string; value?: number };
+    return o.displayValue ?? (o.value != null ? String(o.value) : null);
+  }
+  return String(s);
+}
 
 export function formatTeamMatch(event: any, myAbbr: string): MatchInfo | null {
   const comp = event?.competitions?.[0];
@@ -132,8 +142,9 @@ export function formatTeamMatch(event: any, myAbbr: string): MatchInfo | null {
   const dateStr = new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const homeAway = me.homeAway === 'home' ? 'vs' : '@';
   const oppName = opp.team?.shortDisplayName ?? opp.team?.abbreviation ?? '?';
-  const score = me.score != null && opp.score != null ? `${me.score}-${opp.score}` : null;
-  return { dateStr, homeAway, oppName, score };
+  const mine = scoreText(me.score), theirs = scoreText(opp.score);
+  const score = mine != null && theirs != null ? `${mine}-${theirs}` : null;
+  return { dateStr, date: event.date, homeAway, oppName, score };
 }
 
 export async function fetchMyTeamMatches(league: League, abbr: string): Promise<{ last: MatchInfo | null; next: MatchInfo | null }> {

@@ -6,6 +6,7 @@ import { useLang } from '../../../lib/LanguageContext';
 import { recordLeaderboardRank } from '../../../lib/streak';
 import { WORLD_COUNTRIES, flagEmoji, getCountryName } from '../../../lib/games/countries';
 import { formatTimeMs, getLeaderboardConfig } from '../../../lib/gamesCatalog';
+import { rankKey } from '../../../lib/dailyTrio';
 
 /* "Save your result" window shared by all games (moved out of DailyGames).
    Pass `result` to replace the default result block; by default the leaderboard config decides:
@@ -18,6 +19,13 @@ function lsGet<T>(key: string, fallback: T): T {
 }
 function lsSet(key: string, val: unknown) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+/** Remembers the player's rank on this board (shown on the dashboard's daily game cards). */
+function saveRank(game: string, rank: number) {
+  if (!Number.isFinite(rank)) return;
+  lsSet(rankKey(game), rank);
+  window.dispatchEvent(new Event('everyday-rank-change'));
 }
 
 function detectDevice(): 'mobile' | 'desktop' {
@@ -82,11 +90,12 @@ export default function ScoreSubmitModal({
         const idx = lb.entries.findIndex(e => e.id === (data.entry as LBApiEntry).id);
         const rank = idx >= 0 ? idx + 1 : null;
         setMyRank(rank);
-        if (rank !== null) recordLeaderboardRank(rank);
+        if (rank !== null) { recordLeaderboardRank(rank); saveRank(game, rank); }
         setPhase('confirm');
       } else if (data.notBetter || data.notInTop) {
         setMyRank(data.rank as number);
         recordLeaderboardRank(data.rank as number);
+        saveRank(game, data.rank as number);
         setPhase('confirm');
       } else {
         setSubmitErr((data.error as string) || t.games.submitError);

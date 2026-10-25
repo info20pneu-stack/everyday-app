@@ -334,7 +334,6 @@ export type Translations = {
   heroTiles: {
     tagline: string;
     worldTimeDesc: string;
-    currencyDesc: string;
     convertersDesc: string;
     weatherDesc: string;
     sportsDesc: string;
@@ -787,7 +786,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Everything you need. Every day.',
       worldTimeDesc: '50+ cities',
-      currencyDesc: '30 currencies',
       convertersDesc: 'Units',
       weatherDesc: '5-day forecast',
       sportsDesc: 'NHL, NBA, Football',
@@ -1273,7 +1271,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Alles, was du brauchst. Jeden Tag.',
       worldTimeDesc: '50+ Städte',
-      currencyDesc: '30 Währungen',
       convertersDesc: 'Einheiten',
       weatherDesc: '5-Tage-Vorhersage',
       sportsDesc: 'NHL, NBA, Fußball',
@@ -1759,7 +1756,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Tutto ciò che ti serve. Ogni giorno.',
       worldTimeDesc: '50+ città',
-      currencyDesc: '30 valute',
       convertersDesc: 'Unità',
       weatherDesc: 'Previsioni a 5 giorni',
       sportsDesc: 'NHL, NBA, Calcio',
@@ -2245,7 +2241,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Tout ce dont tu as besoin. Chaque jour.',
       worldTimeDesc: '50+ villes',
-      currencyDesc: '30 devises',
       convertersDesc: 'Unités',
       weatherDesc: 'Prévisions sur 5 jours',
       sportsDesc: 'NHL, NBA, Football',
@@ -2731,7 +2726,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Vše, co potřebuješ. Každý den.',
       worldTimeDesc: '50+ měst',
-      currencyDesc: '30 měn',
       convertersDesc: 'Jednotky',
       weatherDesc: 'Na 5 dní',
       sportsDesc: 'NHL, NBA, Fotbal',
@@ -3217,7 +3211,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Todo lo que necesitas. Cada día.',
       worldTimeDesc: '50+ ciudades',
-      currencyDesc: '30 monedas',
       convertersDesc: 'Unidades',
       weatherDesc: 'Pronóstico de 5 días',
       sportsDesc: 'NHL, NBA, Fútbol',
@@ -3703,7 +3696,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Wszystko, czego potrzebujesz. Każdego dnia.',
       worldTimeDesc: '50+ miast',
-      currencyDesc: '30 walut',
       convertersDesc: 'Jednostki',
       weatherDesc: 'Prognoza na 5 dni',
       sportsDesc: 'NHL, NBA, Piłka nożna',
@@ -4189,7 +4181,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Tudo o que precisas. Todos os dias.',
       worldTimeDesc: '50+ cidades',
-      currencyDesc: '30 moedas',
       convertersDesc: 'Unidades',
       weatherDesc: 'Previsão a 5 dias',
       sportsDesc: 'NHL, NBA, Futebol',
@@ -4675,7 +4666,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'Всё, что нужно. Каждый день.',
       worldTimeDesc: '50+ городов',
-      currencyDesc: '30 валют',
       convertersDesc: 'Единицы',
       weatherDesc: 'Прогноз на 5 дней',
       sportsDesc: 'NHL, NBA, Футбол',
@@ -5161,7 +5151,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: '你需要的一切，每一天。',
       worldTimeDesc: '50+ 城市',
-      currencyDesc: '30 种货币',
       convertersDesc: '单位',
       weatherDesc: '5 天预报',
       sportsDesc: 'NHL、NBA、足球',
@@ -5647,7 +5636,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: '必要なものすべてを、毎日。',
       worldTimeDesc: '50以上の都市',
-      currencyDesc: '30通貨',
       convertersDesc: '単位',
       weatherDesc: '5日間予報',
       sportsDesc: 'NHL・NBA・サッカー',
@@ -6133,7 +6121,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: '필요한 모든 것, 매일.',
       worldTimeDesc: '50개 이상 도시',
-      currencyDesc: '30개 통화',
       convertersDesc: '단위',
       weatherDesc: '5일 예보',
       sportsDesc: 'NHL, NBA, 축구',
@@ -6619,7 +6606,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'كل ما تحتاجه. كل يوم.',
       worldTimeDesc: 'أكثر من 50 مدينة',
-      currencyDesc: '30 عملة',
       convertersDesc: 'الوحدات',
       weatherDesc: 'توقعات 5 أيام',
       sportsDesc: 'NHL وNBA وكرة القدم',
@@ -7105,7 +7091,6 @@ const t: Record<Lang, Translations> = {
     heroTiles: {
       tagline: 'आपकी ज़रूरत की हर चीज़। हर दिन।',
       worldTimeDesc: '50+ शहर',
-      currencyDesc: '30 मुद्राएँ',
       convertersDesc: 'इकाइयाँ',
       weatherDesc: '5 दिन का पूर्वानुमान',
       sportsDesc: 'NHL, NBA, फ़ुटबॉल',

@@ -6,6 +6,8 @@ import ToolCard from './ToolCard';
 import AdBanner from './AdBanner';
 import { useLang } from '../../lib/LanguageContext';
 import { TOOLS, TOOLS_AD_AFTER } from '../../lib/toolsCatalog';
+import { formatCurrencies } from '../../lib/homeI18n';
+import { CURRENCY_COUNT } from '../../lib/currencies';
 
 type Props = {
   imageIds: string[];
@@ -41,7 +43,9 @@ export default function ToolsGrid({ imageIds, showAllLink = false, heading = 'h2
               color={tool.color}
               icon={tool.icon}
               label={t.dashboard[tool.labelKey]}
-              desc={t.dashboard[tool.descKey]}
+              desc={tool.id === 'meny'
+                ? `${formatCurrencies(CURRENCY_COUNT, lang)} · ${t.dashboard[tool.descKey]}`
+                : t.dashboard[tool.descKey]}
               hasImage={images.has(tool.id)}
             />
             {i === TOOLS_AD_AFTER - 1 && (

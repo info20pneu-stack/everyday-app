@@ -20,6 +20,8 @@ type MiniGame = {
   awayScore?: number;
   status: GameStatus;
   clock?: string;
+  /** Start time (ISO) */
+  date?: string;
 };
 
 type MiniCoin = {
@@ -64,6 +66,7 @@ async function fetchLeague(league: League): Promise<MiniGame[]> {
       awayScore: away.score != null ? Math.round(parseFloat(away.score)) : undefined,
       status: parseStatus(comp?.status),
       clock: comp?.status?.displayClock,
+      date: event.date ?? comp?.date,
     }];
   });
 }
@@ -90,10 +93,24 @@ function formatPrice(price: number): string {
   return price.toPrecision(3);
 }
 
+/** Kick-off in the visitor's time zone: time + "today" / "tomorrow" / short weekday and date. */
+function startLabel(iso: string | undefined, lang: string): { time: string; day: string } | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  const time = d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const diff = Math.round((startOf(d) - startOf(new Date())) / 86400000);
+  const day = diff === 0 || diff === 1
+    ? new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }).format(diff, 'day')
+    : d.toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'numeric' });
+  return { time, day };
+}
+
 const STATUS_PRIORITY: Record<GameStatus, number> = { live: 0, upcoming: 1, final: 2 };
 
 export default function DashboardRightPanel() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { theme } = useTheme();
   const panelRef = useReveal<HTMLElement>();
   const [gamesByLeague, setGamesByLeague] = useState<Record<League, MiniGame[]>>({ nhl: [], nba: [], nfl: [] });
@@ -161,22 +178,27 @@ export default function DashboardRightPanel() {
         {gamesLoading && games.length === 0 && <div className="right-panel-empty">{t.general.loading}</div>}
         {!gamesLoading && games.length === 0 && <div className="right-panel-empty">{t.sports.noGames}</div>}
 
-        {games.map(g => (
-          <div key={g.id} className="rp-game">
-            <span className="rp-team-badge" style={{ background: g.awayColor }}>{g.awayAbbr}</span>
-            <div className="rp-game-center">
-              <div className="rp-game-score tabular-nums">
-                {g.status === 'upcoming' ? '–' : `${g.awayScore ?? 0} : ${g.homeScore ?? 0}`}
+        {games.map(g => {
+          const start = g.status === 'upcoming' ? startLabel(g.date, lang) : null;
+          return (
+            <div key={g.id} className="rp-game">
+              <span className="rp-team-badge" style={{ background: g.awayColor }}>{g.awayAbbr}</span>
+              <div className="rp-game-center">
+                <div className="rp-game-score tabular-nums">
+                  {g.status === 'upcoming'
+                    ? (start ? <time dateTime={g.date}>{start.time}</time> : '–')
+                    : `${g.awayScore ?? 0} : ${g.homeScore ?? 0}`}
+                </div>
+                <div className={`rp-game-status rp-status-${g.status}`}>
+                  {g.status === 'live' && <>● {t.currency.liveBadge} {g.clock ?? ''}</>}
+                  {g.status === 'final' && t.sports.sectionFinal}
+                  {g.status === 'upcoming' && (start?.day ?? t.sports.sectionUpcoming)}
+                </div>
               </div>
-              <div className={`rp-game-status rp-status-${g.status}`}>
-                {g.status === 'live' && <>● {t.currency.liveBadge} {g.clock ?? ''}</>}
-                {g.status === 'final' && t.sports.sectionFinal}
-                {g.status === 'upcoming' && t.sports.sectionUpcoming}
-              </div>
+              <span className="rp-team-badge" style={{ background: g.homeColor }}>{g.homeAbbr}</span>
             </div>
-            <span className="rp-team-badge" style={{ background: g.homeColor }}>{g.homeAbbr}</span>
-          </div>
-        ))}
+          );
+        })}
 
         <div className="rp-actions">
           <Link href="/sports" className="rp-action-btn">{t.sports.standings}</Link>

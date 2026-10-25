@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Topbar from '../components/Topbar';
 import BottomNav from '../components/BottomNav';
-import Footer from '../components/Footer';
 import ToolsGrid from '../components/ToolsGrid';
 import { getCardImageIds } from '../../lib/cardImages';
 
@@ -28,7 +27,6 @@ export default function ToolsPage() {
           <ToolsGrid imageIds={getCardImageIds()} heading="h1" />
         </div>
       </main>
-      <Footer />
       <BottomNav />
     </div>
   );

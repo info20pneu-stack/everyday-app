@@ -107,7 +107,8 @@ export const GAME_DURATIONS: GameDuration[] = ['2', '5', '10+'];
 /** i18n path into `t`, e.g. 'games.memory' or 'gamesHub.name_skyTower'. */
 export type GameTextKey =
   | `games.${Extract<keyof Translations['games'], string>}`
-  | `gamesHub.${Extract<keyof Translations['gamesHub'], string>}`;
+  | `gamesHub.${Extract<keyof Translations['gamesHub'], string>}`
+  | `dailyPuzzle.${Extract<keyof Translations['dailyPuzzle'], string>}`;
 
 export interface CatalogGame {
   id: string;
@@ -150,6 +151,8 @@ export const GAMES_CATALOG: CatalogGame[] = [
     nameKey: 'games.reflex', descKey: 'gamesHub.desc_reflex', leaderboard: 'reflex' },
 
   /* ── Quizzes ── */
+  { id: 'daily-puzzle', section: 'quiz', duration: '2', icon: '🧩', route: '/games/daily-puzzle',
+    nameKey: 'dailyPuzzle.title', descKey: 'dailyPuzzle.subtitle' },
   { id: 'higher-lower', section: 'quiz', duration: '2', icon: '↕️', route: '/games/higher-lower',
     nameKey: 'gamesHub.name_higherLower', descKey: 'gamesHub.desc_higherLower', leaderboard: 'higherlower' },
   { id: 'connect-four', section: 'quiz', duration: '5', icon: '🔗', route: '/games/connect-four',
@@ -174,7 +177,7 @@ export function getCatalogGame(id: string): CatalogGame | undefined {
 
 /** Resolves a GameTextKey against the active translations. */
 export function gameText(t: Translations, key: GameTextKey): string {
-  const [ns, field] = key.split('.') as ['games' | 'gamesHub', string];
+  const [ns, field] = key.split('.') as ['games' | 'gamesHub' | 'dailyPuzzle', string];
   const value = (t[ns] as Record<string, unknown>)[field];
   return typeof value === 'string' ? value : field;
 }

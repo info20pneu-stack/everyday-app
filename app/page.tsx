@@ -4,7 +4,6 @@ import BottomNav from './components/BottomNav';
 import AdBanner from './components/AdBanner';
 import Dashboard from './components/Dashboard';
 import DashboardRightPanel from './components/DashboardRightPanel';
-import Footer from './components/Footer';
 import { getCardImageIds } from '../lib/cardImages';
 
 export const metadata: Metadata = {
@@ -55,7 +54,6 @@ export default function Home() {
         <DashboardRightPanel />
       </div>
 
-      <Footer />
 
       <BottomNav />
     </div>

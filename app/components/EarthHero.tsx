@@ -6,18 +6,21 @@ import heroEarth from '../../public/images/hero-earth-wide.webp';
 import { useLang } from '../../lib/LanguageContext';
 import { getNavRoutes } from '../../lib/navRoutes';
 import HeroClock from './HeroClock';
+import { formatCurrencies } from '../../lib/homeI18n';
+import { CURRENCY_COUNT } from '../../lib/currencies';
 
-/** Quick links along the bottom of the hero: nav route id → short description key. */
+/** Quick links along the bottom of the hero: nav route id → short description key
+ *  (currency has none: it shows the real number of supported currencies). */
 const HERO_TILES = [
   { id: 'worldtime', desc: 'worldTimeDesc' },
-  { id: 'currency', desc: 'currencyDesc' },
+  { id: 'currency', desc: null },
   { id: 'units', desc: 'convertersDesc' },
   { id: 'weather', desc: 'weatherDesc' },
   { id: 'sports', desc: 'sportsDesc' },
 ] as const;
 
 export default function EarthHero() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const routes = getNavRoutes(t);
   const titles: Record<string, string> = {
     worldtime: t.topbar.worldTime,
@@ -57,7 +60,9 @@ export default function EarthHero() {
                   <span className="hero-tile-icon" aria-hidden="true">{route.icon}</span>
                   <span className="hero-tile-text">
                     <span className="hero-tile-name">{titles[tile.id]}</span>
-                    <span className="hero-tile-desc">{t.heroTiles[tile.desc]}</span>
+                    <span className="hero-tile-desc">
+                      {tile.desc ? t.heroTiles[tile.desc] : formatCurrencies(CURRENCY_COUNT, lang)}
+                    </span>
                   </span>
                   <span className="hero-tile-arrow" aria-hidden="true">›</span>
                 </Link>

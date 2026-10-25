@@ -4,17 +4,16 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import { getDailyPuzzleWords } from '../../lib/dailyPuzzleWords';
 import { recordGameCompleted } from '../../lib/streak';
+import { PUZZLE_MAX, PUZZLE_STATE_KEY, PUZZLE_STATS_KEY, puzzleDayIndex } from '../../lib/dailyTrio';
 import {
   type TileState, evaluate, tileBg, tileBorder, KB_ROWS, Confetti,
 } from './WordleGames';
 
-const MAX = 6;
+const MAX = PUZZLE_MAX;
 const WORD_LEN = 5;
 const PUZZLE_COLOR = '#538d4e';
-const PUZZLE_EPOCH_UTC = Date.UTC(2026, 0, 1); // Puzzle #1
-
-const STATE_KEY = 'daily_puzzle_state_v1';
-const STATS_KEY = 'daily_puzzle_stats_v1';
+const STATE_KEY = PUZZLE_STATE_KEY;
+const STATS_KEY = PUZZLE_STATS_KEY;
 
 type Phase = 'playing' | 'won' | 'lost';
 type PuzzleState = { puzzleNum: number; lang: string; guesses: string[]; phase: Phase };
@@ -39,9 +38,7 @@ function lsSet(key: string, val: unknown) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
-function utcDayIndex(): number {
-  return Math.floor((Date.now() - PUZZLE_EPOCH_UTC) / 86400000);
-}
+const utcDayIndex = () => puzzleDayIndex();
 
 function msUntilNextUtcMidnight(): number {
   const now = new Date();

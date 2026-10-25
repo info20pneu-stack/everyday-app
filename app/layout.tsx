@@ -6,6 +6,7 @@ import RetroTaskbar from "./components/RetroTaskbar";
 import Analytics from "./components/Analytics";
 import StructuredData from "./components/StructuredData";
 import PageLoader from "./components/PageLoader";
+import Footer from "./components/Footer";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PageLoader />
         <Providers>
           {children}
+          <Footer />
           <RetroTaskbar />
         </Providers>
         <StructuredData />

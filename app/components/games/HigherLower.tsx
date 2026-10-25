@@ -9,6 +9,7 @@ import {
   ROUNDS, buildPairs, formatValue, itemName, type CategoryId, type HLPair,
 } from '../../../lib/games/higherLowerData';
 import GameShell, { useGameShell } from './GameShell';
+import { HL_BEST_KEY, HL_DAYS_KEY, hlDoneKey } from '../../../lib/dailyTrio';
 
 /* Higher or Lower — port of games-reference/higher-lower.
    10 pairs a day seeded with the UTC date (everyone gets the same set), animated reveal,
@@ -21,9 +22,9 @@ const SHARE_URL = 'https://www.everyday1234567.com/games/higher-lower';
 
 /* ── localStorage helpers (keys from the demo, `vn-` = "vyšší nebo nižší") ── */
 const STORE_EVENT = 'everyday-hl-change';
-const BEST_KEY = 'vn-best';
-const DAYS_KEY = 'vn-days';
-const doneKey = (day: string) => `vn-done-${day}`;
+const BEST_KEY = HL_BEST_KEY;
+const DAYS_KEY = HL_DAYS_KEY;
+const doneKey = hlDoneKey;
 
 interface DaysStreak { n: number; last: string | null }
 interface DoneRecord { score: number; results: boolean[] }

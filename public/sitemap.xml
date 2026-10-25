@@ -100,6 +100,26 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.everyday1234567.com/games/daily-puzzle</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.everyday1234567.com/about</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://www.everyday1234567.com/cookies</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.everyday1234567.com/contact</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://www.everyday1234567.com/bmi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

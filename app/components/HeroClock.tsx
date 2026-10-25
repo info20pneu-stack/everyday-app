@@ -2,13 +2,13 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import { localizedZoneCity } from '../../lib/cityNames';
 
 const TICKS = Array.from({ length: 60 }, (_, i) => i);
 
-/** City part of the visitor's IANA time zone, e.g. "Europe/Prague" → "Prague". */
-function localCity(): string {
-  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
-  return tz.split('/').pop()?.replace(/_/g, ' ') ?? '';
+/** City part of the visitor's IANA time zone in their language, e.g. "Europe/Prague" → "Praha" (cs). */
+function localCity(lang: Parameters<typeof localizedZoneCity>[1]): string {
+  return localizedZoneCity(Intl.DateTimeFormat().resolvedOptions().timeZone ?? '', lang);
 }
 
 /** Short zone name for this date (CET/CEST switch automatically). en-US knows US zones, en-GB European ones. */
@@ -51,7 +51,7 @@ export default function HeroClock({ below }: { below?: ReactNode }) {
   const digital = now
     ? new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(now)
     : '--:--:--';
-  const city = now ? localCity() : '';
+  const city = now ? localCity(lang) : '';
   const zone = now ? zoneAbbr(now) : '';
   const date = now
     ? new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)
