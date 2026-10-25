@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmt2, fmtNumber, fmtUnit } from '../../lib/formatNumber';
 
 type Diff = {
   years: number;
@@ -13,6 +14,10 @@ type Diff = {
   minutes: number;
   seconds: number;
   totalDays: number;
+  /** Time left over after the whole days of the total difference (for the big clock). */
+  restHours: number;
+  restMinutes: number;
+  restSeconds: number;
   past: boolean;
 };
 
@@ -40,12 +45,12 @@ function calcDiff(from: Date, to: Date): Diff {
   const totalMs = end.getTime() - start.getTime();
   const totalDays = Math.floor(totalMs / 86400000);
   const weeks = Math.floor(totalDays / 7);
+  const restSec = Math.floor((totalMs % 86400000) / 1000);
+  const restHours = Math.floor(restSec / 3600);
+  const restMinutes = Math.floor((restSec % 3600) / 60);
+  const restSeconds = restSec % 60;
 
-  return { years, months, weeks, days, hours, minutes, seconds, totalDays, past };
-}
-
-function pad(n: number) {
-  return String(n).padStart(2, '0');
+  return { years, months, weeks, days, hours, minutes, seconds, totalDays, restHours, restMinutes, restSeconds, past };
 }
 
 function getStatLabels(t: Translations) {
@@ -66,7 +71,7 @@ function toLocalInput(d: Date) {
 }
 
 export default function DateCounter() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const STAT_LABELS = getStatLabels(t);
   const now = new Date();
   const [fromVal, setFromVal] = useState(toLocalInput(now));
@@ -155,22 +160,34 @@ export default function DateCounter() {
           marginBottom: '.75rem',
           textAlign: 'center',
         }}>
+          {/* Whole difference: total days + the remaining time (e.g. "364 dní 00:00:00") */}
           <div style={{
             fontFamily: 'Poppins, monospace',
             fontSize: '32px',
             fontWeight: '300',
             color: '#fff',
-            letterSpacing: '2px',
+            display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'baseline', columnGap: '12px',
           }}>
-            {pad(diff.hours)}
-            <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
-            {pad(diff.minutes)}
-            <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
-            <span style={{ color: 'var(--purple3)' }}>{pad(diff.seconds)}</span>
+            {diff.totalDays > 0 && (
+              <span style={{ fontWeight: '500' }}>{fmtUnit(diff.totalDays, 'day', lang, 'long')}</span>
+            )}
+            <span dir="ltr" style={{ letterSpacing: '2px' }}>
+              {fmt2(diff.restHours, lang)}
+              <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
+              {fmt2(diff.restMinutes, lang)}
+              <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
+              <span style={{ color: 'var(--purple3)' }}>{fmt2(diff.restSeconds, lang)}</span>
+            </span>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>
-            + {diff.years > 0 ? `${diff.years} yr ` : ''}{diff.months > 0 ? `${diff.months} mo ` : ''}{diff.days > 0 ? `${diff.days} d` : ''}
-          </div>
+          {(diff.years > 0 || diff.months > 0) && (
+            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>
+              {[
+                diff.years > 0 && fmtUnit(diff.years, 'year', lang, 'long'),
+                diff.months > 0 && fmtUnit(diff.months, 'month', lang, 'long'),
+                diff.days > 0 && fmtUnit(diff.days, 'day', lang, 'long'),
+              ].filter(Boolean).join(' · ')}
+            </div>
+          )}
         </div>
       )}
 
@@ -197,7 +214,7 @@ export default function DateCounter() {
                   fontFamily: 'Poppins',
                   color: isSeconds ? 'var(--purple3)' : '#fff',
                 }}>
-                  {val}
+                  {fmtNumber(val, lang)}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>{label}</div>
               </div>
@@ -214,7 +231,7 @@ export default function DateCounter() {
             gridColumn: 'span 3',
           }}>
             <div style={{ fontSize: '18px', fontWeight: '500', fontFamily: 'Poppins', color: 'var(--purple3)' }}>
-              {diff.totalDays.toLocaleString('en-US')}
+              {fmtNumber(diff.totalDays, lang)}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>{t.dateCounter.totalDays}</div>
           </div>

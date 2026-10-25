@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmt2, fmtNumber, fmtUnit } from '../../lib/formatNumber';
 
 function pad(n: number) {
   return String(n).padStart(2, '0');
@@ -108,6 +109,10 @@ function getZodiac(month: number, day: number) {
   return ZODIAC[0];
 }
 
+function capitalize(s: string, lang: string): string {
+  return s.charAt(0).toLocaleUpperCase(lang) + s.slice(1);
+}
+
 function getMonthNames(t: Translations): string[] {
   return [
     t.ageCalculator.months_jan, t.ageCalculator.months_feb, t.ageCalculator.months_mar, t.ageCalculator.months_apr,
@@ -132,7 +137,7 @@ export function loadStoredDob(): StoredDob | null {
 }
 
 export default function AgeCalculator() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const stored = loadStoredDob();
   const [birthDay,   setBirthDay]   = useState(stored?.day ?? 1);
   const [birthMonth, setBirthMonth] = useState(stored?.month ?? 1);   // 1 = January
@@ -203,7 +208,7 @@ export default function AgeCalculator() {
         </div>
         {birthDay > 28 && !valid && birth.getDate() !== birthDay && (
           <div style={{ fontSize: '12px', color: 'var(--amber)', marginTop: '4px' }}>
-            ⚠️ {MONTH_NAMES[birthMonth - 1]} does not have {birthDay} days
+            ⚠️ {t.ageCalculator.invalidDay.replace('{month}', MONTH_NAMES[birthMonth - 1]).replace('{day}', fmtNumber(birthDay, lang))}
           </div>
         )}
       </div>
@@ -241,11 +246,14 @@ export default function AgeCalculator() {
               color: '#fff',
               lineHeight: 1,
             }}>
-              {age.years}
+              {fmtNumber(age.years, lang)}
             </div>
             <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
-              {age.months} mo · {age.days} d · {pad(age.hours)}:{pad(age.minutes)}:
-              <span style={{ color: 'var(--purple3)' }}>{pad(age.seconds)}</span>
+              {fmtUnit(age.months, 'month', lang)} · {fmtUnit(age.days, 'day', lang)} ·{' '}
+              <span dir="ltr">
+                {fmt2(age.hours, lang)}:{fmt2(age.minutes, lang)}:
+                <span style={{ color: 'var(--purple3)' }}>{fmt2(age.seconds, lang)}</span>
+              </span>
             </div>
           </div>
 
@@ -271,7 +279,7 @@ export default function AgeCalculator() {
               <div style={{ fontSize: '13px', color: '#fff' }}>
                 {age.isToday
                   ? t.ageCalculator.happyBirthday
-                  : `${age.nextBirthdayDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long' })}`}
+                  : age.nextBirthdayDate.toLocaleDateString(lang, { day: 'numeric', month: 'long' })}
               </div>
             </div>
             {!age.isToday && (
@@ -282,7 +290,7 @@ export default function AgeCalculator() {
                   fontFamily: 'Poppins',
                   color: 'var(--purple3)',
                 }}>
-                  {age.nextBirthday}
+                  {fmtNumber(age.nextBirthday, lang)}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.daysLabel}</div>
               </div>
@@ -303,7 +311,7 @@ export default function AgeCalculator() {
               }}>
                 <span style={{ fontSize: '22px' }}>{zodiac.emoji}</span>
                 <div>
-                  <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>{zodiac.sign}</div>
+                  <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>{t.ageCalculator.zodiacSigns[ZODIAC.indexOf(zodiac)] ?? zodiac.sign}</div>
                   <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.zodiac}</div>
                 </div>
               </div>
@@ -320,7 +328,7 @@ export default function AgeCalculator() {
               <span style={{ fontSize: '22px' }}>📅</span>
               <div>
                 <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>
-                  {birth.toLocaleDateString('en-US', { weekday: 'long' })}
+                  {capitalize(birth.toLocaleDateString(lang, { weekday: 'long' }), lang)}
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.dayOfBirth}</div>
               </div>
@@ -344,7 +352,7 @@ export default function AgeCalculator() {
                   fontWeight: '500',
                   color: key === 'totalSeconds' ? 'var(--purple3)' : '#fff',
                 }}>
-                  {age[key].toLocaleString('en-US')}
+                  {fmtNumber(age[key], lang)}
                 </span>
               </div>
             ))}

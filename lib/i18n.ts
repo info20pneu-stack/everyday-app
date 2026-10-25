@@ -144,6 +144,10 @@ export type Translations = {
     months_jan: string; months_feb: string; months_mar: string; months_apr: string;
     months_may: string; months_jun: string; months_jul: string; months_aug: string;
     months_sep: string; months_oct: string; months_nov: string; months_dec: string;
+    /** Capricorn … Sagittarius, in the order of the ZODIAC table in AgeCalculator. */
+    zodiacSigns: string[];
+    /** {month} {day} */
+    invalidDay: string;
   };
   bmi: {
     title: string; metric: string; imperial: string; male: string; female: string;
@@ -548,6 +552,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'January', months_feb: 'February', months_mar: 'March', months_apr: 'April',
       months_may: 'May', months_jun: 'June', months_jul: 'July', months_aug: 'August',
       months_sep: 'September', months_oct: 'October', months_nov: 'November', months_dec: 'December',
+      zodiacSigns: ["Capricorn", "Aquarius", "Pisces", "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius"],
+      invalidDay: "{month} doesn't have {day} days",
     },
     bmi: {
       title: '⚖️ BMI Calculator', metric: 'Metric', imperial: 'Imperial',
@@ -1066,6 +1072,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Januar', months_feb: 'Februar', months_mar: 'März', months_apr: 'April',
       months_may: 'Mai', months_jun: 'Juni', months_jul: 'Juli', months_aug: 'August',
       months_sep: 'September', months_oct: 'Oktober', months_nov: 'November', months_dec: 'Dezember',
+      zodiacSigns: ["Steinbock", "Wassermann", "Fische", "Widder", "Stier", "Zwillinge", "Krebs", "Löwe", "Jungfrau", "Waage", "Skorpion", "Schütze"],
+      invalidDay: "Der {month} hat keine {day} Tage",
     },
     bmi: {
       title: '⚖️ BMI-Rechner', metric: 'Metrisch', imperial: 'Imperial',
@@ -1584,6 +1592,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Gennaio', months_feb: 'Febbraio', months_mar: 'Marzo', months_apr: 'Aprile',
       months_may: 'Maggio', months_jun: 'Giugno', months_jul: 'Luglio', months_aug: 'Agosto',
       months_sep: 'Settembre', months_oct: 'Ottobre', months_nov: 'Novembre', months_dec: 'Dicembre',
+      zodiacSigns: ["Capricorno", "Acquario", "Pesci", "Ariete", "Toro", "Gemelli", "Cancro", "Leone", "Vergine", "Bilancia", "Scorpione", "Sagittario"],
+      invalidDay: "{month} non ha {day} giorni",
     },
     bmi: {
       title: '⚖️ Calcolatore IMC', metric: 'Metrico', imperial: 'Imperiale',
@@ -2102,6 +2112,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Janvier', months_feb: 'Février', months_mar: 'Mars', months_apr: 'Avril',
       months_may: 'Mai', months_jun: 'Juin', months_jul: 'Juillet', months_aug: 'Août',
       months_sep: 'Septembre', months_oct: 'Octobre', months_nov: 'Novembre', months_dec: 'Décembre',
+      zodiacSigns: ["Capricorne", "Verseau", "Poissons", "Bélier", "Taureau", "Gémeaux", "Cancer", "Lion", "Vierge", "Balance", "Scorpion", "Sagittaire"],
+      invalidDay: "{month} n'a pas {day} jours",
     },
     bmi: {
       title: "⚖️ Calculateur d'IMC", metric: 'Métrique', imperial: 'Impérial',
@@ -2620,6 +2632,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Leden', months_feb: 'Únor', months_mar: 'Březen', months_apr: 'Duben',
       months_may: 'Květen', months_jun: 'Červen', months_jul: 'Červenec', months_aug: 'Srpen',
       months_sep: 'Září', months_oct: 'Říjen', months_nov: 'Listopad', months_dec: 'Prosinec',
+      zodiacSigns: ["Kozoroh", "Vodnář", "Ryby", "Beran", "Býk", "Blíženci", "Rak", "Lev", "Panna", "Váhy", "Štír", "Střelec"],
+      invalidDay: "{month} nemá {day} dní",
     },
     bmi: {
       title: '⚖️ BMI Kalkulačka', metric: 'Metrický', imperial: 'Imperiální',
@@ -3138,6 +3152,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Enero', months_feb: 'Febrero', months_mar: 'Marzo', months_apr: 'Abril',
       months_may: 'Mayo', months_jun: 'Junio', months_jul: 'Julio', months_aug: 'Agosto',
       months_sep: 'Septiembre', months_oct: 'Octubre', months_nov: 'Noviembre', months_dec: 'Diciembre',
+      zodiacSigns: ["Capricornio", "Acuario", "Piscis", "Aries", "Tauro", "Géminis", "Cáncer", "Leo", "Virgo", "Libra", "Escorpio", "Sagitario"],
+      invalidDay: "{month} no tiene {day} días",
     },
     bmi: {
       title: '⚖️ Calculadora de IMC', metric: 'Métrico', imperial: 'Imperial',
@@ -3656,6 +3672,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Styczeń', months_feb: 'Luty', months_mar: 'Marzec', months_apr: 'Kwiecień',
       months_may: 'Maj', months_jun: 'Czerwiec', months_jul: 'Lipiec', months_aug: 'Sierpień',
       months_sep: 'Wrzesień', months_oct: 'Październik', months_nov: 'Listopad', months_dec: 'Grudzień',
+      zodiacSigns: ["Koziorożec", "Wodnik", "Ryby", "Baran", "Byk", "Bliźnięta", "Rak", "Lew", "Panna", "Waga", "Skorpion", "Strzelec"],
+      invalidDay: "{month} nie ma {day} dni",
     },
     bmi: {
       title: '⚖️ Kalkulator BMI', metric: 'Metryczny', imperial: 'Imperialny',
@@ -4174,6 +4192,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Janeiro', months_feb: 'Fevereiro', months_mar: 'Março', months_apr: 'Abril',
       months_may: 'Maio', months_jun: 'Junho', months_jul: 'Julho', months_aug: 'Agosto',
       months_sep: 'Setembro', months_oct: 'Outubro', months_nov: 'Novembro', months_dec: 'Dezembro',
+      zodiacSigns: ["Capricórnio", "Aquário", "Peixes", "Áries", "Touro", "Gêmeos", "Câncer", "Leão", "Virgem", "Libra", "Escorpião", "Sagitário"],
+      invalidDay: "{month} não tem {day} dias",
     },
     bmi: {
       title: '⚖️ Calculadora de IMC', metric: 'Métrico', imperial: 'Imperial',
@@ -4692,6 +4712,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'Январь', months_feb: 'Февраль', months_mar: 'Март', months_apr: 'Апрель',
       months_may: 'Май', months_jun: 'Июнь', months_jul: 'Июль', months_aug: 'Август',
       months_sep: 'Сентябрь', months_oct: 'Октябрь', months_nov: 'Ноябрь', months_dec: 'Декабрь',
+      zodiacSigns: ["Козерог", "Водолей", "Рыбы", "Овен", "Телец", "Близнецы", "Рак", "Лев", "Дева", "Весы", "Скорпион", "Стрелец"],
+      invalidDay: "{month}: в этом месяце нет {day}-го числа",
     },
     bmi: {
       title: '⚖️ Калькулятор ИМТ', metric: 'Метрическая', imperial: 'Имперская',
@@ -5210,6 +5232,8 @@ const t: Record<Lang, Translations> = {
       months_jan: '一月', months_feb: '二月', months_mar: '三月', months_apr: '四月',
       months_may: '五月', months_jun: '六月', months_jul: '七月', months_aug: '八月',
       months_sep: '九月', months_oct: '十月', months_nov: '十一月', months_dec: '十二月',
+      zodiacSigns: ["摩羯座", "水瓶座", "双鱼座", "白羊座", "金牛座", "双子座", "巨蟹座", "狮子座", "处女座", "天秤座", "天蝎座", "射手座"],
+      invalidDay: "{month}没有{day}天",
     },
     bmi: {
       title: '⚖️ BMI 计算器', metric: '公制', imperial: '英制',
@@ -5728,6 +5752,8 @@ const t: Record<Lang, Translations> = {
       months_jan: '1月', months_feb: '2月', months_mar: '3月', months_apr: '4月',
       months_may: '5月', months_jun: '6月', months_jul: '7月', months_aug: '8月',
       months_sep: '9月', months_oct: '10月', months_nov: '11月', months_dec: '12月',
+      zodiacSigns: ["山羊座", "水瓶座", "魚座", "牡羊座", "牡牛座", "双子座", "蟹座", "獅子座", "乙女座", "天秤座", "蠍座", "射手座"],
+      invalidDay: "{month}に{day}日はありません",
     },
     bmi: {
       title: '⚖️ BMI計算機', metric: 'メートル法', imperial: 'ヤードポンド法',
@@ -6246,6 +6272,8 @@ const t: Record<Lang, Translations> = {
       months_jan: '1월', months_feb: '2월', months_mar: '3월', months_apr: '4월',
       months_may: '5월', months_jun: '6월', months_jul: '7월', months_aug: '8월',
       months_sep: '9월', months_oct: '10월', months_nov: '11월', months_dec: '12월',
+      zodiacSigns: ["염소자리", "물병자리", "물고기자리", "양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리"],
+      invalidDay: "{month}에는 {day}일이 없습니다",
     },
     bmi: {
       title: '⚖️ BMI 계산기', metric: '미터법', imperial: '야드파운드법',
@@ -6764,6 +6792,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'يناير', months_feb: 'فبراير', months_mar: 'مارس', months_apr: 'أبريل',
       months_may: 'مايو', months_jun: 'يونيو', months_jul: 'يوليو', months_aug: 'أغسطس',
       months_sep: 'سبتمبر', months_oct: 'أكتوبر', months_nov: 'نوفمبر', months_dec: 'ديسمبر',
+      zodiacSigns: ["الجدي", "الدلو", "الحوت", "الحمل", "الثور", "الجوزاء", "السرطان", "الأسد", "العذراء", "الميزان", "العقرب", "القوس"],
+      invalidDay: "{month} لا يحتوي على {day} يومًا",
     },
     bmi: {
       title: '⚖️ حاسبة مؤشر كتلة الجسم', metric: 'متري', imperial: 'إمبراطوري',
@@ -7282,6 +7312,8 @@ const t: Record<Lang, Translations> = {
       months_jan: 'जनवरी', months_feb: 'फरवरी', months_mar: 'मार्च', months_apr: 'अप्रैल',
       months_may: 'मई', months_jun: 'जून', months_jul: 'जुलाई', months_aug: 'अगस्त',
       months_sep: 'सितंबर', months_oct: 'अक्टूबर', months_nov: 'नवंबर', months_dec: 'दिसंबर',
+      zodiacSigns: ["मकर", "कुंभ", "मीन", "मेष", "वृषभ", "मिथुन", "कर्क", "सिंह", "कन्या", "तुला", "वृश्चिक", "धनु"],
+      invalidDay: "{month} में {day} दिन नहीं होते",
     },
     bmi: {
       title: '⚖️ बीएमआई कैलकुलेटर', metric: 'मीट्रिक', imperial: 'इंपीरियल',
