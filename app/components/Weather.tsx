@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmtNumber } from '../../lib/formatNumber';
+import { MYDAY_WEATHER_KEY, myDaySet, useMyDayRaw, type MyDayPlace } from '../../lib/myDay';
+import ToolFrame, { plain, ToolButton, ToolCard, ToolCards, ToolHero } from './tools/ToolFrame';
+import { localizedCity } from '../../lib/cityNames';
 
 /* ── WMO weather code → label + emoji ── */
 const WMO: Record<number, [string, string]> = {
@@ -32,11 +36,12 @@ const WMO: Record<number, [string, string]> = {
   99: ['Heavy thunderstorm with hail', '⛈️'],
 };
 
-function wmo(code: number): [string, string] {
-  return WMO[code] ?? ['Unknown', '🌡️'];
+/** [description in the UI language, emoji] for a WMO weather code. */
+function wmo(code: number, t: Translations): [string, string] {
+  const key = `wmo${code}` as keyof Translations['weather'];
+  const label = WMO[code] ? (t.weather[key] as string | undefined) ?? WMO[code][0] : t.weather.wmoUnknown;
+  return [label, WMO[code]?.[1] ?? '🌡️'];
 }
-
-const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type Current = {
   temp: number;
@@ -87,24 +92,25 @@ function getOutfitRecs(t: Translations, tempC: number, code: number): string[] {
   return recs;
 }
 
-function fmtHour(iso: string): string {
-  try { return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', hour12: false }); }
+function fmtHour(iso: string, lang: string): string {
+  try { return new Date(iso).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }); }
   catch { return '--'; }
 }
 
 type Status = 'idle' | 'locating' | 'loading' | 'ok' | 'error';
 type DataSource = 'open-meteo' | 'weatherapi';
 
-async function fetchCity(lat: number, lon: number): Promise<string> {
+/** City name in the UI language; '' when unknown (shown as "My location"). */
+async function fetchCity(lat: number, lon: number, lang: string): Promise<string> {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
-      { headers: { 'Accept-Language': 'en' } }
+      { headers: { 'Accept-Language': lang } }
     );
     const j = await r.json();
-    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || 'My location';
+    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || '';
   } catch {
-    return 'My location';
+    return '';
   }
 }
 
@@ -133,11 +139,11 @@ function weatherApiCodeToWmo(code: number): number {
   return 3;
 }
 
-async function fetchWeatherFallback(lat: number, lon: number): Promise<WeatherData> {
+async function fetchWeatherFallback(lat: number, lon: number, lang: string): Promise<WeatherData> {
   const key = process.env.NEXT_PUBLIC_WEATHERAPI_KEY;
   if (!key) throw new Error('WeatherAPI key not configured');
   const url = `https://api.weatherapi.com/v1/forecast.json?key=${key}&q=${lat},${lon}&days=5&aqi=no`;
-  const [res, city] = await Promise.all([fetch(url), fetchCity(lat, lon)]);
+  const [res, city] = await Promise.all([fetch(url), fetchCity(lat, lon, lang)]);
   if (!res.ok) throw new Error(`WeatherAPI HTTP ${res.status}`);
   const d = await res.json();
   const c = d.current;
@@ -164,7 +170,7 @@ async function fetchWeatherFallback(lat: number, lon: number): Promise<WeatherDa
   };
 }
 
-async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
+async function fetchWeather(lat: number, lon: number, lang: string): Promise<WeatherData> {
   const params = new URLSearchParams({
     latitude: lat.toFixed(4),
     longitude: lon.toFixed(4),
@@ -172,13 +178,13 @@ async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max',
     hourly: 'temperature_2m,weather_code,precipitation_probability',
     timezone: 'auto',
-    forecast_days: '2',
+    forecast_days: '5',
     wind_speed_unit: 'kmh',
   });
 
   const [weatherRes, city] = await Promise.all([
     fetch(`https://api.open-meteo.com/v1/forecast?${params}`),
-    fetchCity(lat, lon),
+    fetchCity(lat, lon, lang),
   ]);
 
   if (!weatherRes.ok) throw new Error('API error');
@@ -220,31 +226,27 @@ async function fetchWeather(lat: number, lon: number): Promise<WeatherData> {
   };
 }
 
-function uvLabel(uv: number) {
-  if (uv <= 2) return { label: 'Low', color: 'var(--green2)' };
-  if (uv <= 5) return { label: 'Moderate', color: 'var(--amber)' };
-  if (uv <= 7) return { label: 'High', color: '#FF8C00' };
-  return { label: 'Extreme', color: '#FF4444' };
+function uvLabel(uv: number, t: Translations) {
+  if (uv <= 2) return { label: t.weather.uvLow, color: '#4ADE80' };
+  if (uv <= 5) return { label: t.weather.uvModerate, color: '#FFB300' };
+  if (uv <= 7) return { label: t.weather.uvHigh, color: '#FF8C00' };
+  return { label: t.weather.uvExtreme, color: '#FF4444' };
 }
 
-const statBox: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '12px',
-  padding: '.75rem',
-};
 
 export default function Weather() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [status, setStatus] = useState<Status>('idle');
   const [data, setData] = useState<WeatherData | null>(null);
-  const [error, setError] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [error, setError] = useState<'geo' | 'denied' | 'load'>('load');
   const [source, setSource] = useState<DataSource>('open-meteo');
+  const savedRaw = useMyDayRaw(MYDAY_WEATHER_KEY);
 
   function load() {
     if (!navigator.geolocation) {
       setStatus('error');
-      setError('Geolocation is not available in this browser.');
+      setError('geo');
       return;
     }
     setStatus('locating');
@@ -252,176 +254,100 @@ export default function Weather() {
       async pos => {
         setStatus('loading');
         const { latitude: lat, longitude: lon } = pos.coords;
+        setCoords({ lat, lon });
         try {
-          const d = await fetchWeather(lat, lon);
+          const d = await fetchWeather(lat, lon, lang);
           setData(d);
           setSource('open-meteo');
           setStatus('ok');
         } catch {
           // Fallback: WeatherAPI
           try {
-            const d2 = await fetchWeatherFallback(lat, lon);
+            const d2 = await fetchWeatherFallback(lat, lon, lang);
             setData(d2);
             setSource('weatherapi');
             setStatus('ok');
           } catch {
             setStatus('error');
-            setError('Failed to load weather data.');
+            setError('load');
           }
         }
       },
       () => {
         setStatus('error');
-        setError('Location access was denied.');
+        setError('denied');
       },
       { timeout: 10_000 }
     );
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on open; the refresh button reloads
   useEffect(() => { load(); }, []);
-
-  const card: React.CSSProperties = {
-    background: 'rgba(15,20,40,0.92)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 'var(--card-radius)',
-    padding: '1.25rem',
-    boxShadow: 'var(--card-shadow)',
-  };
 
   /* ── Loading / error states ── */
   if (status === 'idle' || status === 'locating' || status === 'loading') {
     return (
-      <div className="card" style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
-          <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
-            {status === 'locating' ? '📍 Locating…' : '🌐 Loading…'}
-          </span>
-        </div>
-        <div style={{ height: '110px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', marginBottom: '.75rem' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} style={{ height: '58px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', animationDelay: `${i * 0.1}s` }} />
-          ))}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} style={{ height: '36px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', animationDelay: `${i * 0.08}s` }} />
-          ))}
-        </div>
-        <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
-      </div>
+      <ToolFrame toolId="pocasi">
+        <div className="tf-note">{status === 'locating' ? t.weather.locating : t.weather.loading}</div>
+        <div className="wx-skel" style={{ height: 200 }} />
+        <div className="tf-cards">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="wx-skel" style={{ height: 66 }} />)}</div>
+        <style>{`.wx-skel { border-radius: 18px; background: rgba(255,255,255,0.04); animation: shimmer 1.5s infinite; } @keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
+      </ToolFrame>
     );
   }
 
   if (status === 'error') {
     return (
-      <div className="card" style={card}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
-          🌤️ Weather
-        </h2>
-        <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-          <div style={{ fontSize: '32px', marginBottom: '.75rem' }}>⚠️</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>{error}</div>
-          <button
-            onClick={load}
-            style={{
-              background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#fff',
-              fontSize: '12px',
-              padding: '7px 16px',
-              cursor: 'pointer',
-            }}
-          >
-            Try again
-          </button>
+      <ToolFrame toolId="pocasi">
+        <div className="tf-panel" style={{ alignItems: 'center', textAlign: 'center', padding: '2rem 1rem' }}>
+          <div style={{ fontSize: 34 }}>⚠️</div>
+          <div>{error === 'geo' ? t.weather.geoUnavailable : error === 'denied' ? t.weather.locationDenied : t.weather.loadError}</div>
+          <ToolButton onClick={load}>{t.weather.retry}</ToolButton>
         </div>
-      </div>
+      </ToolFrame>
     );
   }
 
   /* ── Main view ── */
   const { city, current, forecast, hourly } = data!;
-  const [desc, emoji] = wmo(current.code);
-  const uv = uvLabel(current.uv);
+  const [desc, emoji] = wmo(current.code, t);
+  const uv = uvLabel(current.uv, t);
   const outfitRecs = getOutfitRecs(t, current.temp, current.code);
+  const place: MyDayPlace | null = coords ? { name: city ? localizedCity(city, lang) : t.weather.myLocation, lat: coords.lat, lon: coords.lon, source: 'saved' } : null;
+  const savedPlace = (() => { try { return savedRaw ? JSON.parse(savedRaw) as MyDayPlace : null; } catch { return null; } })();
+  const saved = !!(place && savedPlace && Math.abs(savedPlace.lat - place.lat) < 0.01 && Math.abs(savedPlace.lon - place.lon) < 0.01);
+  const num = (n: number) => fmtNumber(n, lang);
 
   return (
-    <div className="card" style={card}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🌤️ Weather</h2>
-        <button className="icon-btn"
-          onClick={load}
-          title="Refresh"
-          style={{
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '8px',
-            color: 'var(--text3)',
-            fontSize: '13px',
-            padding: '3px 8px',
-            cursor: 'pointer',
-          }}
-        >↺</button>
-      </div>
+    <ToolFrame toolId="pocasi" myDay={place ? { saved, onSave: () => myDaySet(MYDAY_WEATHER_KEY, place) } : undefined}>
+      <ToolHero
+        label={<>📍 {city ? localizedCity(city, lang) : t.weather.myLocation}</>}
+        value={<span dir="ltr">{num(current.temp)}</span>}
+        unit="°C"
+        sub={<><span className="wx-emoji">{emoji}</span> {desc} · {t.weather.feelsLike} {num(current.feels)} °C</>}
+      />
 
-      {/* Current hero */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(93,76,255,0.18), rgba(59,130,246,0.12))',
-        border: '1px solid rgba(93,76,255,0.25)',
-        borderRadius: '14px',
-        padding: '1.25rem',
-        marginBottom: '.75rem',
-      }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>
-          📍 {city}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
-          <div style={{ fontSize: '64px', lineHeight: 1 }}>{emoji}</div>
-          <div>
-            <div style={{ fontSize: '48px', fontFamily: 'Poppins', fontWeight: '300', color: '#fff', lineHeight: 1 }}>
-              {current.temp}°
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '2px' }}>{desc}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Feels like {current.feels}°C</div>
-          </div>
-        </div>
-      </div>
+      <ToolCards>
+        <ToolCard wide icon="👕" color="#A78BFA" label={t.weather.outfitTitle}
+          value={<span className="wx-outfit">{outfitRecs.map(r => <span key={r}>{r}</span>)}</span>} />
+        <ToolCard icon="💧" color="#38BDF8" label={plain(t.weather.humidity)} value={`${num(current.humidity)} %`} />
+        <ToolCard icon="💨" color="#94A3B8" label={plain(t.weather.wind)} value={<span dir="ltr">{num(current.wind)} km/h</span>} />
+        <ToolCard icon="🔭" color="#818CF8" label={plain(t.weather.pressure)} value={<span dir="ltr">{num(current.pressure)} hPa</span>} />
+        <ToolCard icon="☀️" color={uv.color} label={plain(t.weather.uvIndex)} value={num(current.uv)} sub={uv.label} />
+      </ToolCards>
 
-      {/* What to wear */}
-      <div style={{ ...statBox, marginBottom: '.75rem' }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-          {t.weather.outfitTitle}
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {outfitRecs.map(rec => (
-            <div key={rec} style={{ fontSize: '13px', color: '#fff' }}>{rec}</div>
-          ))}
-        </div>
-      </div>
-
-      {/* Hourly forecast */}
       {hourly.length > 0 && (
-        <div style={{ marginBottom: '.75rem' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            {t.weather.hourlyForecast}
-          </div>
-          <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
+        <div className="tf-panel">
+          <div className="tf-label">🕐 {t.weather.hourlyForecast}</div>
+          <div className="wx-hours">
             {hourly.map(h => {
-              const [, hEmoji] = wmo(h.code);
+              const [, hEmoji] = wmo(h.code, t);
               return (
-                <div key={h.time} style={{
-                  flexShrink: 0, minWidth: '46px', textAlign: 'center',
-                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
-                  borderRadius: '10px', padding: '6px 4px',
-                }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{fmtHour(h.time)}</div>
-                  <div style={{ fontSize: '16px', margin: '3px 0' }}>{hEmoji}</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>{h.temp}°</div>
-                  {h.precip > 0 && <div style={{ fontSize: '12px', color: 'var(--blue2)' }}>{h.precip}%</div>}
+                <div key={h.time} className="wx-hour">
+                  <span className="wx-h-time">{fmtHour(h.time, lang)}</span>
+                  <span className="wx-h-emoji">{hEmoji}</span>
+                  <b>{num(h.temp)}°</b>
+                  {h.precip > 0 && <span className="wx-h-rain">{num(h.precip)} %</span>}
                 </div>
               );
             })}
@@ -429,68 +355,48 @@ export default function Weather() {
         </div>
       )}
 
-      {/* Stats grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
-        <div style={statBox}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>💧 Humidity</div>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: 'var(--blue2)' }}>{current.humidity}%</div>
-        </div>
-        <div style={statBox}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>💨 Wind</div>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.wind} <span style={{ fontSize: '12px' }}>km/h</span></div>
-        </div>
-        <div style={statBox}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>🔭 Pressure</div>
-          <div style={{ fontSize: '18px', fontWeight: '500', color: '#fff' }}>{current.pressure} <span style={{ fontSize: '12px' }}>hPa</span></div>
-        </div>
-        <div style={statBox}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>☀️ UV index</div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <span style={{ fontSize: '18px', fontWeight: '500', color: uv.color }}>{current.uv}</span>
-            <span style={{ fontSize: '12px', color: uv.color }}>{uv.label}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 5-day forecast */}
-      <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-        5-day forecast
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
+      <div className="tf-panel">
+        <div className="tf-label">📅 {t.weather.forecast5day}</div>
         {forecast.map((day, i) => {
           const d = new Date(day.date + 'T12:00:00');
-          const [, dayEmoji] = wmo(day.code);
-          const isToday = i === 0;
+          const [dayDesc, dayEmoji] = wmo(day.code, t);
           return (
-            <div key={day.date} style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: isToday ? 'rgba(93,76,255,0.10)' : 'rgba(255,255,255,0.02)',
-              border: isToday ? '1px solid rgba(93,76,255,0.2)' : '1px solid rgba(255,255,255,0.04)',
-              borderRadius: '10px',
-              padding: '6px 10px',
-            }}>
-              <div style={{ width: '26px', fontSize: '12px', color: isToday ? 'var(--purple3)' : 'var(--text2)', fontWeight: isToday ? '600' : '400' }}>
-                {isToday ? 'Today' : DAYS_EN[d.getDay()]}
-              </div>
-              <div style={{ fontSize: '18px', width: '24px', textAlign: 'center' }}>{dayEmoji}</div>
-              <div style={{ flex: 1, fontSize: '12px', color: 'var(--text3)' }}>
-                {day.precip > 0 && <span>🌂 {day.precip}%</span>}
-              </div>
-              <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-                <span style={{ color: '#fff', fontWeight: '500' }}>{day.max}°</span>
-                <span style={{ color: 'var(--text3)' }}>{day.min}°</span>
-              </div>
+            <div key={day.date} className={`wx-day${i === 0 ? ' is-today' : ''}`}>
+              <span className="wx-d-name">{i === 0 ? t.weather.today : d.toLocaleDateString(lang, { weekday: 'short', day: 'numeric', month: 'numeric' })}</span>
+              <span className="wx-d-emoji" title={dayDesc}>{dayEmoji}</span>
+              <span className="wx-d-rain">{day.precip > 0 && <>🌂 {num(day.precip)} %</>}</span>
+              <span className="wx-d-temp"><b>{num(day.max)}°</b> <span>{num(day.min)}°</span></span>
             </div>
           );
         })}
       </div>
 
-      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        Source: {source === 'open-meteo' ? 'Open-Meteo' : 'WeatherAPI (backup)'} · Nominatim OSM
+      <ToolButton onClick={load}>↺ {t.weather.refresh}</ToolButton>
+
+      <div className="tf-note">
+        {t.weather.source} {source === 'open-meteo' ? 'Open-Meteo' : `WeatherAPI ${t.weather.backup}`} · Nominatim OSM
       </div>
-      <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
-    </div>
+
+      <style>{`
+        .wx-emoji { font-size: 18px; }
+        .wx-outfit { display: flex; flex-direction: column; gap: 2px; font-size: 14px; font-weight: 600; }
+        .wx-hours { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+        .wx-hour {
+          flex-shrink: 0; min-width: 56px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 6px;
+          border-radius: 14px; background: linear-gradient(160deg, #1C2258, #121640); border: 1px solid rgba(255,255,255,.07);
+        }
+        .wx-h-time { font-size: 11px; color: var(--tf-dim); }
+        .wx-h-emoji { font-size: 18px; }
+        .wx-hour b { font-size: 14px; }
+        .wx-h-rain { font-size: 11px; color: #7DD3FC; }
+        .wx-day { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(10,14,42,.5); }
+        .wx-day.is-today { background: color-mix(in srgb, var(--tc) 16%, rgba(10,14,42,.6)); border: 1px solid color-mix(in srgb, var(--tc) 40%, transparent); }
+        .wx-d-name { width: 92px; font-size: 13px; font-weight: 600; text-transform: capitalize; }
+        .wx-d-emoji { font-size: 20px; }
+        .wx-d-rain { flex: 1; font-size: 12px; color: #7DD3FC; }
+        .wx-d-temp { font-size: 14px; white-space: nowrap; }
+        .wx-d-temp span { color: var(--tf-dim); margin-inline-start: 6px; }
+      `}</style>
+    </ToolFrame>
   );
 }

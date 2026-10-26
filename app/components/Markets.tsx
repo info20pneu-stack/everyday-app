@@ -4,20 +4,61 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmtUnit } from '../../lib/formatNumber';
+import { toolStrings, type ToolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolHero } from './tools/ToolFrame';
 import type { TickerData, Tab } from '../api/markets/route';
 
 /* ── Price helpers ── */
-function fmtPrice(t: TickerData): string {
-  const p = t.price;
-  if (t.symbol.includes('/') && !t.currency) return p < 10 ? p.toFixed(4) : p.toFixed(2);
-  if (p >= 1000) return p.toLocaleString('en-US', { maximumFractionDigits: 2 });
-  return p.toFixed(p < 10 ? 4 : 2);
+/** Decimals for a price: small values get 4. */
+function digitsFor(v: number): number {
+  return v < 10 ? 4 : 2;
 }
 
-function fmtVal(v: number, t: TickerData): string {
-  if (t.symbol.includes('/') && !t.currency) return v < 10 ? v.toFixed(4) : v.toFixed(2);
-  if (v >= 1000) return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
-  return v.toFixed(v < 10 ? 4 : 2);
+function fmtVal(v: number, _t: TickerData, lang: string): string {
+  const d = digitsFor(v);
+  return new Intl.NumberFormat(lang, { minimumFractionDigits: d, maximumFractionDigits: d }).format(v);
+}
+
+function fmtPrice(t: TickerData, lang: string): string {
+  return fmtVal(t.price, t, lang);
+}
+
+function fmtPct(n: number, lang: string, sign = false): string {
+  return new Intl.NumberFormat(lang, { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2, signDisplay: sign ? 'exceptZero' : 'never' }).format(n / 100);
+}
+
+type Period = '7D' | '1M' | '1Y';
+
+const COUNTRY_CODES: Record<string, string> = { 'United States': 'US', 'United Kingdom': 'GB', Germany: 'DE', France: 'FR', Japan: 'JP', China: 'CN' };
+const COMMODITY_KEYS: Record<string, keyof ToolStrings> = {
+  Gold: 'cmGold', Silver: 'cmSilver', 'WTI Oil': 'cmWti', 'Brent Oil': 'cmBrent', 'Nat. Gas': 'cmGas',
+  Copper: 'cmCopper', Wheat: 'cmWheat', Corn: 'cmCorn', 'Crude Oil': 'cmCrude',
+};
+
+/** Ticker title in the UI language: commodity names are translated, index / FX symbols stay. */
+function tickerTitle(tk: TickerData, st: ToolStrings): string {
+  const key = COMMODITY_KEYS[tk.symbol];
+  return key ? st[key] : tk.symbol;
+}
+
+/** Sub-line in the UI language: the index's country, the FX pair's currencies, the commodity's exchange. */
+function tickerSub(tk: TickerData, st: ToolStrings, lang: string): string {
+  try {
+    const cc = COUNTRY_CODES[tk.name];
+    if (cc) return new Intl.DisplayNames([lang], { type: 'region' }).of(cc) ?? tk.name;
+    if (/^[A-Z]{3}\/[A-Z]{3}$/.test(tk.symbol)) {
+      const dn = new Intl.DisplayNames([lang], { type: 'currency' });
+      return tk.symbol.split('/').map(c => dn.of(c) ?? c).join(' / ');
+    }
+  } catch {}
+  const key = COMMODITY_KEYS[tk.name];
+  return key ? st[key] : tk.name;
+}
+
+/** "7 d", "1 m.", "1 r." — the period buttons in the UI language. */
+function periodLabel(p: Period, lang: string): string {
+  return p === '7D' ? fmtUnit(7, 'day', lang, 'narrow') : p === '1M' ? fmtUnit(1, 'month', lang, 'narrow') : fmtUnit(1, 'year', lang, 'narrow');
 }
 
 function jitter(base: number, maxPct: number) {
@@ -49,7 +90,7 @@ function Sparkline({ data, up }: { data: number[]; up: boolean }) {
 }
 
 /* ── Line chart (for detail popup) ── */
-function LineChart({ data, up, label }: { data: number[]; up: boolean; label: string }) {
+function LineChart({ data, up, label, lang }: { data: number[]; up: boolean; label: Period; lang: string }) {
   const W = 288, H = 130;
   const PL = 52, PR = 8, PT = 8, PB = 22;
   const CW = W - PL - PR, CH = H - PT - PB;
@@ -71,11 +112,14 @@ function LineChart({ data, up, label }: { data: number[]; up: boolean; label: st
   const yPos    = [PT, PT + CH/2, PT + CH];
 
   // X labels
+  // X labels: the last weekdays / 4 dates of the month / 4 months of the year, in the UI language
+  const now = new Date();
+  const n7 = Math.min(7, data.length);
   const xLabels = label === '7D'
-    ? ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].slice(0, data.length)
+    ? Array.from({ length: n7 }, (_, i) => new Date(now.getTime() - (n7 - 1 - i) * 86_400_000).toLocaleDateString(lang, { weekday: 'short' }))
     : label === '1M'
-    ? ['W1','W2','W3','W4']
-    : ['Jan','Apr','Jul','Oct'];
+    ? [21, 14, 7, 0].map(d => new Date(now.getTime() - d * 86_400_000).toLocaleDateString(lang, { day: 'numeric', month: 'numeric' }))
+    : [9, 6, 3, 0].map(m => new Date(now.getFullYear(), now.getMonth() - m, 1).toLocaleDateString(lang, { month: 'short' }));
   const xStep = CW / (xLabels.length - 1);
 
   return (
@@ -96,12 +140,12 @@ function LineChart({ data, up, label }: { data: number[]; up: boolean; label: st
       {/* Y labels */}
       {yLevels.map((v, i) => (
         <text key={i} x={PL - 4} y={yPos[i] + 4} textAnchor="end" fontSize="9" fill="rgba(255,255,255,0.4)">
-          {v >= 1000 ? v.toLocaleString('en-US', { maximumFractionDigits: 0 }) : v < 1 ? v.toFixed(4) : v.toFixed(2)}
+          {new Intl.NumberFormat(lang, { maximumFractionDigits: v >= 1000 ? 0 : v < 1 ? 4 : 2, minimumFractionDigits: v >= 1000 ? 0 : v < 1 ? 4 : 2 }).format(v)}
         </text>
       ))}
       {/* X labels */}
       {xLabels.map((lbl, i) => (
-        <text key={lbl} x={PL + i * xStep} y={H - 4} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.35)">{lbl}</text>
+        <text key={`${lbl}-${i}`} x={PL + i * xStep} y={H - 4} textAnchor="middle" fontSize="9" fill="rgba(255,255,255,0.35)">{lbl}</text>
       ))}
     </svg>
   );
@@ -109,7 +153,9 @@ function LineChart({ data, up, label }: { data: number[]; up: boolean; label: st
 
 /* ── Detail popup ── */
 function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => void }) {
-  const [period, setPeriod] = useState<'7D' | '1M' | '1Y'>('7D');
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
+  const [period, setPeriod] = useState<Period>('7D');
   const up = ticker.changePct >= 0;
   const color = up ? '#4ade80' : '#f87171';
 
@@ -126,18 +172,18 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
           <div>
-            <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '800', color: '#fff' }}>{ticker.symbol}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{ticker.name}</div>
+            <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '800', color: '#fff' }}>{tickerTitle(ticker, st)}</div>
+            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{tickerSub(ticker, st, lang)}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: '20px', fontWeight: '700', fontFamily: 'Poppins', color: '#fff' }}>
-              {ticker.currency !== undefined ? ticker.currency : ''}{fmtPrice(ticker)}
+              {ticker.currency !== undefined ? ticker.currency : ''}{fmtPrice(ticker, lang)}
             </div>
             <div style={{ fontSize: '12px', color, fontWeight: '600' }}>
-              {up ? '▲' : '▼'} {Math.abs(ticker.changePct).toFixed(2)}%
+              {up ? '▲' : '▼'} {fmtPct(ticker.changePct, lang)}
             </div>
           </div>
-          <button onClick={onClose} aria-label="Close" className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
+          <button onClick={onClose} aria-label={t.games.close} className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '26px', height: '26px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
         </div>
 
         {/* Period tabs */}
@@ -149,24 +195,24 @@ function TickerDetail({ ticker, onClose }: { ticker: TickerData; onClose: () => 
               background: p === period ? `${periodUp ? '#4ade80' : '#f87171'}22` : 'rgba(255,255,255,0.05)',
               color: p === period ? (periodUp ? '#4ade80' : '#f87171') : 'var(--text3)',
               outline: p === period ? `1px solid ${periodUp ? '#4ade80' : '#f87171'}44` : 'none',
-            }}>{p}</button>
+            }}>{periodLabel(p, lang)}</button>
           ))}
         </div>
 
         {/* Chart */}
         <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '10px', padding: '8px 4px 4px', marginBottom: '10px' }}>
-          <LineChart data={chartData} up={periodUp} label={period} />
+          <LineChart data={chartData} up={periodUp} label={period} lang={lang} />
         </div>
 
         {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '5px' }}>
           {[
-            { label: 'High',    value: fmtVal(high, ticker) },
-            { label: 'Low',     value: fmtVal(low, ticker) },
-            { label: `${period} Change`, value: `${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(2)}%` },
+            { label: st.high,    value: fmtVal(high, ticker, lang), change: false },
+            { label: st.low,     value: fmtVal(low, ticker, lang), change: false },
+            { label: `${st.changeOver} · ${periodLabel(period, lang)}`, value: fmtPct(pctChange, lang, true), change: true },
           ].map(s => (
             <div key={s.label} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '6px 8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: s.label.includes('Change') ? (pctChange >= 0 ? '#4ade80' : '#f87171') : '#fff' }}>{s.value}</div>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: s.change ? (pctChange >= 0 ? '#4ade80' : '#f87171') : '#fff' }}>{s.value}</div>
               <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{s.label}</div>
             </div>
           ))}
@@ -196,7 +242,8 @@ function loadMarketsWatchlist(): string[] {
 function tickerKey(tab: Tab, symbol: string): string { return `${tab}:${symbol}`; }
 
 export default function Markets() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
   const TAB_LABELS = getTabLabels(t);
   const { listLimit } = useDeviceDetect();
   const [tab,     setTab]     = useState<Tab>('indices');
@@ -262,31 +309,28 @@ export default function Markets() {
     [allTickers, watchlist]
   );
 
-  return (
-    <div className="card" style={{ background: 'rgba(15,20,40,0.92)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--card-radius)', padding: '1.25rem', boxShadow: 'var(--card-shadow)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>{t.markets.title}</h2>
-        {updated && (
-          <span style={{ fontSize: '12px', color: 'var(--text3)' }}>
-            {updated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-          </span>
-        )}
-      </div>
+  const hero = (detail && data[tab].find(x => x.symbol === detail.symbol)) || data[tab][0] || null;
+  const heroUp = (hero?.changePct ?? 0) >= 0;
 
-      {/* Tab bar */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '1rem' }}>
+  return (
+    <ToolFrame toolId="trhy" wide>
+      <div className="tf-chips">
         {(Object.keys(TAB_LABELS) as Tab[]).map(tabId => (
-          <button key={tabId} onClick={() => setTab(tabId)} style={{
-            flex: 1, background: tab === tabId ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
-            border: tab === tabId ? 'none' : '1px solid rgba(255,255,255,0.08)', borderRadius: '8px',
-            color: tab === tabId ? '#fff' : 'var(--text2)', padding: '5px 4px', fontSize: '12px',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
-          }}>
-            <span>{TAB_ICONS[tabId]}</span><span>{TAB_LABELS[tabId]}</span>
+          <button key={tabId} type="button" className={`tf-chip${tab === tabId ? ' is-on' : ''}`} aria-pressed={tab === tabId} onClick={() => setTab(tabId)}>
+            {TAB_ICONS[tabId]} {TAB_LABELS[tabId]}
           </button>
         ))}
       </div>
 
+      {hero ? (
+        <ToolHero
+          label={<span className="tf-keep">{tickerTitle(hero, st)} · {tickerSub(hero, st, lang)}</span>}
+          value={<span dir="ltr">{hero.currency ?? ''}{fmtPrice(hero, lang)}</span>}
+          sub={<span style={{ color: heroUp ? '#4ADE80' : '#F87171' }} dir="ltr">{heroUp ? '▲' : '▼'} {fmtPct(hero.changePct, lang)}{updated && <span style={{ color: 'var(--tf-dim)' }}> · 🕐 {updated.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>}</span>}
+        />
+      ) : <div className="mk-skel" />}
+
+      <div className="tf-panel">
       {/* Watchlist */}
       {watchedTickers.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
@@ -299,9 +343,9 @@ export default function Markets() {
               return (
                 <div key={tickerKey(tab, tk.symbol)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '10px', padding: '6px 10px' }}>
                   <span style={{ color: '#FFB300' }}>★</span>
-                  <span style={{ flex: 1, fontSize: '12px', color: '#fff', fontWeight: '500' }}>{tk.symbol}</span>
+                  <span style={{ flex: 1, fontSize: '12px', color: '#fff', fontWeight: '500' }}>{tickerTitle(tk, st)}</span>
                   <span style={{ fontSize: '12px', fontWeight: '600', color: up ? '#4ade80' : '#f87171' }}>
-                    {up ? '▲' : '▼'} {Math.abs(tk.changePct).toFixed(2)}%
+                    {up ? '▲' : '▼'} {fmtPct(tk.changePct, lang)}
                   </span>
                 </div>
               );
@@ -321,8 +365,8 @@ export default function Markets() {
               <div style={{ fontSize: '12px', color: '#4ade80', marginBottom: '4px' }}>▲ {t.markets.topGainers}</div>
               {topGainers.map(({ ticker: tk }) => (
                 <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
-                  <span style={{ color: '#fff' }}>{tk.symbol}</span>
-                  <span style={{ color: '#4ade80', fontWeight: '600' }}>+{tk.changePct.toFixed(2)}%</span>
+                  <span style={{ color: '#fff' }}>{tickerTitle(tk, st)}</span>
+                  <span style={{ color: '#4ade80', fontWeight: '600' }}>{fmtPct(tk.changePct, lang, true)}</span>
                 </div>
               ))}
             </div>
@@ -330,8 +374,8 @@ export default function Markets() {
               <div style={{ fontSize: '12px', color: '#f87171', marginBottom: '4px' }}>▼ {t.markets.topLosers}</div>
               {topLosers.map(({ ticker: tk }) => (
                 <div key={tk.symbol} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '3px 0' }}>
-                  <span style={{ color: '#fff' }}>{tk.symbol}</span>
-                  <span style={{ color: '#f87171', fontWeight: '600' }}>{tk.changePct.toFixed(2)}%</span>
+                  <span style={{ color: '#fff' }}>{tickerTitle(tk, st)}</span>
+                  <span style={{ color: '#f87171', fontWeight: '600' }}>{fmtPct(tk.changePct, lang, true)}</span>
                 </div>
               ))}
             </div>
@@ -364,8 +408,8 @@ export default function Markets() {
 
               {/* Info */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', lineHeight: 1.2 }}>{ticker.symbol}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{ticker.name}</div>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', lineHeight: 1.2 }}>{tickerTitle(ticker, st)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{tickerSub(ticker, st, lang)}</div>
               </div>
 
               {/* Sparkline */}
@@ -374,11 +418,11 @@ export default function Markets() {
               {/* Price + change */}
               <div style={{ textAlign: 'right', flexShrink: 0 }}>
                 <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>
-                  {ticker.currency !== undefined ? ticker.currency : ''}{fmtPrice(ticker)}
+                  {ticker.currency !== undefined ? ticker.currency : ''}{fmtPrice(ticker, lang)}
                 </div>
                 <div style={{ fontSize: '12px', color, marginTop: '1px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
                   <span>{up ? '▲' : '▼'}</span>
-                  <span>{Math.abs(ticker.changePct).toFixed(2)}%</span>
+                  <span>{fmtPct(ticker.changePct, lang)}</span>
                 </div>
               </div>
             </div>
@@ -390,7 +434,9 @@ export default function Markets() {
         {t.markets.simulatedNote}
       </div>
 
+      </div>
       {detail && <TickerDetail ticker={detail} onClose={() => setDetail(null)} />}
-    </div>
+      <style>{`.mk-skel { height: 170px; border-radius: 22px; background: rgba(255,255,255,0.04); }`}</style>
+    </ToolFrame>
   );
 }

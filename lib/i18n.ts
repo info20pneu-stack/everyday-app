@@ -2555,8 +2555,8 @@ const t: Record<Lang, Translations> = {
     currency: {
       title: 'Převodník měn', youSend: 'Odesíláte', youReceive: 'Obdržíte',
       liveLabel: '● Živá data (frankfurter.app)', staticLabel: '● Statická data (záloha)',
-      liveError: '⚠️ Live kurzy nedostupné · zobrazuji záložní data',
-      liveBadge: 'live', staticBadge: 'statická', refresh: 'Obnovit kurzy',
+      liveError: '⚠️ Aktuální kurzy nedostupné · zobrazuji záložní data',
+      liveBadge: 'živě', staticBadge: 'statická', refresh: 'Obnovit kurzy',
       chart30d: 'Graf za 30 dní', chartUnavailable: 'Graf není dostupný', favorites: 'Oblíbené páry',
       addFavorite: 'Přidat do oblíbených', removeFavorite: 'Odebrat z oblíbených', noFavorites: 'Zatím žádné oblíbené páry',
     },
@@ -2707,7 +2707,7 @@ const t: Record<Lang, Translations> = {
       streakMessage: '{streak}denní série! Jen tak dál 🔥',
       greatStart: 'Skvělý začátek. Přijď zítra!',
       activitiesNote: 'Aktivity se mění každý den · Série se počítá po splnění všech 4',
-      pause: '⏸ Pauza', finished: 'Hotovo!', start: '▶ Start', timer: 'Časovač',
+      pause: '⏸ Pauza', finished: 'Hotovo!', start: '▶ Spustit', timer: 'Časovač',
     },
     dashboard: {
       toolsTitle: 'Nástroje', allTools: 'Všechny nástroje',
@@ -3751,7 +3751,7 @@ const t: Record<Lang, Translations> = {
       streakMessage: 'Seria {streak} dni! Tak trzymaj 🔥',
       greatStart: 'Świetny początek. Wróć jutro!',
       activitiesNote: 'Aktywności zmieniają się codziennie · Seria liczy się, gdy ukończysz wszystkie 4',
-      pause: '⏸ Pauza', finished: 'Gotowe!', start: '▶ Start', timer: 'Minutnik',
+      pause: '⏸ Pauza', finished: 'Gotowe!', start: '▶ Rozpocznij', timer: 'Minutnik',
     },
     dashboard: {
       toolsTitle: 'Narzędzia', allTools: 'Wszystkie narzędzia',

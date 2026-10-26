@@ -3,6 +3,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import WC2026 from './WC2026';
 import { useLang } from '../../lib/LanguageContext';
+import { fmtNumber } from '../../lib/formatNumber';
+import { sportsStrings, type SportsStrings } from '../../lib/sportsI18n';
+import ToolFrame, { ToolButton, ToolHero } from './tools/ToolFrame';
 import {
   TEAMS_BY_LEAGUE, LEAGUE_META as TEAM_LEAGUE_META, type League as TeamLeague,
   type MyTeam, loadMyTeam, saveMyTeam, type MatchInfo, fetchMyTeamMatches,
@@ -29,13 +32,15 @@ type Game = {
   home: Team;
   away: Team;
   status: GameStatus;
-  period?: string;
+  /** Period / quarter number of a live game. */
+  period?: number;
   time?: string;
+  /** Start time (ISO) of an upcoming game, formatted in the UI language when shown. */
   scheduledTime?: string;
   date?: string;
 };
 
-type PeriodScore = { label: string; home: number; away: number };
+type PeriodScore = { n: number; home: number; away: number };
 type TopPerformer = { team: string; player: string; line: string };
 
 type GameDetail = {
@@ -59,34 +64,41 @@ const ESPN_CONFIG = {
     label: 'NHL', emoji: '🏒',
     scoreboardUrl: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard',
     summaryUrl:    'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/summary',
-    periodLabel: (p: number) => p <= 3 ? `${p}.` : 'PP',
+    regularPeriods: 3,
     statKeys:   ['shots', 'powerPlayGoals', 'penaltyMinutes', 'hits', 'faceOffWinPercentage'],
-    statLabels: ['Shots', 'PP goals', 'PIM', 'Hits', 'FO Win %'],
+    statLabels: ['shots', 'ppGoals', 'pim', 'hits', 'foWin'],
   },
   nba: {
     label: 'NBA', emoji: '🏀',
     scoreboardUrl: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard',
     summaryUrl:    'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/summary',
-    periodLabel: (p: number) => p <= 4 ? `Q${p}` : 'OT',
+    regularPeriods: 4,
     statKeys:   ['fieldGoalPct', 'threePointPct', 'freeThrowPct', 'totalRebounds', 'assists', 'turnovers'],
-    statLabels: ['FG%', '3P%', 'FT%', 'Rebounds', 'Assists', 'Turnovers'],
+    statLabels: ['fg', 'threeP', 'ft', 'rebounds', 'assists', 'turnovers'],
   },
   nfl: {
     label: 'NFL', emoji: '🏈',
     scoreboardUrl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
     summaryUrl:    'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary',
-    periodLabel: (p: number) => p <= 4 ? `Q${p}` : 'OT',
+    regularPeriods: 4,
     statKeys:   ['netPassingYards', 'rushingYards', 'turnovers', 'sacks', 'possessionTime'],
-    statLabels: ['Pass yds', 'Rush yds', 'Turnovers', 'Sacks', 'Possession'],
+    statLabels: ['passYds', 'rushYds', 'turnovers', 'sacks', 'possession'],
   },
-} as const;
+} as const satisfies Record<string, { statLabels: readonly (keyof SportsStrings)[] } & Record<string, unknown>>;
+
+/** "2.", "3rd", "OT", "Q4"… — a period or quarter in the UI language. */
+function periodName(n: number, leagueId: LeagueId, ss: SportsStrings): string {
+  const cfg = ESPN_CONFIG[leagueId as keyof typeof ESPN_CONFIG] ?? ESPN_CONFIG.nhl;
+  if (n > cfg.regularPeriods) return ss.ot;
+  return (leagueId === 'nhl' ? ss.period : ss.quarter).replace('{n}', String(n));
+}
 
 /* ═══════════════════════ MOCK STANDINGS (ESPN standings API vrací neúplná data) ═══════════════════════ */
 
 /* ── NHL extended data ── */
 interface Scorer { rank: number; name: string; team: string; color: string; goals: number; assists: number; pts: number; }
-const NHL_EAST = [
-  { conf: 'Atlantic', headers: ['ZP','V','P','PP','B'], rows: [
+const NHL_EAST: { conf: string; headers: (keyof SportsStrings)[]; rows: StandingRow[] }[] = [
+  { conf: 'Atlantic', headers: ['gp','w','l','otl','pts'], rows: [
     { rank:1, abbr:'FLA', name:'Panthers',    color:'#C8102E', cols:['82','52','20','10','114'] },
     { rank:2, abbr:'TBL', name:'Lightning',   color:'#002868', cols:['82','48','24','10','106'] },
     { rank:3, abbr:'BOS', name:'Bruins',      color:'#FFB81C', cols:['82','48','26','8', '104'] },
@@ -95,7 +107,7 @@ const NHL_EAST = [
     { rank:6, abbr:'OTT', name:'Senators',    color:'#E31837', cols:['82','36','38','8', '80'] },
     { rank:7, abbr:'MTL', name:'Canadiens',   color:'#AF1E2D', cols:['82','30','44','8', '68'] },
   ]},
-  { conf: 'Metropolitan', headers: ['ZP','V','P','PP','B'], rows: [
+  { conf: 'Metropolitan', headers: ['gp','w','l','otl','pts'], rows: [
     { rank:1, abbr:'NYR', name:'Rangers',     color:'#0038A8', cols:['82','55','19','8','118'] },
     { rank:2, abbr:'CAR', name:'Hurricanes',  color:'#CC0000', cols:['82','52','21','9','113'] },
     { rank:3, abbr:'PIT', name:'Penguins',    color:'#FCB514', cols:['82','42','31','9', '93'] },
@@ -105,8 +117,8 @@ const NHL_EAST = [
     { rank:7, abbr:'NYI', name:'Islanders',   color:'#00539B', cols:['82','32','43','7', '71'] },
   ]},
 ];
-const NHL_WEST = [
-  { conf: 'Central', headers: ['ZP','V','P','PP','B'], rows: [
+const NHL_WEST: { conf: string; headers: (keyof SportsStrings)[]; rows: StandingRow[] }[] = [
+  { conf: 'Central', headers: ['gp','w','l','otl','pts'], rows: [
     { rank:1, abbr:'COL', name:'Avalanche',    color:'#6F263D', cols:['82','58','18','6','122'] },
     { rank:2, abbr:'DAL', name:'Stars',        color:'#006847', cols:['82','52','22','8','112'] },
     { rank:3, abbr:'NSH', name:'Predators',    color:'#FFB81C', cols:['82','45','28','9', '99'] },
@@ -115,7 +127,7 @@ const NHL_WEST = [
     { rank:6, abbr:'WPG', name:'Jets',         color:'#041E42', cols:['82','38','36','8', '84'] },
     { rank:7, abbr:'CHI', name:'Blackhawks',   color:'#CF0A2C', cols:['82','28','48','6', '62'] },
   ]},
-  { conf: 'Pacific', headers: ['ZP','V','P','PP','B'], rows: [
+  { conf: 'Pacific', headers: ['gp','w','l','otl','pts'], rows: [
     { rank:1, abbr:'EDM', name:'Oilers',         color:'#FF4C00', cols:['82','55','21','6','116'] },
     { rank:2, abbr:'VGK', name:'Golden Knights', color:'#B4975A', cols:['82','50','25','7','107'] },
     { rank:3, abbr:'VAN', name:'Canucks',        color:'#00843D', cols:['82','46','28','8','100'] },
@@ -138,8 +150,8 @@ const NHL_SCORERS: Scorer[] = [
   { rank:10,name:'Jason Robertson', team:'DAL', color:'#006847', goals:48, assists:52, pts:100 },
 ];
 type NhlView = 'league' | 'conference' | 'scorers' | 'playoff';
-const NHL_PLAYOFF: { round: string; matches: Array<{t1:string;c1:string;s1:number;t2:string;c2:string;s2:number;done:boolean}> }[] = [
-  { round:'First Round', matches:[
+const NHL_PLAYOFF: { round: keyof SportsStrings; matches: Array<{t1:string;c1:string;s1:number;t2:string;c2:string;s2:number;done:boolean}> }[] = [
+  { round:'round1', matches:[
     {t1:'EDM',c1:'#FF4C00',s1:4,t2:'LAK',c2:'#111',s2:2,done:true},
     {t1:'VGK',c1:'#B4975A',s1:4,t2:'VAN',c2:'#00843D',s2:3,done:true},
     {t1:'COL',c1:'#6F263D',s1:4,t2:'DAL',c2:'#006847',s2:1,done:true},
@@ -149,24 +161,24 @@ const NHL_PLAYOFF: { round: string; matches: Array<{t1:string;c1:string;s1:numbe
     {t1:'BOS',c1:'#FFB81C',s1:4,t2:'TOR',c2:'#003E7E',s2:3,done:true},
     {t1:'DAL',c1:'#006847',s1:4,t2:'NSH',c2:'#FFB81C',s2:2,done:true},
   ]},
-  { round:'Second Round', matches:[
+  { round:'round2', matches:[
     {t1:'EDM',c1:'#FF4C00',s1:4,t2:'VGK',c2:'#B4975A',s2:2,done:true},
     {t1:'COL',c1:'#6F263D',s1:3,t2:'NYR',c2:'#0038A8',s2:4,done:true},
     {t1:'FLA',c1:'#C8102E',s1:4,t2:'CAR',c2:'#CC0000',s2:1,done:true},
     {t1:'BOS',c1:'#FFB81C',s1:4,t2:'DAL',c2:'#006847',s2:3,done:true},
   ]},
-  { round:'Conference Finals', matches:[
+  { round:'confFinals', matches:[
     {t1:'EDM',c1:'#FF4C00',s1:2,t2:'NYR',c2:'#0038A8',s2:2,done:false},
     {t1:'FLA',c1:'#C8102E',s1:3,t2:'BOS',c2:'#FFB81C',s2:2,done:false},
   ]},
-  { round:'Stanley Cup Final', matches:[
+  { round:'cupFinal', matches:[
     {t1:'TBD',c1:'#555',s1:0,t2:'TBD',c2:'#555',s2:0,done:false},
   ]},
 ];
 
-const STANDINGS: Partial<Record<LeagueId, { rows: StandingRow[]; headers: string[] }>> = {
+const STANDINGS: Partial<Record<LeagueId, { rows: StandingRow[]; headers: (keyof SportsStrings)[] }>> = {
   nhl: {
-    headers: ['ZP', 'V', 'P', 'PP', 'B', '+/-'],
+    headers: ['gp', 'w', 'l', 'otl', 'pts', 'diff'],
     rows: [
       { rank: 1, abbr: 'FLA', name: 'Panthers',       color: '#C8102E', cols: ['72','44','19','9', '97','+44'] },
       { rank: 2, abbr: 'COL', name: 'Avalanche',      color: '#6F263D', cols: ['70','45','18','7', '97','+62'] },
@@ -180,7 +192,7 @@ const STANDINGS: Partial<Record<LeagueId, { rows: StandingRow[]; headers: string
     ],
   },
   nba: {
-    headers: ['ZP', 'V', 'P', 'PCT', 'GB'],
+    headers: ['gp', 'w', 'l', 'pct', 'gb'],
     rows: [
       { rank: 1, abbr: 'BOS', name: 'Celtics',          color: '#007A33', cols: ['71','54','17','.761','—'  ] },
       { rank: 2, abbr: 'DEN', name: 'Nuggets',           color: '#0E2240', cols: ['70','52','18','.743','1.5'] },
@@ -193,7 +205,7 @@ const STANDINGS: Partial<Record<LeagueId, { rows: StandingRow[]; headers: string
     ],
   },
   nfl: {
-    headers: ['ZP', 'V', 'P', 'R', 'PCT'],
+    headers: ['gp', 'w', 'l', 't', 'pct'],
     rows: [
       { rank: 1, abbr: 'KC',  name: 'Chiefs',      color: '#E31837', cols: ['17','14','3','0','.824'] },
       { rank: 2, abbr: 'BAL', name: 'Ravens',      color: '#241773', cols: ['17','13','4','0','.765'] },
@@ -231,10 +243,9 @@ function parseTeam(competitor: any): Team {
   };
 }
 
-function formatScheduledTime(isoDate: string): string {
-  try {
-    return new Date(isoDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-  } catch { return '—'; }
+function formatScheduledTime(isoDate: string, lang: string): string {
+  const d = new Date(isoDate);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
 }
 
 function parseGames(data: any, leagueId: LeagueId): Game[] {
@@ -253,9 +264,9 @@ function parseGames(data: any, leagueId: LeagueId): Game[] {
       home: parseTeam(home),
       away: parseTeam(away),
       status,
-      period: status === 'live' && period ? cfg.periodLabel(period) : undefined,
+      period: status === 'live' && period ? period : undefined,
       time:   status === 'live' ? comp.status?.displayClock : undefined,
-      scheduledTime: status === 'upcoming' ? formatScheduledTime(event.date) : undefined,
+      scheduledTime: status === 'upcoming' ? event.date : undefined,
     }];
   });
 }
@@ -270,7 +281,7 @@ function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): Gam
   const homeLines: any[] = homeComp?.linescores ?? [];
   const awayLines: any[] = awayComp?.linescores ?? [];
   const periodScores: PeriodScore[] = homeLines.map((ls: any, i: number) => ({
-    label: cfg.periodLabel(i + 1),
+    n: i + 1,
     home: parseFloat(ls.displayValue ?? ls.value ?? '0') || 0,
     away: parseFloat(awayLines[i]?.displayValue ?? awayLines[i]?.value ?? '0') || 0,
   }));
@@ -325,10 +336,16 @@ function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): Gam
     awayStats,
     statLabels: [...cfg.statLabels],
     venue: gameInfo.venue?.fullName,
-    attendance: gameInfo.attendance
-      ? Number(gameInfo.attendance).toLocaleString('en-US')
-      : undefined,
+    attendance: gameInfo.attendance ? String(gameInfo.attendance) : undefined,
   };
+}
+
+/** Table values in the UI language: "0,761" for ".761", "1,5" for "1.5"; other text unchanged. */
+function localNum(val: string, lang: string): string {
+  const m = /^([+-]?)(\d*)\.(\d+)$/.exec(val);
+  if (!m) return val;
+  const n = Number(`${m[1]}${m[2] || '0'}.${m[3]}`);
+  return new Intl.NumberFormat(lang, { minimumFractionDigits: m[3].length, maximumFractionDigits: m[3].length, signDisplay: m[1] === '+' ? 'always' : 'auto' }).format(n);
 }
 
 /* ═══════════════════════ UI COMPONENTS ═══════════════════════ */
@@ -352,41 +369,45 @@ const TeamBadge = memo(function TeamBadge({ team, align = 'left' }: { team: Team
   );
 });
 
-const StatusBadge = memo(function StatusBadge({ game }: { game: Game }) {
+const StatusBadge = memo(function StatusBadge({ game, leagueId }: { game: Game; leagueId: LeagueId }) {
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
   if (game.status === 'live') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '3px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', padding: '2px 7px' }}>
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444', display: 'inline-block', animation: 'livePulse 1.5s infinite' }} />
-          <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600' }}>LIVE</span>
+          <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600' }}>{ss.live}</span>
         </div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{game.period} · {game.time}</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{game.period ? periodName(game.period, leagueId, ss) : ''} · {game.time}</div>
       </div>
     );
   }
   if (game.status === 'final') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Final</div>
+        <div style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>{ss.final}</div>
       </div>
     );
   }
   if (game.status === 'postponed') {
     return (
       <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '12px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>Postponed</div>
+        <div style={{ fontSize: '12px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>{t.sports.postponed}</div>
       </div>
     );
   }
   return (
     <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
       {game.date && <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '1px' }}>{game.date}</div>}
-      <div style={{ fontSize: '12px', color: 'var(--blue2)', fontWeight: '500' }}>{game.scheduledTime}</div>
+      <div style={{ fontSize: '12px', color: 'var(--blue2)', fontWeight: '500' }}>{game.scheduledTime ? formatScheduledTime(game.scheduledTime, lang) : ''}</div>
     </div>
   );
 });
 
-const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: Game; detail: GameDetail }) {
+const GameDetailPanel = memo(function GameDetailPanel({ game, detail, leagueId }: { game: Game; detail: GameDetail; leagueId: LeagueId }) {
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
   const awayWins = (game.away.score ?? 0) > (game.home.score ?? 0);
   const cols = detail.periodScores.length;
 
@@ -396,7 +417,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Venue */}
       {detail.venue && (
         <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginBottom: '10px' }}>
-          📍 {detail.venue}{detail.attendance ? ` · ${detail.attendance} spectators` : ''}
+          📍 {detail.venue}{detail.attendance ? ` · ${fmtNumber(Number(detail.attendance), lang)} ${t.sports.attendance}` : ''}
         </div>
       )}
 
@@ -408,9 +429,9 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
               <tr>
                 <th style={{ textAlign: 'left', color: 'var(--text3)', fontWeight: '400', paddingBottom: '4px', width: '52px' }}></th>
                 {detail.periodScores.map(p => (
-                  <th key={p.label} style={{ color: 'var(--text3)', fontWeight: '400', textAlign: 'center', paddingBottom: '4px', minWidth: '30px' }}>{p.label}</th>
+                  <th key={p.n} style={{ color: 'var(--text3)', fontWeight: '400', textAlign: 'center', paddingBottom: '4px', minWidth: '30px' }}>{periodName(p.n, leagueId, ss)}</th>
                 ))}
-                <th style={{ color: '#fff', fontWeight: '700', textAlign: 'center', paddingBottom: '4px', minWidth: '34px' }}>C</th>
+                <th style={{ color: '#fff', fontWeight: '700', textAlign: 'center', paddingBottom: '4px', minWidth: '34px' }}>{ss.total}</th>
               </tr>
             </thead>
             <tbody>
@@ -437,7 +458,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Top performers */}
       {detail.performers.length > 0 && (
         <div style={{ marginBottom: '12px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Top performers</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>{t.sports.topPerformers}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             {detail.performers.map((p, i) => {
               const isHome = p.team === game.home.abbr;
@@ -459,7 +480,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
       {/* Team stats */}
       {detail.statLabels.length > 0 && (
         <div>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>Statistiky</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '6px' }}>{t.sports.statistics}</div>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
             <thead>
               <tr>
@@ -472,7 +493,7 @@ const GameDetailPanel = memo(function GameDetailPanel({ game, detail }: { game: 
               {detail.statLabels.map(label => (
                 <tr key={label} style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
                   <td style={{ padding: '4px 0', color: '#fff', fontWeight: '500' }}>{detail.awayStats[label] ?? '—'}</td>
-                  <td style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '12px' }}>{label}</td>
+                  <td style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '12px' }}>{ss[label as keyof SportsStrings] ?? label}</td>
                   <td style={{ textAlign: 'right', color: '#fff', fontWeight: '500' }}>{detail.homeStats[label] ?? '—'}</td>
                 </tr>
               ))}
@@ -490,6 +511,7 @@ const GameRow = memo(function GameRow({
   game: Game; leagueId: LeagueId; expanded: boolean;
   onToggle: () => void; detailState: FetchState; detail: GameDetail | null;
 }) {
+  const { t } = useLang();
   const homeWins = game.status === 'final' && (game.home.score ?? 0) > (game.away.score ?? 0);
   const awayWins = game.status === 'final' && (game.away.score ?? 0) > (game.home.score ?? 0);
   const isLive = game.status === 'live';
@@ -514,13 +536,13 @@ const GameRow = memo(function GameRow({
             <div style={{ fontSize: '22px', fontFamily: 'Poppins', fontWeight: '600', color: awayWins ? '#fff' : 'var(--text3)', minWidth: '32px', textAlign: 'center' }}>
               {game.away.score ?? '–'}
             </div>
-            <StatusBadge game={game} />
+            <StatusBadge game={game} leagueId={leagueId} />
             <div style={{ fontSize: '22px', fontFamily: 'Poppins', fontWeight: '600', color: homeWins ? '#fff' : 'var(--text3)', minWidth: '32px', textAlign: 'center' }}>
               {game.home.score ?? '–'}
             </div>
           </div>
         ) : (
-          <StatusBadge game={game} />
+          <StatusBadge game={game} leagueId={leagueId} />
         )}
         <TeamBadge team={game.home} align="right" />
         {clickable && (
@@ -531,13 +553,13 @@ const GameRow = memo(function GameRow({
       {expanded && (
         <div style={{ border: '1px solid rgba(93,76,255,0.3)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0 8px 8px', background: 'rgba(93,76,255,0.04)' }}>
           {detailState === 'loading' && (
-            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text3)', fontSize: '12px' }}>Loading details…</div>
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text3)', fontSize: '12px' }}>{t.sports.loadingDetail}</div>
           )}
           {detailState === 'error' && (
-            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#EF4444', fontSize: '12px' }}>Failed to load game details.</div>
+            <div style={{ textAlign: 'center', padding: '1.5rem', color: '#EF4444', fontSize: '12px' }}>{t.sports.detailError}</div>
           )}
           {detailState === 'ok' && detail && (
-            <GameDetailPanel game={game} detail={detail} />
+            <GameDetailPanel game={game} detail={detail} leagueId={leagueId} />
           )}
         </div>
       )}
@@ -545,14 +567,16 @@ const GameRow = memo(function GameRow({
   );
 });
 
-const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: StandingRow[]; headers: string[] }) {
+const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: StandingRow[]; headers: (keyof SportsStrings)[] }) {
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
   const colTemplate = `24px 1fr ${headers.map(() => '36px').join(' ')}`;
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: colTemplate, gap: '4px', padding: '4px 8px', marginBottom: '2px' }}>
         <div style={{ fontSize: '12px', color: 'var(--text3)' }}>#</div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>Team</div>
-        {headers.map(h => <div key={h} style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>{h}</div>)}
+        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.sports.team}</div>
+        {headers.map(h => <div key={h} style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>{ss[h]}</div>)}
       </div>
       {rows.map((row, i) => (
         <div key={row.abbr} style={{
@@ -567,8 +591,8 @@ const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: S
             <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.name}</span>
           </div>
           {row.cols.map((val, ci) => (
-            <div key={ci} style={{ fontSize: '12px', color: ci === 0 ? 'var(--text3)' : '#fff', textAlign: 'center', fontWeight: ci === headers.length - 1 ? '600' : '400' }}>
-              {val}
+            <div key={ci} dir="ltr" style={{ fontSize: '12px', color: ci === 0 ? 'var(--text3)' : '#fff', textAlign: 'center', fontWeight: ci === headers.length - 1 ? '600' : '400' }}>
+              {localNum(val, lang)}
             </div>
           ))}
         </div>
@@ -588,11 +612,25 @@ const SectionLabel = memo(function SectionLabel({ label, count }: { label: strin
 
 /* ═══════════════════════ MY TEAM ═══════════════════════ */
 
-function MyTeamCard({ team, onPick, onClear }: {
+function MyTeamCard({ team, onPick, onClear, editRequest }: {
   team: MyTeam | null; onPick: (league: TeamLeague, abbr: string) => void; onClear: () => void;
+  /** Increases when the header pill asks to pick a team. */
+  editRequest: number;
 }) {
   const { t } = useLang();
-  const [editing, setEditing] = useState(false);
+  const [editingLocal, setEditingLocal] = useState(false);
+  // A new header-pill request opens the editor until the reader closes it
+  const [handledRequest, setHandledRequest] = useState(0);
+  const editing = editingLocal || editRequest > handledRequest;
+  const setEditing = (next: boolean | ((e: boolean) => boolean)) => {
+    const v = typeof next === 'function' ? next(editing) : next;
+    setEditingLocal(v);
+    if (!v) setHandledRequest(editRequest);
+  };
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (editRequest) cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [editRequest]);
   const [draftLeague, setDraftLeague] = useState<TeamLeague>(team?.league ?? 'nhl');
   const [matches, setMatches] = useState<{ last: MatchInfo | null; next: MatchInfo | null } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -607,31 +645,25 @@ function MyTeamCard({ team, onPick, onClear }: {
   }, [team]);
 
   return (
-    <div style={{
-      marginBottom: '1rem', background: 'linear-gradient(135deg, rgba(234,88,12,0.14), rgba(93,76,255,0.1))',
-      border: '1px solid rgba(234,88,12,0.3)', borderRadius: '14px', padding: '12px 14px',
+    <div ref={cardRef} style={{
+      background: 'linear-gradient(135deg, rgba(234,88,12,0.14), rgba(93,76,255,0.1))',
+      border: '1px solid rgba(234,88,12,0.3)', borderRadius: '16px', padding: '12px 14px',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
         <span style={{ fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', color: 'var(--amber)' }}>
           🏆 {t.myDay.teamTitle}
         </span>
-        <button className="icon-btn" onClick={() => setEditing(e => !e)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)' }}>⚙️</button>
+        <button className="icon-btn" onClick={() => setEditing(e => !e)} aria-label={t.myDay.teamSelectTeam} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'var(--text3)' }}>⚙️</button>
       </div>
 
       {editing ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <select value={draftLeague} onChange={e => setDraftLeague(e.target.value as TeamLeague)} style={{
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px',
-            color: '#fff', fontSize: '12px', padding: '5px 7px', outline: 'none',
-          }}>
+          <select className="tf-input" value={draftLeague} onChange={e => setDraftLeague(e.target.value as TeamLeague)}>
             {(Object.keys(TEAM_LEAGUE_META) as TeamLeague[]).map(l => (
               <option key={l} value={l}>{TEAM_LEAGUE_META[l].emoji} {TEAM_LEAGUE_META[l].label}</option>
             ))}
           </select>
-          <select defaultValue="" onChange={e => { if (e.target.value) { onPick(draftLeague, e.target.value); setEditing(false); } }} style={{
-            background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px',
-            color: '#fff', fontSize: '12px', padding: '5px 7px', outline: 'none',
-          }}>
+          <select className="tf-input" defaultValue="" onChange={e => { if (e.target.value) { onPick(draftLeague, e.target.value); setEditing(false); } }}>
             <option value="">{t.myDay.teamSelectTeam}</option>
             {TEAMS_BY_LEAGUE[draftLeague].map(tm => <option key={tm.abbr} value={tm.abbr}>{tm.name}</option>)}
           </select>
@@ -678,7 +710,9 @@ const LEAGUE_META: Record<LeagueId, { emoji: string; label: string }> = {
 };
 
 export default function Sports() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
+  const [editRequest, setEditRequest] = useState(0);
   const [leagueId, setLeagueId] = useState<LeagueId>('nhl');
   const [view, setView] = useState<'games' | 'standings'>('games');
   const [nhlView, setNhlView] = useState<NhlView>('league');
@@ -765,73 +799,45 @@ export default function Sports() {
   const final    = useMemo(() => games.filter(g => g.status === 'final'),    [games]);
   const upcoming = useMemo(() => games.filter(g => g.status === 'upcoming'), [games]);
 
-  const tabBtn = (active: boolean): React.CSSProperties => ({
-    flex: 1, cursor: 'pointer', fontWeight: '500', fontSize: '13px',
-    padding: '7px 0', borderRadius: '8px', gap: '5px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: active ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.05)',
-    border: active ? 'none' : '1px solid rgba(255,255,255,0.08)',
-    color: active ? '#fff' : 'var(--text2)',
-  });
-
-  const viewBtn = (active: boolean): React.CSSProperties => ({
-    flex: 1, cursor: 'pointer', fontSize: '12px', padding: '5px 0', border: 'none', borderRadius: '6px',
-    background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-    color: active ? '#fff' : 'var(--text3)',
-  });
+  // Hero: the first live game, else the last result, else the next game
+  const heroGame = live[0] ?? final[0] ?? upcoming[0] ?? null;
 
   return (
-    <div className="card" style={{ background: 'rgba(15,20,40,0.92)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--card-radius)', padding: '1.25rem', boxShadow: 'var(--card-shadow)' }}>
+    <ToolFrame toolId="sport" wide
+      myDay={myTeamMounted ? { saved: !!myTeam, onSave: () => setEditRequest(n => n + 1) } : undefined}>
 
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🏆 {t.sports.title}</h2>
-        <button className="icon-btn"
-          onClick={() => fetchLeague(leagueId)}
-          title={t.sports.refresh}
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer' }}
-        >↺</button>
-      </div>
-
-      {/* My Team */}
-      {myTeamMounted && <MyTeamCard team={myTeam} onPick={pickMyTeam} onClear={clearMyTeam} />}
-
-      {/* WC 2026 — featured tab */}
-      <button
-        onClick={() => switchLeague('wc2026')}
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-          width: '100%', marginBottom: '8px', padding: '10px', borderRadius: '12px', cursor: 'pointer',
-          border: leagueId === 'wc2026' ? 'none' : '1px solid rgba(255,215,0,0.35)',
-          background: leagueId === 'wc2026'
-            ? 'linear-gradient(135deg, #1a7a3c, #0c4a94)'
-            : 'linear-gradient(135deg, rgba(26,122,60,0.18), rgba(12,74,148,0.18))',
-          boxShadow: leagueId === 'wc2026' ? '0 0 18px rgba(255,215,0,0.25)' : 'none',
-          color: '#fff', fontWeight: '800', fontSize: '13px',
-        }}
-      >
-        <span style={{ fontSize: '16px' }}>⚽🏆</span>
-        <span>{LEAGUE_META.wc2026.label}</span>
-      </button>
-
-      {/* League tabs */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '8px', flexWrap: 'wrap' }}>
+      <div className="tf-chips">
+        <button type="button" className={`tf-chip sp-wc${leagueId === 'wc2026' ? ' is-on' : ''}`} aria-pressed={leagueId === 'wc2026'} onClick={() => switchLeague('wc2026')}>
+          ⚽🏆 {ss.wc}
+        </button>
         {CORE_LEAGUE_IDS.map(id => (
-          <button key={id} onClick={() => switchLeague(id)} style={{ ...tabBtn(id === leagueId), fontSize: '12px', flex: 'none', padding: '6px 10px' }}>
-            <span>{LEAGUE_META[id].emoji}</span>
-            <span>{LEAGUE_META[id].label}</span>
+          <button key={id} type="button" className={`tf-chip${id === leagueId ? ' is-on' : ''}`} aria-pressed={id === leagueId} onClick={() => switchLeague(id)}>
+            {LEAGUE_META[id].emoji} {LEAGUE_META[id].label}
           </button>
         ))}
+        <button type="button" className="tf-chip" onClick={() => fetchLeague(leagueId)} aria-label={t.sports.refresh} title={t.sports.refresh}>↺</button>
       </div>
 
+      {leagueId !== 'wc2026' && view === 'games' && state === 'ok' && heroGame && (
+        <ToolHero
+          label={heroGame.status === 'live' ? `🔴 ${ss.live} · ${LEAGUE_META[leagueId].label}` : `${LEAGUE_META[leagueId].emoji} ${LEAGUE_META[leagueId].label} · ${heroGame.status === 'final' ? ss.final : t.sports.sectionUpcoming}`}
+          value={<span dir="ltr">{heroGame.status === 'upcoming' ? (heroGame.scheduledTime ? formatScheduledTime(heroGame.scheduledTime, lang) : '—') : `${heroGame.away.score ?? 0} : ${heroGame.home.score ?? 0}`}</span>}
+          sub={<span dir="ltr">{heroGame.away.name} {ss.vs} {heroGame.home.name}{heroGame.status === 'live' && heroGame.period ? ` · ${periodName(heroGame.period, leagueId, ss)} ${heroGame.time ?? ''}` : ''}</span>}
+        />
+      )}
+
+      {/* My Team (the same team as the My Day widget) */}
+      {myTeamMounted && <MyTeamCard team={myTeam} onPick={pickMyTeam} onClear={clearMyTeam} editRequest={editRequest} />}
+
+      <div className="tf-panel">
       {/* WC 2026 */}
       {leagueId === 'wc2026' && <WC2026 />}
 
       {/* View toggle (non-WC) */}
       {leagueId !== 'wc2026' && (
-      <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', padding: '3px', marginBottom: '1rem', gap: '2px' }}>
-        <button onClick={() => setView('games')} style={viewBtn(view === 'games')}>📅 Games</button>
-        <button onClick={() => setView('standings')} style={viewBtn(view === 'standings')}>📊 Standings</button>
+      <div className="tf-chips">
+        <button type="button" className={`tf-chip${view === 'games' ? ' is-on' : ''}`} aria-pressed={view === 'games'} onClick={() => setView('games')}>{t.sports.games}</button>
+        <button type="button" className={`tf-chip${view === 'standings' ? ' is-on' : ''}`} aria-pressed={view === 'standings'} onClick={() => setView('standings')}>{t.sports.standings}</button>
       </div>
       )}
 
@@ -854,10 +860,8 @@ export default function Sports() {
       {view === 'games' && state === 'error' && (
         <div style={{ textAlign: 'center', padding: '2rem 0' }}>
           <div style={{ fontSize: '28px', marginBottom: '8px' }}>⚠️</div>
-          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>Failed to load data.</div>
-          <button onClick={() => fetchLeague(leagueId)} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '8px', color: '#fff', fontSize: '12px', padding: '7px 16px', cursor: 'pointer' }}>
-            Try again
-          </button>
+          <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>{t.sports.loadError}</div>
+          <ToolButton onClick={() => fetchLeague(leagueId)}>{t.sports.retry}</ToolButton>
         </div>
       )}
 
@@ -866,7 +870,7 @@ export default function Sports() {
         <>
           {live.length > 0 && (
             <>
-              <SectionLabel label="Live" count={live.length} />
+              <SectionLabel label={t.sports.sectionLive} count={live.length} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
                 {live.map(g => (
                   <GameRow key={g.id} game={g} leagueId={leagueId}
@@ -879,7 +883,7 @@ export default function Sports() {
           )}
           {final.length > 0 && (
             <>
-              <SectionLabel label="Today's results" count={final.length} />
+              <SectionLabel label={t.sports.sectionFinal} count={final.length} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
                 {final.map(g => (
                   <GameRow key={g.id} game={g} leagueId={leagueId}
@@ -892,7 +896,7 @@ export default function Sports() {
           )}
           {upcoming.length > 0 && (
             <>
-              <SectionLabel label="Upcoming" count={upcoming.length} />
+              <SectionLabel label={t.sports.sectionUpcoming} count={upcoming.length} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '.4rem' }}>
                 {upcoming.map(g => (
                   <GameRow key={g.id} game={g} leagueId={leagueId}
@@ -906,12 +910,12 @@ export default function Sports() {
           {games.length === 0 && (
             <div style={{ textAlign: 'center', padding: '2.5rem 0', color: 'var(--text3)', fontSize: '13px' }}>
               <div style={{ fontSize: '28px', marginBottom: '8px' }}>🗓️</div>
-              No games today
+              {t.sports.noGames}
             </div>
           )}
           {live.length > 0 && (
             <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-              Source: ESPN API · auto-refresh every 60s
+              {t.sports.sourceEspn}
             </div>
           )}
         </>
@@ -924,18 +928,12 @@ export default function Sports() {
           {leagueId === 'nhl' && (
             <div style={{ display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap' }}>
               {([
-                { id: 'league' as NhlView,     label: '📊 League' },
-                { id: 'conference' as NhlView, label: '🗺️ Conference' },
-                { id: 'scorers' as NhlView,    label: '⛸️ Scoring' },
-                { id: 'playoff' as NhlView,    label: '🏆 Playoff' },
+                { id: 'league' as NhlView,     label: t.sports.nhlLeague },
+                { id: 'conference' as NhlView, label: t.sports.nhlConference },
+                { id: 'scorers' as NhlView,    label: t.sports.nhlScorers },
+                { id: 'playoff' as NhlView,    label: t.sports.nhlPlayoff },
               ]).map(v => (
-                <button key={v.id} onClick={() => setNhlView(v.id)} style={{
-                  padding: '5px 10px', borderRadius: '7px', border: 'none', cursor: 'pointer',
-                  fontSize: '12px', fontWeight: nhlView === v.id ? '700' : '400',
-                  background: nhlView === v.id ? 'rgba(255,179,0,0.15)' : 'rgba(255,255,255,0.05)',
-                  color: nhlView === v.id ? '#FFB300' : 'var(--text3)',
-                  outline: nhlView === v.id ? '1px solid rgba(255,179,0,0.35)' : 'none',
-                }}>{v.label}</button>
+                <button key={v.id} type="button" className={`tf-chip${nhlView === v.id ? ' is-on' : ''}`} aria-pressed={nhlView === v.id} onClick={() => setNhlView(v.id)}>{v.label}</button>
               ))}
             </div>
           )}
@@ -946,7 +944,7 @@ export default function Sports() {
               {[...NHL_EAST, ...NHL_WEST].map((conf, ci) => (
                 <div key={conf.conf} style={{ marginBottom: '12px' }}>
                   <div style={{ fontSize: '12px', color: ci < 2 ? '#60a5fa' : '#f59e0b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
-                    {ci < 2 ? '🔵 Eastern' : '🟠 Western'} — {conf.conf}
+                    {ci < 2 ? `🔵 ${ss.eastern}` : `🟠 ${ss.western}`} — {conf.conf}
                   </div>
                   <StandingsTable rows={conf.rows} headers={conf.headers} />
                 </div>
@@ -958,7 +956,7 @@ export default function Sports() {
           {leagueId === 'nhl' && nhlView === 'scorers' && (
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '3px 8px', fontSize: '12px', color: 'var(--text3)', marginBottom: '3px' }}>
-                <div>#</div><div>Player</div><div style={{textAlign:'center'}}>G</div><div style={{textAlign:'center'}}>A</div><div style={{textAlign:'center', fontWeight:'700'}}>Pts</div>
+                <div>#</div><div>{t.sports.player}</div><div style={{textAlign:'center'}}>{ss.g}</div><div style={{textAlign:'center'}}>{ss.a}</div><div style={{textAlign:'center', fontWeight:'700'}}>{ss.pts}</div>
               </div>
               {NHL_SCORERS.map(s => (
                 <div key={s.name} style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '5px 8px', borderRadius: '7px', background: s.rank <= 3 ? 'rgba(255,179,0,0.05)' : 'rgba(255,255,255,0.02)', alignItems: 'center', marginBottom: '2px' }}>
@@ -980,17 +978,17 @@ export default function Sports() {
             <div>
               {NHL_PLAYOFF.map(round => (
                 <div key={round.round} style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{round.round}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{ss[round.round]}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                     {round.matches.map((m, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c1, background: `${m.c1}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t1}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c1, background: `${m.c1}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t1 === 'TBD' ? ss.tbd : m.t1}</span>
                         {m.done ? (
                           <span style={{ fontSize: '12px', fontWeight: '700', color: '#fff', fontFamily: 'Poppins', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{m.s1} – {m.s2}</span>
                         ) : (
-                          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>vs</span>
+                          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{ss.vs}</span>
                         )}
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c2, background: `${m.c2}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t2}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c2, background: `${m.c2}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t2 === 'TBD' ? ss.tbd : m.t2}</span>
                       </div>
                     ))}
                   </div>
@@ -1005,14 +1003,16 @@ export default function Sports() {
           )}
 
           <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            Standings: static data · season 2024-25
+            {t.sports.standingsNote}
           </div>
         </>
       )}
 
+      </div>
       <style>{`
         @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+        .sp-wc.is-on { background: linear-gradient(135deg, #1a7a3c, #0c4a94); border-color: rgba(255,215,0,.6); }
       `}</style>
-    </div>
+    </ToolFrame>
   );
 }

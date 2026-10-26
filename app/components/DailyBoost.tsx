@@ -4,6 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
 import { recordDailyBoostActivity } from '../../lib/streak';
+import type { Lang } from '../../lib/i18n';
+import { fmtNumber } from '../../lib/formatNumber';
+import { formatDays } from '../../lib/homeI18n';
+import { useIsClient } from '../../lib/games/useIsClient';
+import { boostStrings, type ActivityId } from '../../lib/dailyBoostI18n';
+import ToolFrame, { ToolHero } from './tools/ToolFrame';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -82,8 +88,27 @@ function fmtTime(s: number) {
     : `${sec}`;
 }
 
-function formatDate(d = new Date()) {
-  return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+function formatDate(lang: string, d = new Date()) {
+  const s = d.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
+  return s.charAt(0).toLocaleUpperCase(lang) + s.slice(1);
+}
+
+/** "20 min", "30 s", "4 cykly" in the UI language. */
+function durationLabel(a: Activity, lang: Lang): string | null {
+  if (!a.duration) return null;
+  if (a.id === 'breathing') return boostStrings(lang).cycles.replace('{n}', fmtNumber(4, lang));
+  const unit = a.duration >= 60 ? 'minute' : 'second';
+  return new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'short' }).format(a.duration >= 60 ? a.duration / 60 : a.duration);
+}
+
+/** Name and description of an activity in the UI language. */
+function activityText(a: Activity, lang: Lang): [string, string] {
+  return boostStrings(lang).acts[a.id as ActivityId] ?? [a.name, a.desc];
+}
+
+function quoteAuthor(author: string, lang: Lang): string {
+  const b = boostStrings(lang);
+  return author === 'Anonymous' ? b.anonymous : author === 'Chinese proverb' ? b.proverb : author === 'Hippocrates (adapted)' ? b.hippocrates : author;
 }
 
 /* ═══════════════════════ TIMER RING ═══════════════════════ */
@@ -109,13 +134,16 @@ function TimerRing({ progress, size = 52 }: { progress: number; size?: number })
 /* ═══════════════════════ ACTIVITY CARD ═══════════════════════ */
 
 function ActivityCard({
-  activity, done, onDone, t,
+  activity, done, onDone, t, lang,
 }: {
   activity: Activity;
   done: boolean;
   onDone: () => void;
   t: Translations;
+  lang: Lang;
 }) {
+  const [name, desc] = activityText(activity, lang);
+  const dur = durationLabel(activity, lang);
   const hasDuration = !!activity.duration;
   const [remaining, setRemaining] = useState(activity.duration ?? 0);
   const [running, setRunning] = useState(false);
@@ -149,9 +177,10 @@ function ActivityCard({
 
   return (
     <div style={{
-      background: done ? 'rgba(34,197,94,0.07)' : 'rgba(255,255,255,0.03)',
-      border: done ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(255,255,255,0.07)',
-      borderRadius: '14px',
+      background: done ? 'linear-gradient(160deg, rgba(34,197,94,0.16), rgba(18,22,64,0.8))' : 'linear-gradient(160deg, #1C2258, #121640)',
+      border: done ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.07)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
+      borderRadius: '16px',
       padding: '14px',
       display: 'flex',
       flexDirection: 'column',
@@ -181,14 +210,14 @@ function ActivityCard({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: '13px', fontWeight: '600', color: done ? 'var(--green2)' : '#fff', marginBottom: '2px', fontFamily: 'Poppins' }}>
-            {activity.name}
+            {name}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', lineHeight: 1.4 }}>
-            {activity.desc}
+            {desc}
           </div>
-          {activity.durationLabel && (
-            <div style={{ fontSize: '12px', color: 'var(--purple3)', marginTop: '3px' }}>
-              ⏱ {activity.durationLabel}
+          {dur && (
+            <div style={{ fontSize: '12px', color: '#FCD34D', marginTop: '3px' }}>
+              ⏱ {dur}
             </div>
           )}
         </div>
@@ -213,7 +242,7 @@ function ActivityCard({
               fontWeight: '700', color: finished ? 'var(--green2)' : '#fff',
               fontFamily: 'Poppins',
             }}>
-              {finished ? '✓' : fmtTime(remaining)}
+              <span dir="ltr">{finished ? '✓' : fmtTime(remaining)}</span>
             </div>
           </div>
           <div style={{ flex: 1 }}>
@@ -249,14 +278,7 @@ function ActivityCard({
 
       {/* Done button */}
       {!done && (
-        <button
-          onClick={onDone}
-          style={{
-            width: '100%', padding: '7px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.05)', color: 'var(--text2)', fontSize: '12px',
-            cursor: 'pointer', fontWeight: '500',
-          }}
-        >
+        <button type="button" className="tf-chip" style={{ width: '100%' }} onClick={onDone}>
           {t.dailyBoost.markAsDone}
         </button>
       )}
@@ -272,7 +294,7 @@ function ActivityCard({
 
 /* ═══════════════════════ STREAK BADGE ═══════════════════════ */
 
-function StreakBadge({ count }: { count: number }) {
+function StreakBadge({ count, lang }: { count: number; lang: Lang }) {
   if (count === 0) return null;
   return (
     <div style={{
@@ -283,7 +305,7 @@ function StreakBadge({ count }: { count: number }) {
     }}>
       <span style={{ fontSize: '14px' }}>{count >= 7 ? '🔥' : count >= 3 ? '⚡' : '✨'}</span>
       <span style={{ fontSize: '12px', fontWeight: '700', color: count >= 7 ? '#FF6B00' : 'var(--amber)' }}>
-        {count} {count === 1 ? 'day' : 'days'}
+        {formatDays(count, lang)}
       </span>
     </div>
   );
@@ -292,7 +314,16 @@ function StreakBadge({ count }: { count: number }) {
 /* ═══════════════════════ MAIN COMPONENT ═══════════════════════ */
 
 export default function DailyBoost() {
-  const { t } = useLang();
+  // Today's progress lives in localStorage, so the page renders in the browser only
+  const isClient = useIsClient();
+  return isClient
+    ? <DailyBoostBody />
+    : <ToolFrame toolId="boost"><div style={{ minHeight: 600 }} /></ToolFrame>;
+}
+
+function DailyBoostBody() {
+  const { t, lang } = useLang();
+  const bs = boostStrings(lang);
   const today = todayKey();
   const seed  = dateSeed();
 
@@ -356,98 +387,54 @@ export default function DailyBoost() {
   const doneCount  = completed.filter(Boolean).length;
   const allDone    = doneCount === 4;
 
+  const quoteIdx = QUOTES.indexOf(quote);
+
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      padding: '1.25rem',
-      boxShadow: 'var(--card-shadow)',
-    }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '.75rem' }}>
-        <div>
-          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '2px' }}>
-            {t.dailyBoost.title}
-          </h2>
-          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
-            {formatDate()}
+    <ToolFrame toolId="boost">
+      <ToolHero
+        label={formatDate(lang)}
+        value={<span dir="ltr">{fmtNumber(doneCount, lang)}/{fmtNumber(4, lang)}</span>}
+        sub={
+          <div className="bo-sub">
+            <span>{t.dailyBoost.todaysChallenges}</span>
+            <div className="bo-bar"><i style={{ width: `${(doneCount / 4) * 100}%`, background: allDone ? 'linear-gradient(90deg, #22C55E, #4ADE80)' : 'linear-gradient(90deg, #F59E0B, #FCD34D)' }} /></div>
+            <StreakBadge count={streak} lang={lang} />
           </div>
-        </div>
-        <StreakBadge count={streak} />
-      </div>
+        }
+      />
 
-      {/* Progress bar */}
-      <div style={{ marginBottom: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text3)', marginBottom: '5px' }}>
-          <span>{t.dailyBoost.todaysChallenges}</span>
-          <span style={{ color: allDone ? 'var(--green2)' : '#fff', fontWeight: '600' }}>{doneCount} / 4</span>
-        </div>
-        <div style={{ height: '6px', borderRadius: '4px', background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%',
-            width: `${(doneCount / 4) * 100}%`,
-            background: allDone
-              ? 'linear-gradient(90deg, var(--green2), #4ADE80)'
-              : 'linear-gradient(90deg, var(--purple), var(--blue2))',
-            borderRadius: '4px',
-            transition: 'width 0.5s ease',
-          }} />
+      <div className="tf-card bo-quote" style={{ '--cc': '#F59E0B' } as React.CSSProperties}>
+        <span className="tf-card-icon" aria-hidden="true">💬</span>
+        <div className="tf-card-body">
+          <div className="tf-card-value" style={{ fontWeight: 600, fontStyle: 'italic', fontSize: 14 }}>„{bs.quotes[quoteIdx] ?? quote.text}“</div>
+          <div className="tf-card-sub">— {quoteAuthor(quote.author, lang)}</div>
         </div>
       </div>
 
-      {/* Quote */}
-      <div style={{
-        background: 'rgba(93,76,255,0.08)',
-        border: '1px solid rgba(93,76,255,0.18)',
-        borderRadius: '12px',
-        padding: '10px 14px',
-        marginBottom: '1rem',
-      }}>
-        <div style={{ fontSize: '12px', color: 'var(--text2)', fontStyle: 'italic', lineHeight: 1.5 }}>
-          „{quote.text}"
-        </div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px', textAlign: 'right' }}>
-          — {quote.author}
-        </div>
-      </div>
-
-      {/* All done banner */}
       {allDone && (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(74,222,128,0.08))',
-          border: '1px solid rgba(34,197,94,0.35)',
-          borderRadius: '12px',
-          padding: '12px 16px',
-          marginBottom: '1rem',
-          textAlign: 'center',
-        }}>
-          <div style={{ fontSize: '22px', marginBottom: '4px' }}>🎉</div>
-          <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--green2)', fontFamily: 'Poppins' }}>
-            {t.dailyBoost.allCompleted}
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
-            {streak > 1 ? t.dailyBoost.streakMessage.replace('{streak}', String(streak)) : t.dailyBoost.greatStart}
-          </div>
+        <div className="tf-panel" style={{ alignItems: 'center', textAlign: 'center', borderColor: 'rgba(34,197,94,.4)' }}>
+          <div style={{ fontSize: 26 }}>🎉</div>
+          <div style={{ fontWeight: 800, color: '#4ADE80' }}>{t.dailyBoost.allCompleted}</div>
+          <div className="tf-note">{streak > 1 ? t.dailyBoost.streakMessage.replace('{streak}', fmtNumber(streak, lang)) : t.dailyBoost.greatStart}</div>
         </div>
       )}
 
-      {/* Activity cards grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+      <div className="bo-grid">
         {activities.map((a, i) => (
-          <ActivityCard
-            key={a.id}
-            activity={a}
-            done={completed[i]}
-            onDone={() => markDone(i)}
-            t={t}
-          />
+          <ActivityCard key={a.id} activity={a} done={completed[i]} onDone={() => markDone(i)} t={t} lang={lang} />
         ))}
       </div>
 
-      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '1rem' }}>
-        {t.dailyBoost.activitiesNote}
-      </div>
-    </div>
+      <div className="tf-note">{t.dailyBoost.activitiesNote}</div>
+
+      <style>{`
+        .bo-sub { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .bo-bar { width: min(280px, 100%); height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+        .bo-bar i { display: block; height: 100%; border-radius: 4px; transition: width .5s ease; }
+        .bo-quote { align-items: flex-start; }
+        .bo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        @media (max-width: 400px) { .bo-grid { grid-template-columns: 1fr; } }
+      `}</style>
+    </ToolFrame>
   );
 }

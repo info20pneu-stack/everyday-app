@@ -16,24 +16,14 @@ import {
   type MyTeam, loadMyTeam, saveMyTeam, type MatchInfo, fetchMyTeamMatches,
 } from '../../lib/teams';
 import FlagText from './FlagText';
+import { MYDAY_COIN_KEY, MYDAY_COINS, MYDAY_WEATHER_KEY, type MyDayPlace } from '../../lib/myDay';
 
 /* ═══════════════════════ storage ═══════════════════════ */
 
-const COIN_KEY = 'myday_coin_v1';
-const WEATHER_CITY_KEY = 'myday_weather_city_v1';
+const COIN_KEY = MYDAY_COIN_KEY;
+const WEATHER_CITY_KEY = MYDAY_WEATHER_KEY;
 
-const COIN_OPTIONS: { id: string; symbol: string; name: string }[] = [
-  { id: 'bitcoin',     symbol: 'BTC',  name: 'Bitcoin' },
-  { id: 'ethereum',    symbol: 'ETH',  name: 'Ethereum' },
-  { id: 'binancecoin', symbol: 'BNB',  name: 'BNB' },
-  { id: 'solana',      symbol: 'SOL',  name: 'Solana' },
-  { id: 'ripple',      symbol: 'XRP',  name: 'XRP' },
-  { id: 'dogecoin',    symbol: 'DOGE', name: 'Dogecoin' },
-  { id: 'cardano',     symbol: 'ADA',  name: 'Cardano' },
-  { id: 'tron',        symbol: 'TRX',  name: 'TRON' },
-  { id: 'avalanche-2', symbol: 'AVAX', name: 'Avalanche' },
-  { id: 'polkadot',    symbol: 'DOT',  name: 'Polkadot' },
-];
+const COIN_OPTIONS = MYDAY_COINS;
 
 const COLORS = {
   cities: '#0EA5E9', weather: '#F59E0B', team: '#EF4444',
@@ -42,7 +32,7 @@ const COLORS = {
 
 type WidgetId = keyof typeof COLORS;
 type Editable = Exclude<WidgetId, 'challenge'>;
-type WeatherPlace = { name: string; lat: number; lon: number; source: 'saved' | 'gps' | 'ip' };
+type WeatherPlace = MyDayPlace;
 
 function lsGet<T>(key: string, fallback: T): T {
   try {

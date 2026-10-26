@@ -3,15 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
-import { fmt2, fmtNumber, fmtUnit } from '../../lib/formatNumber';
-
-function pad(n: number) {
-  return String(n).padStart(2, '0');
-}
-
-function toLocalDate(d: Date) {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-}
+import { fmt2, fmtCompact, fmtNumber, fmtUnit } from '../../lib/formatNumber';
+import { useIsClient } from '../../lib/games/useIsClient';
+import { myDaySet, useMyDayRaw } from '../../lib/myDay';
+import { toolStrings } from '../../lib/toolsI18n';
+import { formatDays } from '../../lib/homeI18n';
+import ToolFrame, { ToolButton, ToolCard, ToolCards, ToolField, ToolHero, ToolTiles, useShare } from './tools/ToolFrame';
 
 type Age = {
   years: number;
@@ -121,8 +118,20 @@ function getMonthNames(t: Translations): string[] {
   ];
 }
 
-const DAYS   = Array.from({ length: 31 }, (_, i) => i + 1);
-const YEARS  = Array.from({ length: 126 }, (_, i) => 2025 - i); // 2025..1900
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+/** Current year down to 1900. */
+function yearOptions(now: Date): number[] {
+  return Array.from({ length: now.getFullYear() - 1899 }, (_, i) => now.getFullYear() - i);
+}
+
+/** "49" + "let" / "years" / "سنة": the number and the language's unit word, split for the big display. */
+function splitUnit(n: number, unit: 'year', lang: string): { num: string; word: string } {
+  const parts = new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'long' }).formatToParts(n);
+  return {
+    num: parts.filter(p => p.type === 'integer' || p.type === 'group').map(p => p.value).join(''),
+    word: parts.filter(p => p.type === 'unit').map(p => p.value).join('').trim(),
+  };
+}
 
 export const AGE_CALCULATOR_DOB_KEY = 'age_calculator_dob_v1';
 
@@ -137,23 +146,33 @@ export function loadStoredDob(): StoredDob | null {
 }
 
 export default function AgeCalculator() {
+  // The saved birth date lives in localStorage, so the calculator renders in the browser only
+  const isClient = useIsClient();
+  return isClient
+    ? <AgeCalculatorBody />
+    : <ToolFrame toolId="vek"><div style={{ minHeight: 640 }} /></ToolFrame>;
+}
+
+function AgeCalculatorBody() {
   const { t, lang } = useLang();
-  const stored = loadStoredDob();
-  const [birthDay,   setBirthDay]   = useState(stored?.day ?? 1);
-  const [birthMonth, setBirthMonth] = useState(stored?.month ?? 1);   // 1 = January
-  const [birthYear,  setBirthYear]  = useState(stored?.year ?? 2000);
-  const [now, setNow] = useState(new Date());
+  const s = toolStrings(lang);
+  const savedRaw = useMyDayRaw(AGE_CALCULATOR_DOB_KEY);
+  const [initial] = useState(loadStoredDob);
+  const [birthDay,   setBirthDay]   = useState(initial?.day ?? 1);
+  const [birthMonth, setBirthMonth] = useState(initial?.month ?? 1);   // 1 = January
+  const [birthYear,  setBirthYear]  = useState(initial?.year ?? 2000);
+  const [now, setNow] = useState(() => new Date());
   const MONTH_NAMES = getMonthNames(t);
   const STATS = getStats(t);
+  const { share, done } = useShare();
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  function saveDob(day: number, month: number, year: number) {
-    try { localStorage.setItem(AGE_CALCULATOR_DOB_KEY, JSON.stringify({ day, month, year })); } catch {}
-  }
+  const current = JSON.stringify({ day: birthDay, month: birthMonth, year: birthYear });
+  const saved = savedRaw === current;
 
   const birth = new Date(birthYear, birthMonth - 1, birthDay);
   // Guard against day overflow (e.g. Feb 30 rolls to Mar)
@@ -164,201 +183,87 @@ export default function AgeCalculator() {
 
   const age    = valid ? calcAge(birth, now) : null;
   const zodiac = valid ? getZodiac(birthMonth, birthDay) : null;
+  const years  = age ? splitUnit(age.years, 'year', lang) : null;
+  const clock = age && (
+    <span dir="ltr" className="tabular-nums">
+      {fmt2(age.hours, lang)}:{fmt2(age.minutes, lang)}:<span className="ac-sec">{fmt2(age.seconds, lang)}</span>
+    </span>
+  );
 
-  const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '8px',
-    color: '#fff',
-    padding: '6px 8px',
-    fontSize: '13px',
-    outline: 'none',
-    cursor: 'pointer',
-    flex: 1,
-  };
+  function shareAge() {
+    if (!age) return;
+    const ageText = [fmtUnit(age.years, 'year', lang, 'long'), fmtUnit(age.months, 'month', lang, 'long'), formatDays(age.days, lang)].join(', ');
+    share(`${s.ageShareText.replace('{age}', ageText)}\nhttps://www.everyday1234567.com/age-calculator`);
+  }
 
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      padding: '1.25rem',
-      boxShadow: 'var(--card-shadow)',
-    }}>
-      <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        {t.ageCalculator.title}
-      </h2>
+    <ToolFrame
+      toolId="vek"
+      myDay={{ saved, onSave: () => myDaySet(AGE_CALCULATOR_DOB_KEY, { day: birthDay, month: birthMonth, year: birthYear }) }}
+    >
 
-      {/* Birth date — three selects */}
-      <div style={{ marginBottom: '1rem' }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.ageCalculator.dateOfBirth}</div>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          {/* Day */}
-          <select value={birthDay} onChange={e => { const v = Number(e.target.value); setBirthDay(v); saveDob(v, birthMonth, birthYear); }} style={selectStyle}>
-            {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
-          {/* Month */}
-          <select value={birthMonth} onChange={e => { const v = Number(e.target.value); setBirthMonth(v); saveDob(birthDay, v, birthYear); }} style={{ ...selectStyle, flex: 2 }}>
-            {MONTH_NAMES.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-          </select>
-          {/* Year */}
-          <select value={birthYear} onChange={e => { const v = Number(e.target.value); setBirthYear(v); saveDob(birthDay, birthMonth, v); }} style={{ ...selectStyle, flex: 1.2 }}>
-            {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-        </div>
-        {birthDay > 28 && !valid && birth.getDate() !== birthDay && (
-          <div style={{ fontSize: '12px', color: 'var(--amber)', marginTop: '4px' }}>
-            ⚠️ {t.ageCalculator.invalidDay.replace('{month}', MONTH_NAMES[birthMonth - 1]).replace('{day}', fmtNumber(birthDay, lang))}
+      <div className="tf-panel">
+        <ToolField label={t.ageCalculator.dateOfBirth} htmlFor="ac-day"
+          hint={birthDay > 28 && !valid && birth.getDate() !== birthDay
+            ? `⚠️ ${t.ageCalculator.invalidDay.replace('{month}', MONTH_NAMES[birthMonth - 1]).replace('{day}', fmtNumber(birthDay, lang))}`
+            : undefined}>
+          <div className="tf-row">
+            <select id="ac-day" className="tf-input" style={{ flex: 1 }} value={birthDay} onChange={e => setBirthDay(Number(e.target.value))} aria-label={t.ageCalculator.dateOfBirth}>
+              {DAYS.map(d => <option key={d} value={d}>{fmtNumber(d, lang)}</option>)}
+            </select>
+            <select className="tf-input" style={{ flex: 2 }} value={birthMonth} onChange={e => setBirthMonth(Number(e.target.value))} aria-label={t.ageCalculator.dateOfBirth}>
+              {MONTH_NAMES.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+            </select>
+            <select className="tf-input" style={{ flex: 1.3 }} value={birthYear} onChange={e => setBirthYear(Number(e.target.value))} aria-label={t.ageCalculator.dateOfBirth}>
+              {yearOptions(now).map(y => <option key={y} value={y}>{new Intl.NumberFormat(lang, { useGrouping: false }).format(y)}</option>)}
+            </select>
           </div>
-        )}
+        </ToolField>
       </div>
 
-      {!valid && (
-        <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          {t.ageCalculator.enterDateOfBirth}
-        </div>
-      )}
+      {!valid && <div className="tf-note" style={{ padding: '2rem 0' }}>{t.ageCalculator.enterDateOfBirth}</div>}
 
-      {age && (
+      {age && years && zodiac && (
         <>
-          {/* Main age display */}
-          <div style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: '14px',
-            padding: '1.25rem 1rem',
-            marginBottom: '.75rem',
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: '12px',
-              color: 'var(--text3)',
-              marginBottom: '6px',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-            }}>
-              {t.ageCalculator.yourAge}
-            </div>
-            <div style={{
-              fontFamily: 'Poppins',
-              fontSize: '48px',
-              fontWeight: '600',
-              color: '#fff',
-              lineHeight: 1,
-            }}>
-              {fmtNumber(age.years, lang)}
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>
-              {fmtUnit(age.months, 'month', lang)} · {fmtUnit(age.days, 'day', lang)} ·{' '}
-              <span dir="ltr">
-                {fmt2(age.hours, lang)}:{fmt2(age.minutes, lang)}:
-                <span style={{ color: 'var(--purple3)' }}>{fmt2(age.seconds, lang)}</span>
-              </span>
-            </div>
-          </div>
+          <ToolHero
+            label={t.ageCalculator.yourAge}
+            value={years.num}
+            unit={years.word}
+            sub={<>{fmtUnit(age.months, 'month', lang, 'long')} · {formatDays(age.days, lang)} · {clock}</>}
+          />
 
-          {/* Next birthday */}
-          <div style={{
-            background: age.isToday
-              ? 'rgba(93,76,255,0.15)'
-              : 'rgba(255,255,255,0.03)',
-            border: age.isToday
-              ? '1px solid rgba(93,76,255,0.4)'
-              : '1px solid rgba(255,255,255,0.06)',
-            borderRadius: '12px',
-            padding: '.875rem 1rem',
-            marginBottom: '.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}>
-            <div>
-              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '2px' }}>
-                {t.ageCalculator.nextBirthday}
-              </div>
-              <div style={{ fontSize: '13px', color: '#fff' }}>
-                {age.isToday
-                  ? t.ageCalculator.happyBirthday
-                  : age.nextBirthdayDate.toLocaleDateString(lang, { day: 'numeric', month: 'long' })}
-              </div>
-            </div>
-            {!age.isToday && (
-              <div style={{ textAlign: 'right' }}>
-                <div style={{
-                  fontSize: '24px',
-                  fontWeight: '600',
-                  fontFamily: 'Poppins',
-                  color: 'var(--purple3)',
-                }}>
-                  {fmtNumber(age.nextBirthday, lang)}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.daysLabel}</div>
-              </div>
-            )}
-          </div>
+          <ToolCards>
+            <ToolCard
+              wide icon="🎂" color="#D946EF"
+              label={t.ageCalculator.nextBirthday}
+              value={age.isToday
+                ? t.ageCalculator.happyBirthday
+                : capitalize(age.nextBirthdayDate.toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }), lang)}
+              sub={age.isToday ? undefined : formatDays(age.nextBirthday, lang)}
+            />
+            <ToolCard
+              icon={zodiac.emoji} color="#F59E0B"
+              label={t.ageCalculator.zodiac}
+              value={t.ageCalculator.zodiacSigns[ZODIAC.indexOf(zodiac)]}
+            />
+            <ToolCard
+              icon="📅" color="#38BDF8"
+              label={t.ageCalculator.dayOfBirth}
+              value={capitalize(birth.toLocaleDateString(lang, { weekday: 'long' }), lang)}
+            />
+          </ToolCards>
 
-          {/* Zodiac + totals */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.75rem' }}>
-            {zodiac && (
-              <div style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: '10px',
-                padding: '.6rem .75rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}>
-                <span style={{ fontSize: '22px' }}>{zodiac.emoji}</span>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>{t.ageCalculator.zodiacSigns[ZODIAC.indexOf(zodiac)] ?? zodiac.sign}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.zodiac}</div>
-                </div>
-              </div>
-            )}
-            <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '10px',
-              padding: '.6rem .75rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}>
-              <span style={{ fontSize: '22px' }}>📅</span>
-              <div>
-                <div style={{ fontSize: '12px', color: '#fff', fontWeight: '500' }}>
-                  {capitalize(birth.toLocaleDateString(lang, { weekday: 'long' }), lang)}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.ageCalculator.dayOfBirth}</div>
-              </div>
-            </div>
-          </div>
+          <ToolTiles items={STATS.map(({ key, label }) => ({
+            label, value: fmtCompact(age[key], lang), accent: key === 'totalSeconds',
+          }))} />
 
-          {/* Totals grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
-            {STATS.map(({ key, label }) => (
-              <div key={key} style={{
-                background: 'rgba(255,255,255,0.03)',
-                borderRadius: '10px',
-                padding: '.625rem .75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}>
-                <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</span>
-                <span style={{
-                  fontSize: key === 'totalSeconds' ? '12px' : '12px',
-                  fontWeight: '500',
-                  color: key === 'totalSeconds' ? 'var(--purple3)' : '#fff',
-                }}>
-                  {fmtNumber(age[key], lang)}
-                </span>
-              </div>
-            ))}
-          </div>
+          <ToolButton onClick={shareAge}>{done ? s.copied : <>📤 {s.shareAge}</>}</ToolButton>
         </>
       )}
-    </div>
+
+      <style>{`
+        .ac-sec { color: #C4B5FD; }
+      `}</style>
+    </ToolFrame>
   );
 }

@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmtDecimal, fmtNumber } from '../../lib/formatNumber';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolCard, ToolCards, ToolField, ToolHero, useShare } from './tools/ToolFrame';
 
 type System = 'metric' | 'imperial';
 type Gender = 'male' | 'female';
@@ -109,34 +112,10 @@ function scaleGradient(): string {
   return `linear-gradient(to right, ${stops.join(', ')})`;
 }
 
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(15,20,40,0.92)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 'var(--card-radius)',
-  padding: '1.25rem',
-  boxShadow: 'var(--card-shadow)',
-};
-
-const inputStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '8px',
-  color: '#fff',
-  padding: '6px 10px',
-  fontSize: '13px',
-  outline: 'none',
-  width: '100%',
-  boxSizing: 'border-box',
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: '12px',
-  color: 'var(--text3)',
-  marginBottom: '4px',
-};
-
 export default function BMI() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const s = toolStrings(lang);
+  const { share, done } = useShare();
   const [system, setSystem] = useState<System>('metric');
   const [gender, setGender] = useState<Gender>('male');
   const [age, setAge] = useState('25');
@@ -189,298 +168,121 @@ export default function BMI() {
   const markerPct = bmi !== null ? bmiToPercent(bmi) : null;
   const weightUnit = system === 'metric' ? 'kg' : 'lb';
 
+  const fmtW = (n: number) => fmtDecimal(n, lang, 1);
+
   return (
-    <div className="card" style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>
-          {t.bmi.title}
-        </h2>
-        {/* System toggle */}
-        <div style={{
-          display: 'flex',
-          background: 'rgba(255,255,255,0.05)',
-          borderRadius: '8px',
-          padding: '2px',
-          gap: '2px',
-        }}>
-          {(['metric', 'imperial'] as System[]).map(s => (
-            <button
-              key={s}
-              onClick={() => setSystem(s)}
-              style={{
-                background: system === s
-                  ? 'linear-gradient(135deg, var(--purple), #7A3FFF)'
-                  : 'none',
-                border: 'none',
-                borderRadius: '6px',
-                color: system === s ? '#fff' : 'var(--text2)',
-                padding: '3px 10px',
-                fontSize: '12px',
-                cursor: 'pointer',
-                fontWeight: system === s ? '600' : '400',
-              }}
-            >
-              {s === 'metric' ? t.bmi.metric : t.bmi.imperial}
-            </button>
-          ))}
+    <ToolFrame toolId="bmi">
+      <div className="tf-panel">
+        <div className="bmi-toggles">
+          <div className="tf-chips" role="group" aria-label={t.bmi.title}>
+            {(['metric', 'imperial'] as System[]).map(sys => (
+              <button key={sys} type="button" className={`tf-chip${system === sys ? ' is-on' : ''}`} aria-pressed={system === sys} onClick={() => setSystem(sys)}>
+                {sys === 'metric' ? t.bmi.metric : t.bmi.imperial}
+              </button>
+            ))}
+          </div>
+          <div className="tf-chips" role="group" aria-label={s.gender}>
+            {([['male', t.bmi.male], ['female', t.bmi.female]] as [Gender, string][]).map(([g, label]) => (
+              <button key={g} type="button" className={`tf-chip${gender === g ? ' is-on' : ''}`} aria-pressed={gender === g} onClick={() => setGender(g)}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Gender toggle */}
-      <div style={{ marginBottom: '1rem' }}>
-        <div style={labelStyle}>Gender</div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {([['male', t.bmi.male], ['female', t.bmi.female]] as [Gender, string][]).map(([g, label]) => (
-            <button
-              key={g}
-              onClick={() => setGender(g)}
-              style={{
-                flex: 1,
-                background: gender === g
-                  ? g === 'male'
-                    ? 'rgba(96,165,250,0.2)'
-                    : 'rgba(244,114,182,0.2)'
-                  : 'rgba(255,255,255,0.04)',
-                border: gender === g
-                  ? g === 'male'
-                    ? '1px solid rgba(96,165,250,0.5)'
-                    : '1px solid rgba(244,114,182,0.5)'
-                  : '1px solid rgba(255,255,255,0.08)',
-                borderRadius: '8px',
-                color: gender === g
-                  ? g === 'male' ? '#60a5fa' : '#f472b6'
-                  : 'var(--text2)',
-                padding: '7px',
-                fontSize: '13px',
-                cursor: 'pointer',
-                fontWeight: gender === g ? '600' : '400',
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Inputs grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.625rem', marginBottom: '1rem' }}>
-        {/* Height */}
-        <div style={{ gridColumn: system === 'imperial' ? 'span 2' : 'span 1' }}>
-          {system === 'metric' ? (
-            <>
-              <div style={labelStyle}>{t.bmi.heightCm}</div>
-              <input
-                type="number"
-                value={heightCm}
-                onChange={e => setHeightCm(e.target.value)}
-                min="50" max="280"
-                style={inputStyle}
-              />
-            </>
-          ) : (
-            <>
-              <div style={labelStyle}>Height</div>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="number"
-                    value={heightFt}
-                    onChange={e => setHeightFt(e.target.value)}
-                    min="1" max="9"
-                    placeholder={t.bmi.ft}
-                    style={{ ...inputStyle, textAlign: 'center' }}
-                  />
-                  <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.ft}</div>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <input
-                    type="number"
-                    value={heightIn}
-                    onChange={e => setHeightIn(e.target.value)}
-                    min="0" max="11"
-                    placeholder={t.bmi.in}
-                    style={{ ...inputStyle, textAlign: 'center' }}
-                  />
-                  <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '2px' }}>{t.bmi.in}</div>
-                </div>
+        {system === 'metric' ? (
+          <div className="tf-row">
+            <ToolField label={t.bmi.heightCm} htmlFor="bmi-h">
+              <input id="bmi-h" type="number" inputMode="decimal" className="tf-input" value={heightCm} onChange={e => setHeightCm(e.target.value)} min="50" max="280" />
+            </ToolField>
+            <ToolField label={t.bmi.weightKg} htmlFor="bmi-w">
+              <input id="bmi-w" type="number" inputMode="decimal" className="tf-input" value={weightKg} onChange={e => setWeightKg(e.target.value)} min="10" max="500" />
+            </ToolField>
+            <ToolField label={t.bmi.ageYears} htmlFor="bmi-a">
+              <input id="bmi-a" type="number" inputMode="numeric" className="tf-input" value={age} onChange={e => setAge(e.target.value)} min="2" max="120" />
+            </ToolField>
+          </div>
+        ) : (
+          <>
+            <ToolField label={s.height} htmlFor="bmi-ft">
+              <div className="tf-row">
+                <input id="bmi-ft" type="number" inputMode="numeric" className="tf-input" value={heightFt} onChange={e => setHeightFt(e.target.value)} min="1" max="9" aria-label={t.bmi.ft} placeholder={t.bmi.ft} />
+                <span className="bmi-unit">{t.bmi.ft}</span>
+                <input type="number" inputMode="numeric" className="tf-input" value={heightIn} onChange={e => setHeightIn(e.target.value)} min="0" max="11" aria-label={t.bmi.in} placeholder={t.bmi.in} />
+                <span className="bmi-unit">{t.bmi.in}</span>
               </div>
-            </>
-          )}
-        </div>
-
-        {/* Weight */}
-        {system === 'metric' && (
-          <div>
-            <div style={labelStyle}>{t.bmi.weightKg}</div>
-            <input
-              type="number"
-              value={weightKg}
-              onChange={e => setWeightKg(e.target.value)}
-              min="10" max="500"
-              style={inputStyle}
-            />
-          </div>
-        )}
-
-        {/* Age */}
-        <div>
-          <div style={labelStyle}>{t.bmi.ageYears}</div>
-          <input
-            type="number"
-            value={age}
-            onChange={e => setAge(e.target.value)}
-            min="2" max="120"
-            style={inputStyle}
-          />
-        </div>
-
-        {/* Weight imperial */}
-        {system === 'imperial' && (
-          <div>
-            <div style={labelStyle}>{t.bmi.weightLb}</div>
-            <input
-              type="number"
-              value={weightLb}
-              onChange={e => setWeightLb(e.target.value)}
-              min="20" max="1000"
-              style={inputStyle}
-            />
-          </div>
+            </ToolField>
+            <div className="tf-row">
+              <ToolField label={t.bmi.weightLb} htmlFor="bmi-lb">
+                <input id="bmi-lb" type="number" inputMode="decimal" className="tf-input" value={weightLb} onChange={e => setWeightLb(e.target.value)} min="20" max="1000" />
+              </ToolField>
+              <ToolField label={t.bmi.ageYears} htmlFor="bmi-a2">
+                <input id="bmi-a2" type="number" inputMode="numeric" className="tf-input" value={age} onChange={e => setAge(e.target.value)} min="2" max="120" />
+              </ToolField>
+            </div>
+          </>
         )}
       </div>
 
-      {bmi === null ? (
-        <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          {t.bmi.enterAll}
-        </div>
+      {bmi === null || !cat ? (
+        <div className="tf-note" style={{ padding: '2rem 0' }}>{t.bmi.enterAll}</div>
       ) : (
         <>
-          {/* BMI result */}
-          <div style={{
-            background: cat!.bg,
-            border: `1px solid ${cat!.color}33`,
-            borderRadius: '14px',
-            padding: '1.25rem 1rem',
-            marginBottom: '.875rem',
-            textAlign: 'center',
-          }}>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-              {t.bmi.bodyMassIndex}
+          <ToolHero
+            label={t.bmi.bodyMassIndex}
+            value={fmtDecimal(bmi, lang, 1)}
+            sub={<span style={{ color: cat.color, fontSize: 16, fontWeight: 800 }}>{cat.label}</span>}
+          >
+            {/* Scale (always left → right, like the numbers) */}
+            <div className="bmi-scale" dir="ltr">
+              <div className="bmi-bar" style={{ background: scaleGradient() }}>
+                <div className="bmi-marker" style={{ left: `${markerPct}%`, background: cat.color, boxShadow: `0 0 10px ${cat.color}` }} />
+              </div>
+              <div className="bmi-ticks">
+                {[16, 18.5, 25, 30, 35, 40].map(b => (
+                  <span key={b} style={{ left: `${bmiToPercent(b)}%` }}>{b % 1 ? fmtDecimal(b, lang, 1) : fmtNumber(b, lang)}</span>
+                ))}
+              </div>
             </div>
-            <div style={{
-              fontFamily: 'Poppins',
-              fontSize: '56px',
-              fontWeight: '700',
-              color: cat!.color,
-              lineHeight: 1,
-            }}>
-              {bmi.toFixed(1)}
-            </div>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '600',
-              color: cat!.color,
-              marginTop: '6px',
-            }}>
-              {cat!.label}
-            </div>
-          </div>
+          </ToolHero>
 
-          {/* Visual scale */}
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{
-              position: 'relative',
-              height: '12px',
-              borderRadius: '6px',
-              background: scaleGradient(),
-              marginBottom: '6px',
-            }}>
-              {/* Marker */}
-              <div style={{
-                position: 'absolute',
-                left: `${markerPct}%`,
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                background: cat!.color,
-                border: '3px solid #0f1428',
-                boxShadow: `0 0 8px ${cat!.color}88`,
-                transition: 'left 0.3s ease',
-              }} />
-            </div>
-            {/* Scale labels */}
-            <div style={{ position: 'relative', height: '14px' }}>
-              {[
-                { bmi: 16, label: '16' },
-                { bmi: 18.5, label: '18.5' },
-                { bmi: 25, label: '25' },
-                { bmi: 30, label: '30' },
-                { bmi: 35, label: '35' },
-                { bmi: 40, label: '40' },
-              ].map(({ bmi: b, label }) => (
-                <span
-                  key={b}
-                  style={{
-                    position: 'absolute',
-                    left: `${bmiToPercent(b)}%`,
-                    transform: 'translateX(-50%)',
-                    fontSize: '12px',
-                    color: 'var(--text3)',
-                  }}
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Ideal weight range */}
           {idealRange && (
-            <div style={{
-              background: 'rgba(74,222,128,0.08)',
-              border: '1px solid rgba(74,222,128,0.2)',
-              borderRadius: '10px',
-              padding: '.625rem 1rem',
-              marginBottom: '.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
-              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.bmi.idealWeightRange}</div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#4ade80' }}>
-                {idealRange[0]} – {idealRange[1]} {weightUnit}
-              </div>
+            <ToolCards>
+              <ToolCard wide icon="⚖️" color="#4ADE80" label={t.bmi.idealWeightRange}
+                value={<span dir="ltr">{fmtW(idealRange[0])} – {fmtW(idealRange[1])} {weightUnit}</span>} />
+            </ToolCards>
+          )}
+
+          {recs.length > 0 && (
+            <div className="tf-panel">
+              <div className="tf-label">💡 {t.bmi.recommendations}</div>
+              <ul className="bmi-recs">
+                {recs.map((r, i) => <li key={i} style={{ '--dot': cat.color } as React.CSSProperties}>{r}</li>)}
+              </ul>
             </div>
           )}
 
-          {/* Recommendations */}
-          {recs.length > 0 && (
-            <div style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(255,255,255,0.06)',
-              borderRadius: '12px',
-              padding: '.875rem 1rem',
-            }}>
-              <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '.5rem', letterSpacing: '.5px', textTransform: 'uppercase' }}>
-                {t.bmi.recommendations}
-              </div>
-              {recs.map((r, i) => (
-                <div key={i} style={{
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'flex-start',
-                  marginBottom: i < recs.length - 1 ? '.375rem' : 0,
-                }}>
-                  <span style={{ color: cat!.color, fontSize: '12px', marginTop: '3px', flexShrink: 0 }}>●</span>
-                  <span style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5 }}>{r}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          <ToolButton onClick={() => share(`${t.bmi.bodyMassIndex}: ${fmtDecimal(bmi, lang, 1)} – ${cat.label}\nhttps://www.everyday1234567.com/bmi`)}>
+            {done ? s.copied : <>📤 {s.share}</>}
+          </ToolButton>
         </>
       )}
-    </div>
+
+      <style>{`
+        .bmi-toggles { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+        .bmi-unit { flex: 0 0 auto !important; align-self: center; font-size: 13px; color: var(--tf-dim); }
+        .bmi-scale { margin-top: 16px; }
+        .bmi-bar { position: relative; height: 12px; border-radius: 6px; }
+        .bmi-marker {
+          position: absolute; top: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; border-radius: 50%;
+          border: 3px solid #0E1238; transition: left .3s ease;
+        }
+        .bmi-ticks { position: relative; height: 18px; margin-top: 6px; }
+        .bmi-ticks span { position: absolute; transform: translateX(-50%); font-size: 11px; color: var(--tf-dim); }
+        .bmi-recs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .bmi-recs li { position: relative; padding-inline-start: 16px; font-size: 13px; line-height: 1.5; color: rgba(236,238,255,.88); }
+        .bmi-recs li::before { content: ''; position: absolute; inset-inline-start: 0; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--dot); }
+      `}</style>
+    </ToolFrame>
   );
 }

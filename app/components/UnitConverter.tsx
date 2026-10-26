@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmtNumber } from '../../lib/formatNumber';
+import { useIsClient } from '../../lib/games/useIsClient';
+import { toolStrings, type ToolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolField, ToolHero, ToolTiles, useShare } from './tools/ToolFrame';
 
-type Unit = { label: string; factor: number; offset?: number };
+/** `intl`: Intl unit id for a localized name; `name`: key in toolsI18n for units Intl doesn't know. */
+type Unit = { label: string; factor: number; offset?: number; intl?: string; name?: 'unitTsp' | 'unitTbsp' | 'unitCup' | 'unitPint' | 'unitKnot' };
 type Category = { id: string; name: string; units: Unit[] };
 
 function getCategories(t: Translations): Category[] {
@@ -16,10 +21,10 @@ function getCategories(t: Translations): Category[] {
         { label: 'cm', factor: 0.01 },
         { label: 'm', factor: 1 },
         { label: 'km', factor: 1000 },
-        { label: 'in', factor: 0.0254 },
-        { label: 'ft', factor: 0.3048 },
-        { label: 'yd', factor: 0.9144 },
-        { label: 'mi', factor: 1609.344 },
+        { label: 'in', factor: 0.0254, intl: 'inch' },
+        { label: 'ft', factor: 0.3048, intl: 'foot' },
+        { label: 'yd', factor: 0.9144, intl: 'yard' },
+        { label: 'mi', factor: 1609.344, intl: 'mile' },
       ],
     },
     {
@@ -29,9 +34,9 @@ function getCategories(t: Translations): Category[] {
         { label: 'g', factor: 0.001 },
         { label: 'kg', factor: 1 },
         { label: 't', factor: 1000 },
-        { label: 'oz', factor: 0.028349523 },
-        { label: 'lb', factor: 0.45359237 },
-        { label: 'st', factor: 6.35029318 },
+        { label: 'oz', factor: 0.028349523, intl: 'ounce' },
+        { label: 'lb', factor: 0.45359237, intl: 'pound' },
+        { label: 'st', factor: 6.35029318, intl: 'stone' },
       ],
     },
     {
@@ -50,12 +55,12 @@ function getCategories(t: Translations): Category[] {
         { label: 'dl', factor: 0.1 },
         { label: 'l', factor: 1 },
         { label: 'm³', factor: 1000 },
-        { label: 'tsp', factor: 0.00492892 },
-        { label: 'tbsp', factor: 0.01478676 },
-        { label: 'fl oz', factor: 0.02957353 },
-        { label: 'cup', factor: 0.23658824 },
-        { label: 'pt', factor: 0.47317647 },
-        { label: 'gal', factor: 3.78541178 },
+        { label: 'tsp', factor: 0.00492892, name: 'unitTsp' },
+        { label: 'tbsp', factor: 0.01478676, name: 'unitTbsp' },
+        { label: 'fl oz', factor: 0.02957353, intl: 'fluid-ounce' },
+        { label: 'cup', factor: 0.23658824, name: 'unitCup' },
+        { label: 'pt', factor: 0.47317647, name: 'unitPint' },
+        { label: 'gal', factor: 3.78541178, intl: 'gallon' },
       ],
     },
     {
@@ -63,9 +68,9 @@ function getCategories(t: Translations): Category[] {
       units: [
         { label: 'm/s', factor: 1 },
         { label: 'km/h', factor: 0.27777778 },
-        { label: 'mph', factor: 0.44704 },
-        { label: 'kn', factor: 0.51444444 },
-        { label: 'ft/s', factor: 0.3048 },
+        { label: 'mph', factor: 0.44704, intl: 'mile-per-hour' },
+        { label: 'kn', factor: 0.51444444, name: 'unitKnot' },
+        { label: 'ft/s', factor: 0.3048, intl: 'foot-per-second' },
       ],
     },
     {
@@ -78,7 +83,7 @@ function getCategories(t: Translations): Category[] {
         { label: 'ha', factor: 10_000 },
         { label: 'in²', factor: 0.00064516 },
         { label: 'ft²', factor: 0.09290304 },
-        { label: 'ac', factor: 4046.8564 },
+        { label: 'ac', factor: 4046.8564, intl: 'acre' },
         { label: 'mi²', factor: 2_589_988.11 },
       ],
     },
@@ -103,55 +108,32 @@ function fromBase(base: number, unit: Unit, catId: string): number {
   return base / unit.factor;
 }
 
-function fmt(n: number): string {
+/** Converted value in the language's number format; huge values shortened ("25,9 mil."). */
+function fmt(n: number, lang: string): string {
   if (!isFinite(n)) return '—';
   const abs = Math.abs(n);
-  if (abs === 0) return '0';
-  if (abs >= 1e9) return n.toExponential(3);
-  if (abs >= 1000) return n.toLocaleString('en-US', { maximumFractionDigits: 4 });
-  if (abs >= 1) return +n.toPrecision(7) + '';
-  return +n.toPrecision(4) + '';
+  if (abs === 0) return fmtNumber(0, lang);
+  if (abs >= 1e6) return new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 2 }).format(n);
+  if (abs >= 1) return new Intl.NumberFormat(lang, { maximumFractionDigits: 4 }).format(n);
+  if (abs < 1e-6) return new Intl.NumberFormat(lang, { notation: 'scientific', maximumFractionDigits: 3 }).format(n);
+  return new Intl.NumberFormat(lang, { maximumSignificantDigits: 4 }).format(n);
 }
 
-const cardStyle: React.CSSProperties = {
-  background: 'rgba(15,20,40,0.92)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 'var(--card-radius)',
-  padding: '1.25rem',
-  boxShadow: 'var(--card-shadow)',
-};
-
-const inputStyle: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: '#fff',
-  fontSize: '28px',
-  fontWeight: '300',
-  width: '100%',
-  outline: 'none',
-  minWidth: 0,
-};
-
-const selectStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.06)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '8px',
-  color: '#fff',
-  padding: '4px 8px',
-  fontSize: '12px',
-  outline: 'none',
-  flexShrink: 0,
-};
-
-const rowStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.03)',
-  border: '1px solid rgba(255,255,255,0.06)',
-  borderRadius: '12px',
-  padding: '1rem',
-};
+/** "in · palec": symbol plus the unit's name in the UI language (imperial units only). */
+function unitLabel(u: Unit, lang: string, s: ToolStrings): string {
+  let name = u.name ? s[u.name] : '';
+  if (u.intl) {
+    try {
+      name = new Intl.NumberFormat(lang, { style: 'unit', unit: u.intl, unitDisplay: 'long' })
+        .formatToParts(1).filter(p => p.type === 'unit').map(p => p.value).join('').trim();
+    } catch {}
+  }
+  return name ? `${u.label} · ${name}` : u.label;
+}
 
 export default function UnitConverter() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const s = toolStrings(lang);
   const CATEGORIES = getCategories(t);
   const [catIdx, setCatIdx] = useState(0);
   const cat = CATEGORIES[catIdx];
@@ -159,6 +141,10 @@ export default function UnitConverter() {
   const [fromIdx, setFromIdx] = useState(2);
   const [toIdx, setToIdx] = useState(3);
   const [input, setInput] = useState('1');
+  const { share, done } = useShare();
+  // Intl unit names differ between Node's and the browser's ICU, so they appear after hydration
+  const isClient = useIsClient();
+  const label = (u: Unit) => isClient ? unitLabel(u, lang, s) : u.label;
 
   const safeFrom = Math.min(fromIdx, cat.units.length - 1);
   const safeTo = Math.min(toIdx, cat.units.length - 1);
@@ -166,7 +152,8 @@ export default function UnitConverter() {
   const fromUnit = cat.units[safeFrom];
   const toUnit = cat.units[safeTo];
 
-  const base = toBase(parseFloat(input) || 0, fromUnit, cat.id);
+  const amount = parseFloat(input.replace(',', '.')) || 0;
+  const base = toBase(amount, fromUnit, cat.id);
   const result = fromBase(base, toUnit, cat.id);
 
   function switchCategory(idx: number) {
@@ -181,145 +168,57 @@ export default function UnitConverter() {
     setToIdx(safeFrom);
   }
 
-  return (
-    <div className="card" style={cardStyle}>
-      <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        {t.unitConverter.title}
-      </h2>
+  const resultText = `${fmt(amount, lang)} ${fromUnit.label} = ${fmt(result, lang)} ${toUnit.label}`;
 
-      {/* Category tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '6px',
-        flexWrap: 'wrap',
-        marginBottom: '1rem',
-      }}>
+  return (
+    <ToolFrame toolId="prevodnik">
+      <div className="tf-chips" role="group" aria-label={t.unitConverter.title}>
         {CATEGORIES.map((c, i) => (
-          <button
-            key={c.id}
-            onClick={() => switchCategory(i)}
-            style={{
-              background: i === catIdx
-                ? 'linear-gradient(135deg, var(--purple), #7A3FFF)'
-                : 'rgba(255,255,255,0.05)',
-              border: i === catIdx
-                ? 'none'
-                : '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '8px',
-              color: i === catIdx ? '#fff' : 'var(--text2)',
-              padding: '5px 10px',
-              fontSize: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            <span>{c.name}</span>
+          <button key={c.id} type="button" className={`tf-chip${i === catIdx ? ' is-on' : ''}`} aria-pressed={i === catIdx} onClick={() => switchCategory(i)}>
+            {c.name}
           </button>
         ))}
       </div>
 
-      {/* From */}
-      <div style={rowStyle}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.from}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="number"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            style={inputStyle}
-          />
-          <select
-            value={safeFrom}
-            onChange={e => setFromIdx(Number(e.target.value))}
-            style={selectStyle}
-          >
-            {cat.units.map((u, i) => (
-              <option key={u.label} value={i}>{u.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Swap */}
-      <div style={{ textAlign: 'center', margin: '-.25rem 0', position: 'relative', zIndex: 1 }}>
-        <button className="icon-btn"
-          onClick={swap}
-          style={{
-            background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-            border: 'none',
-            borderRadius: '50%',
-            width: '36px',
-            height: '36px',
-            fontSize: '16px',
-            cursor: 'pointer',
-            color: '#fff',
-          }}
-        >⇅</button>
-      </div>
-
-      {/* To */}
-      <div style={{ ...rowStyle, marginTop: '.75rem' }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.unitConverter.to}</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ ...inputStyle, color: 'var(--blue2)', fontSize: '28px', display: 'flex', alignItems: 'center' }}>
-            {fmt(result)}
+      <div className="tf-panel">
+        <ToolField label={t.unitConverter.from} htmlFor="uc-amount">
+          <div className="tf-row">
+            <input id="uc-amount" type="text" inputMode="decimal" className="tf-input" style={{ flex: 1.2 }}
+              value={input} onChange={e => setInput(e.target.value)} />
+            <select className="tf-input" style={{ flex: 1 }} value={safeFrom} onChange={e => setFromIdx(Number(e.target.value))} aria-label={t.unitConverter.from}>
+              {cat.units.map((u, i) => <option key={u.label} value={i}>{label(u)}</option>)}
+            </select>
           </div>
-          <select
-            value={safeTo}
-            onChange={e => setToIdx(Number(e.target.value))}
-            style={selectStyle}
-          >
-            {cat.units.map((u, i) => (
-              <option key={u.label} value={i}>{u.label}</option>
-            ))}
+        </ToolField>
+        <button type="button" className="uc-swap" onClick={swap} aria-label={t.unitConverter.swap}>⇅</button>
+        <ToolField label={t.unitConverter.to} htmlFor="uc-to">
+          <select id="uc-to" className="tf-input" value={safeTo} onChange={e => setToIdx(Number(e.target.value))}>
+            {cat.units.map((u, i) => <option key={u.label} value={i}>{label(u)}</option>)}
           </select>
-        </div>
+        </ToolField>
       </div>
 
-      {/* Rate hint */}
-      <div style={{
-        background: 'rgba(255,255,255,0.03)',
-        borderRadius: '8px',
-        padding: '.5rem 1rem',
-        fontSize: '12px',
-        color: 'var(--text3)',
-        textAlign: 'center',
-        marginTop: '.75rem',
-      }}>
-        1 {fromUnit.label} = {fmt(fromBase(toBase(1, fromUnit, cat.name), toUnit, cat.name))} {toUnit.label}
-      </div>
+      <ToolHero
+        label={<span className="tf-keep" dir="ltr">{fmt(amount, lang)} {fromUnit.label} =</span>}
+        value={fmt(result, lang)}
+        unit={toUnit.label}
+        sub={<span dir="ltr">1 {fromUnit.label} = {fmt(fromBase(toBase(1, fromUnit, cat.id), toUnit, cat.id), lang)} {toUnit.label}</span>}
+      />
 
-      {/* Quick reference grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '.5rem',
-        marginTop: '.75rem',
-      }}>
-        {cat.units.filter((_, i) => i !== safeFrom).slice(0, 6).map(u => {
-          const v = fromBase(base, u, cat.name);
-          return (
-            <div
-              key={u.label}
-              onClick={() => setToIdx(cat.units.indexOf(u))}
-              style={{
-                background: 'rgba(255,255,255,0.03)',
-                borderRadius: '10px',
-                padding: '.625rem .875rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                cursor: 'pointer',
-              }}
-            >
-              <span style={{ fontSize: '12px', color: 'var(--text2)' }}>{u.label}</span>
-              <span style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>{fmt(v)}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+      <ToolTiles items={cat.units.filter((_, i) => i !== safeFrom).slice(0, 6).map(u => ({
+        label: <span className="tf-keep">{u.label}</span>, value: fmt(fromBase(base, u, cat.id), lang), accent: u === toUnit,
+      }))} />
+
+      <ToolButton onClick={() => share(resultText)}>{done ? s.copied : <>📋 {s.copyResult}</>}</ToolButton>
+
+      <style>{`
+        .uc-swap {
+          align-self: center; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; margin: -4px 0;
+          font-size: 18px; color: #fff; border: 1px solid color-mix(in srgb, var(--tc) 70%, #fff);
+          background: linear-gradient(160deg, color-mix(in srgb, var(--tc) 75%, #fff), color-mix(in srgb, var(--tc) 75%, #000));
+          box-shadow: 0 0 16px color-mix(in srgb, var(--tc) 45%, transparent);
+        }
+      `}</style>
+    </ToolFrame>
   );
 }

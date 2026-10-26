@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import { CURRENCIES } from '../../lib/currencies';
 import FlagText from './FlagText';
+import { useIsClient } from '../../lib/games/useIsClient';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolField, ToolHero, ToolTiles, useShare } from './tools/ToolFrame';
 
 const STATIC_RATES = Object.fromEntries(CURRENCIES.map(c => [c.code, c.rate]));
 
@@ -42,8 +45,25 @@ function saveFavPairs(pairs: FavPair[]) {
   try { localStorage.setItem(FAV_PAIRS_KEY, JSON.stringify(pairs)); } catch {}
 }
 
+/** Exchange rate with 4 decimals in the language's format (0,9120). */
+function fmtRate(n: number, lang: string): string {
+  return new Intl.NumberFormat(lang, { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(n);
+}
+
+/** Amount in a currency, e.g. "92,40" — 0 decimals for currencies without minor units (JPY, KRW). */
+function fmtAmount(n: number, code: string, lang: string): string {
+  const digits = new Intl.NumberFormat('en', { style: 'currency', currency: code }).resolvedOptions().maximumFractionDigits ?? 2;
+  if (Math.abs(n) >= 1e9) return new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 2 }).format(n);
+  return new Intl.NumberFormat(lang, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(n);
+}
+
+/** Currency name in the UI language ("americký dolar"), falling back to the English name. */
+function currencyName(code: string, lang: string, fallback: string): string {
+  try { return new Intl.DisplayNames([lang], { type: 'currency' }).of(code) ?? fallback; } catch { return fallback; }
+}
+
 /* ── 30-day rate chart ── */
-function RateChart({ history, accentColor }: { history: RateHistory; accentColor: string }) {
+function RateChart({ history, accentColor, lang }: { history: RateHistory; accentColor: string; lang: string }) {
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -100,20 +120,23 @@ function RateChart({ history, accentColor }: { history: RateHistory; accentColor
           background: '#0f1428', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px',
           padding: '3px 7px', fontSize: '12px', color: '#fff', whiteSpace: 'nowrap', pointerEvents: 'none',
         }}>
-          <div style={{ color: 'var(--text3)' }}>{dates[hoverIdx]?.slice(5)}</div>
-          <div style={{ fontWeight: '700' }}>{values[hoverIdx]?.toFixed(4)}</div>
+          <div style={{ color: 'var(--text3)' }}>{dates[hoverIdx] ? new Date(`${dates[hoverIdx]}T12:00:00Z`).toLocaleDateString(lang, { day: 'numeric', month: 'short', timeZone: 'UTC' }) : ''}</div>
+          <div style={{ fontWeight: '700' }}>{fmtRate(values[hoverIdx] ?? 0, lang)}</div>
         </div>
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>
-        <span>{min.toFixed(4)}</span>
-        <span>{max.toFixed(4)}</span>
+        <span>{fmtRate(min, lang)}</span>
+        <span>{fmtRate(max, lang)}</span>
       </div>
     </div>
   );
 }
 
 export default function Currency() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const s = toolStrings(lang);
+  const { share, done } = useShare();
+  const isClient = useIsClient();
   const [rates, setRates] = useState<Record<string, number>>(STATIC_RATES);
   const [fetchState, setFetchState] = useState<FetchState>('loading');
   const [dataSource, setDataSource] = useState<DataSource>('static');
@@ -168,210 +191,118 @@ export default function Currency() {
 
   const fromRate = rates[from] ?? 1;
   const toRate   = rates[to]   ?? 1;
-  const result   = ((parseFloat(amount) || 0) / fromRate * toRate);
+  const amountNum = parseFloat(amount.replace(',', '.')) || 0;
+  const result   = amountNum / fromRate * toRate;
   const rate     = toRate / fromRate;
 
   const fromCurr = CURRENCIES.find(c => c.code === from)!;
   const toCurr   = CURRENCIES.find(c => c.code === to)!;
-
-  const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '8px',
-    color: '#fff',
-    padding: '4px 8px',
-    fontSize: '12px',
-    outline: 'none',
-  };
-
-  const rowStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.06)',
-    borderRadius: '12px',
-    padding: '1rem',
-    marginBottom: '.75rem',
-  };
-
-  const card: React.CSSProperties = {
-    background: 'rgba(15,20,40,0.92)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 'var(--card-radius)',
-    padding: '1.25rem',
-    boxShadow: 'var(--card-shadow)',
-  };
+  // Intl currency names differ between Node's and the browser's ICU, so they appear after hydration
+  const name = (c: (typeof CURRENCIES)[number]) => isClient ? currencyName(c.code, lang, c.name) : c.name;
+  const option = (c: (typeof CURRENCIES)[number]) => `${c.code} · ${name(c)}`;
+  const resultText = `${fmtAmount(amountNum, from, lang)} ${from} = ${fmtAmount(result, to, lang)} ${to}`;
 
   return (
-    <div className="card" style={card}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>
-          💵 Currency Converter
-        </h2>
-        <button className="icon-btn"
-          onClick={loadRates}
-          title="Refresh rates"
-          disabled={fetchState === 'loading'}
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', color: 'var(--text3)', fontSize: '13px', padding: '3px 8px', cursor: 'pointer', opacity: fetchState === 'loading' ? 0.5 : 1 }}
-        >↺</button>
+    <ToolFrame toolId="meny">
+      <div className="tf-panel">
+        <ToolField label={t.currency.youSend} htmlFor="cur-amount">
+          <div className="tf-row">
+            <input id="cur-amount" type="text" inputMode="decimal" className="tf-input" style={{ flex: 1 }}
+              value={amount} onChange={e => setAmount(e.target.value)} />
+            <div className="cur-pick" style={{ flex: 1.4 }}>
+              <span className="cur-flag"><FlagText text={fromCurr.flag} size={22} /></span>
+              <select className="tf-input cur-select" value={from} onChange={e => setFrom(e.target.value)} aria-label={t.currency.youSend}>
+                {CURRENCIES.map(c => <option key={c.code} value={c.code}>{option(c)}</option>)}
+              </select>
+            </div>
+          </div>
+        </ToolField>
+        <button type="button" className="cur-swap" onClick={() => { setFrom(to); setTo(from); }} aria-label="⇅">⇅</button>
+        <ToolField label={t.currency.youReceive} htmlFor="cur-to">
+          <div className="cur-pick">
+            <span className="cur-flag"><FlagText text={toCurr.flag} size={22} /></span>
+            <select id="cur-to" className="tf-input cur-select" value={to} onChange={e => setTo(e.target.value)}>
+              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{option(c)}</option>)}
+            </select>
+          </div>
+        </ToolField>
       </div>
 
-      {/* Loading skeleton */}
-      {fetchState === 'loading' && (
-        <>
-          <div style={{ height: '88px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', marginBottom: '.75rem' }} />
-          <div style={{ height: '36px', borderRadius: '50%', width: '36px', background: 'rgba(255,255,255,0.04)', margin: '0 auto -.25rem', animation: 'shimmer 1.5s infinite' }} />
-          <div style={{ height: '88px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite', margin: '.75rem 0' }} />
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} style={{ height: '52px', borderRadius: '10px', background: 'rgba(255,255,255,0.025)', animation: 'shimmer 1.5s infinite', animationDelay: `${i * 0.06}s` }} />
+      {fetchState === 'loading' ? (
+        <div className="cur-skeleton" />
+      ) : (
+        <ToolHero
+          label={<span className="tf-keep">{fmtAmount(amountNum, from, lang)} {from} =</span>}
+          value={fmtAmount(result, to, lang)}
+          unit={to}
+          sub={
+            <span className="cur-sub">
+              <span dir="ltr">1 {from} = {fmtRate(rate, lang)} {to}</span>
+              <span className={dataSource === 'live' ? 'cur-live' : 'cur-static'}>{dataSource === 'live' ? t.currency.liveLabel : t.currency.staticLabel}</span>
+            </span>
+          }
+        />
+      )}
+
+      {fetchState === 'error' && <div className="tf-note" style={{ color: '#FFC94D' }}>{t.currency.liveError}</div>}
+
+      <div className="tf-chips">
+        <button type="button" className={`tf-chip${isFavPair ? ' is-on' : ''}`} aria-pressed={isFavPair} onClick={toggleFavPair}>
+          {isFavPair ? '★' : '☆'} {isFavPair ? t.currency.removeFavorite : t.currency.addFavorite}
+        </button>
+        <button type="button" className="tf-chip" onClick={loadRates} disabled={fetchState === 'loading'}>↺ {t.currency.refresh}</button>
+      </div>
+
+      <div className="tf-panel">
+        <div className="tf-label">⭐ {t.currency.favorites}</div>
+        {favPairs.length === 0 ? (
+          <div className="tf-note" style={{ textAlign: 'start' }}>{t.currency.noFavorites}</div>
+        ) : (
+          <div className="tf-chips">
+            {favPairs.map(p => (
+              <button key={`${p.from}-${p.to}`} type="button" dir="ltr"
+                className={`tf-chip${p.from === from && p.to === to ? ' is-on' : ''}`}
+                onClick={() => { setFrom(p.from); setTo(p.to); }}>{p.from} → {p.to}</button>
             ))}
           </div>
-          <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
-        </>
-      )}
+        )}
+      </div>
 
-      {/* Main converter (visible when not in initial loading) */}
-      {fetchState !== 'loading' && (
-        <>
-          <div style={rowStyle}>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>You send</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <input
-                type="number"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                style={{ background: 'none', border: 'none', color: '#fff', fontSize: '28px', fontWeight: '300', width: '150px', outline: 'none' }}
-              />
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ display: 'inline-flex' }}><FlagText text={fromCurr.flag} size={28} /></span>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{from}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{fromCurr.name}</div>
-                </div>
-                <select value={from} onChange={e => setFrom(e.target.value)} style={selectStyle}>
-                  {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
+      <div className="tf-panel">
+        <div className="tf-label">📈 {t.currency.chart30d} · <span dir="ltr">{from} → {to}</span></div>
+        {history ? (
+          <RateChart history={history} accentColor="#4ADE80" lang={lang} />
+        ) : historyError ? (
+          <div className="tf-note">{t.currency.chartUnavailable}</div>
+        ) : (
+          <div className="cur-skeleton" style={{ height: 70 }} />
+        )}
+      </div>
 
-          <div style={{ textAlign: 'center', margin: '-.25rem 0', position: 'relative', zIndex: 1 }}>
-            <button className="icon-btn"
-              onClick={() => { setFrom(to); setTo(from); }}
-              style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', color: '#fff' }}
-            >⇅</button>
-          </div>
+      <ToolTiles items={CURRENCIES.filter(c => c.code !== from).slice(0, 8).map(c => ({
+        label: `${c.code} · ${name(c)}`,
+        value: fmtAmount(amountNum / fromRate * (rates[c.code] ?? c.rate), c.code, lang),
+        accent: c.code === to,
+      }))} />
 
-          <div style={{ ...rowStyle, marginTop: '.75rem' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>You receive</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ fontSize: '28px', fontWeight: '300', color: '#fff', width: '150px' }}>
-                {result.toFixed(2)}
-              </div>
-              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ display: 'inline-flex' }}><FlagText text={toCurr.flag} size={28} /></span>
-                <div>
-                  <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff' }}>{to}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{toCurr.name}</div>
-                </div>
-                <select value={to} onChange={e => setTo(e.target.value)} style={selectStyle}>
-                  {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
-                </select>
-              </div>
-            </div>
-          </div>
+      <ToolButton onClick={() => share(resultText)}>{done ? s.copied : <>📋 {s.copyResult}</>}</ToolButton>
 
-          <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '8px', padding: '.5rem 1rem', fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginBottom: '.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            <span>
-              1 {from} = {rate.toFixed(4)} {to}
-              &nbsp;·&nbsp;
-              {dataSource === 'live' ? (
-                <span style={{ color: 'var(--green2)' }}>● Live (frankfurter.app)</span>
-              ) : (
-                <span style={{ color: 'var(--amber)' }}>● Static data (backup)</span>
-              )}
-            </span>
-            <button className="icon-btn"
-              onClick={toggleFavPair}
-              title={isFavPair ? t.currency.removeFavorite : t.currency.addFavorite}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '15px', color: isFavPair ? '#FFB300' : 'var(--text3)', lineHeight: 1 }}
-            >{isFavPair ? '★' : '☆'}</button>
-          </div>
-
-          {/* Favorite pairs */}
-          <div style={{ marginBottom: '.75rem' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
-              {t.currency.favorites}
-            </div>
-            {favPairs.length === 0 ? (
-              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.currency.noFavorites}</div>
-            ) : (
-              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                {favPairs.map(p => (
-                  <button
-                    key={`${p.from}-${p.to}`}
-                    onClick={() => { setFrom(p.from); setTo(p.to); }}
-                    style={{
-                      padding: '4px 9px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                      fontSize: '12px', fontWeight: '600',
-                      background: p.from === from && p.to === to ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.06)',
-                      color: p.from === from && p.to === to ? 'var(--purple3)' : 'var(--text2)',
-                    }}
-                  >{p.from}→{p.to}</button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 30-day chart */}
-          <div style={{ ...rowStyle }}>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
-              {t.currency.chart30d} · {from}→{to}
-            </div>
-            {history ? (
-              <RateChart history={history} accentColor="var(--purple3)" />
-            ) : historyError ? (
-              <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', padding: '12px 0' }}>{t.currency.chartUnavailable}</div>
-            ) : (
-              <div style={{ height: '70px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', animation: 'shimmer 1.5s infinite' }} />
-            )}
-          </div>
-
-          {fetchState === 'error' && (
-            <div style={{ background: 'rgba(255,179,0,0.06)', border: '1px solid rgba(255,179,0,0.15)', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', color: 'var(--amber)', marginBottom: '1rem', textAlign: 'center' }}>
-              ⚠️ Live rates unavailable · showing backup data
-            </div>
-          )}
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem' }}>
-            {CURRENCIES.filter(c => c.code !== 'USD').slice(0, 8).map(c => {
-              const val = (1 / fromRate * (rates[c.code] ?? c.rate));
-              return (
-                <div key={c.code} style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '.625rem .875rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
-                  onClick={() => setTo(c.code)}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ display: 'inline-flex' }}><FlagText text={c.flag} size={20} /></span>
-                    <div>
-                      <div style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>{c.code}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.name}</div>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '12px', fontWeight: '500', color: '#fff' }}>
-                      {val.toFixed(val > 100 ? 1 : 4)}
-                    </div>
-                    <div style={{ fontSize: '12px', color: dataSource === 'live' ? 'var(--green2)' : 'var(--text3)' }}>
-                      {dataSource === 'live' ? 'live' : 'static'}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      <style>{`@keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }`}</style>
-    </div>
+      <style>{`
+        .cur-pick { position: relative; display: flex; align-items: center; min-width: 0; }
+        .cur-flag { position: absolute; inset-inline-start: 12px; display: inline-flex; pointer-events: none; }
+        .cur-select { padding-inline-start: 44px; }
+        .cur-swap {
+          align-self: center; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; margin: -4px 0;
+          font-size: 18px; color: #fff; border: 1px solid color-mix(in srgb, var(--tc) 70%, #fff);
+          background: linear-gradient(160deg, color-mix(in srgb, var(--tc) 75%, #fff), color-mix(in srgb, var(--tc) 75%, #000));
+          box-shadow: 0 0 16px color-mix(in srgb, var(--tc) 45%, transparent);
+        }
+        .cur-sub { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; }
+        .cur-live { color: #4ADE80; }
+        .cur-static { color: #FFC94D; }
+        .cur-skeleton { height: 180px; border-radius: 22px; background: rgba(255,255,255,0.04); animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+      `}</style>
+    </ToolFrame>
   );
 }

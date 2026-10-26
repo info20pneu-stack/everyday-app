@@ -18,7 +18,7 @@ function subscribe(cb: () => void) {
 }
 
 /* Snapshot as a string so useSyncExternalStore sees a stable value between reads */
-function useTrioState(): Snapshot | null {
+export function useTrioState(): Snapshot | null {
   const raw = useSyncExternalStore(
     subscribe,
     () => {
@@ -88,7 +88,8 @@ function TrioCard({ color, icon, href, badge, title, desc, done, doneLabel, play
   );
 }
 
-export default function DailyTrio() {
+/** `showAllLink`: the "All games →" link (off on the games page itself). */
+export default function DailyTrio({ showAllLink = true }: { showAllLink?: boolean }) {
   const { t, lang } = useLang();
   const h = homeStrings(lang).trio;
   const s = useTrioState();
@@ -131,16 +132,18 @@ export default function DailyTrio() {
           <h2 className="section-title">🎯 {h.title}</h2>
           <span className="section-sub">{h.subtitle}</span>
         </div>
-        <Link href="/games" className="section-link">
-          {h.allGames} <span className="dir-arrow" aria-hidden="true">→</span>
-        </Link>
+        {showAllLink && (
+          <Link href="/games" className="section-link">
+            {h.allGames} <span className="dir-arrow" aria-hidden="true">→</span>
+          </Link>
+        )}
       </div>
 
       <div className="trio-grid">
         <TrioCard
           {...common}
           color="#2FE39A" icon="🧩" href="/games/daily-puzzle"
-          badge={`${puzzleNum ? `#${puzzleNum} · ` : ''}2 MIN`}
+          badge={`${puzzleNum ? `#${puzzleNum} · ` : ''}${t.gamesHub.minutes.replace('{n}', '2')}`}
           title={t.dailyPuzzle.title}
           done={!!puzzle?.done}
           desc={puzzle?.done
@@ -152,7 +155,7 @@ export default function DailyTrio() {
         <TrioCard
           {...common}
           color="#8B5CF6" icon="⚖️" href="/games/higher-lower"
-          badge="2 MIN"
+          badge={t.gamesHub.minutes.replace('{n}', '2')}
           title={hlName}
           done={!!hl?.done}
           desc={hl?.done
@@ -164,7 +167,7 @@ export default function DailyTrio() {
         <TrioCard
           {...common}
           color="#38BDF8" icon="🧱" href="/games/daily-blocks"
-          badge="10+ MIN"
+          badge={t.gamesHub.minutes.replace('{n}', '10+')}
           title={blocksName}
           done={!!blocks?.done}
           desc={blocks?.done ? h.score.replace('{n}', blocks.score.toLocaleString(lang)) : h.blocksDesc}

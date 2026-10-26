@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import Flag from './Flag';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolCard, ToolCards, ToolHero } from './tools/ToolFrame';
 
 type IPData = {
   ip: string;
@@ -20,53 +22,6 @@ type IPData = {
 };
 
 type State = 'loading' | 'ok' | 'error';
-
-const card: React.CSSProperties = {
-  background: 'rgba(15,20,40,0.92)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 'var(--card-radius)',
-  boxShadow: 'var(--card-shadow)',
-  padding: '1.25rem',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '1.25rem',
-};
-
-const label: React.CSSProperties = {
-  color: 'var(--text3)',
-  fontSize: '0.75rem',
-  textTransform: 'uppercase',
-  letterSpacing: '1px',
-  marginBottom: '2px',
-};
-
-const value: React.CSSProperties = {
-  color: 'var(--text1)',
-  fontSize: '0.95rem',
-  fontWeight: 500,
-};
-
-function Row({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-      <div style={{
-        width: 36, height: 36, flexShrink: 0,
-        background: 'rgba(93,76,255,0.12)',
-        border: '1px solid rgba(93,76,255,0.2)',
-        borderRadius: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '1rem',
-      }}>
-        {icon}
-      </div>
-      <div>
-        <div style={label}>{title}</div>
-        <div style={value}>{children}</div>
-      </div>
-    </div>
-  );
-}
-
 
 function parseOrg(org: string): { isp: string; asn: string } {
   const m = org.match(/^(AS\d+)\s+(.+)$/);
@@ -89,8 +44,22 @@ function stripLeadingEmoji(s: string): string {
   return s.slice(s.indexOf(' ') + 1);
 }
 
+/** Country name in the UI language. */
+function countryName(code: string, lang: string, fallback: string): string {
+  try { return new Intl.DisplayNames([lang], { type: 'region' }).of(code.toUpperCase()) ?? fallback; } catch { return fallback; }
+}
+
+/** Time zone name in the UI language ("středoevropský čas"), else the IANA id. */
+function zoneName(tz: string, lang: string): string {
+  try {
+    return new Intl.DateTimeFormat(lang, { timeZone: tz, timeZoneName: 'longGeneric' })
+      .formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value ?? tz;
+  } catch { return tz; }
+}
+
 export default function IPAddress() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const s = toolStrings(lang);
   const [state, setState] = useState<State>('loading');
   const [data, setData] = useState<IPData | null>(null);
   const [copied, setCopied] = useState(false);
@@ -113,144 +82,61 @@ export default function IPAddress() {
     });
   }
 
+  const coord = (n: number) => `${new Intl.NumberFormat(lang, { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(n)}°`;
+
   return (
-    <div className="card" style={card}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>{t.ipAddress.title}</span>
-        </div>
-        {state === 'ok' && data && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '0.4rem',
-            background: 'rgba(93,76,255,0.08)',
-            border: '1px solid rgba(93,76,255,0.18)',
-            borderRadius: 8, padding: '0.25rem 0.6rem',
-          }}>
-            <span style={{
-              width: 7, height: 7, borderRadius: '50%',
-              background: 'var(--green)', display: 'inline-block',
-              boxShadow: '0 0 6px var(--green)',
-            }} />
-            <span style={{ color: 'var(--text2)', fontSize: '0.75rem' }}>{t.ipAddress.online}</span>
-          </div>
-        )}
-      </div>
+    <ToolFrame toolId="ip">
+      {state === 'loading' && <div className="ip-skeleton" />}
 
-      {/* Loading */}
-      {state === 'loading' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {[100, 70, 85, 60].map((w, i) => (
-            <div key={i} style={{
-              height: 36, borderRadius: 10,
-              background: 'rgba(255,255,255,0.04)',
-              width: w + '%',
-              animation: 'shimmer 1.4s ease-in-out infinite',
-            }} />
-          ))}
-        </div>
-      )}
-
-      {/* Error */}
       {state === 'error' && (
-        <div style={{
-          textAlign: 'center', color: 'var(--text3)', fontSize: '0.9rem',
-          padding: '1rem 0',
-        }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</div>
-          {t.ipAddress.failedToLoad}<br />
-          <span style={{ fontSize: '0.8rem' }}>{t.ipAddress.checkConnection}</span>
+        <div className="tf-panel" style={{ alignItems: 'center', textAlign: 'center' }}>
+          <div style={{ fontSize: 32 }}>⚠️</div>
+          <div>{t.ipAddress.failedToLoad}</div>
+          <div className="tf-note">{t.ipAddress.checkConnection}</div>
         </div>
       )}
 
-      {/* Data */}
       {state === 'ok' && data && (() => {
         const { isp, asn } = parseOrg(data.org);
         return (
           <>
-            {/* Big IP */}
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(93,76,255,0.12), rgba(93,76,255,0.04))',
-              border: '1px solid rgba(93,76,255,0.2)',
-              borderRadius: 14,
-              padding: '1rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1rem',
-            }}>
-              <div>
-                <div style={label}>{t.ipAddress.yourIP}</div>
-                <div style={{
-                  fontFamily: 'monospace',
-                  fontSize: '1.4rem',
-                  fontWeight: 700,
-                  color: 'var(--purple3)',
-                  letterSpacing: '1px',
-                }}>
-                  {data.ip}
-                </div>
-              </div>
-              <button
-                onClick={copyIP}
-                title={t.ipAddress.copy}
-                style={{
-                  background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(93,76,255,0.15)',
-                  border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(93,76,255,0.3)'}`,
-                  borderRadius: 8,
-                  color: copied ? 'var(--green)' : 'var(--purple3)',
-                  cursor: 'pointer',
-                  padding: '0.4rem 0.75rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 500,
-                  transition: 'all 0.2s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {copied ? t.ipAddress.copied : t.ipAddress.copy}
-              </button>
-            </div>
+            <ToolHero
+              label={t.ipAddress.yourIP}
+              value={<span className="ip-addr" dir="ltr" translate="no">{data.ip}</span>}
+              sub={<span className="ip-online"><i />{t.ipAddress.online}</span>}
+            />
 
-            {/* Location */}
-            <Row icon="📍" title={stripLeadingEmoji(t.ipAddress.location)}>
-              {data.country_code && <Flag code={data.country_code} size={20} />}{' '}
-              {[data.city, data.region, data.country_name].filter(Boolean).join(', ')}
-              {data.postal && (
-                <span style={{ color: 'var(--text3)', fontSize: '0.85rem' }}> · ZIP {data.postal}</span>
-              )}
-            </Row>
+            <ToolCards>
+              <ToolCard wide icon="📍" color="#0EA5E9" label={stripLeadingEmoji(t.ipAddress.location)}
+                value={
+                  <span className="ip-loc">
+                    {data.country_code && <Flag code={data.country_code} size={20} />}
+                    {[data.city, data.region, data.country_code ? countryName(data.country_code, lang, data.country_name) : data.country_name].filter(Boolean).join(', ')}
+                  </span>
+                }
+                sub={data.postal ? `${s.postal} ${data.postal}` : undefined}
+              />
+              <ToolCard icon="🏢" color="#8B5CF6" label={stripLeadingEmoji(t.ipAddress.isp)} value={isp}
+                sub={<span dir="ltr">{asn}</span>} />
+              <ToolCard icon="🕐" color="#F59E0B" label={stripLeadingEmoji(t.ipAddress.timezone)}
+                value={zoneName(data.timezone, lang)} sub={<span dir="ltr">{data.timezone} · {utcLabel(data.utc_offset)}</span>} />
+              <ToolCard wide icon="🗺️" color="#22C55E" label={stripLeadingEmoji(t.ipAddress.coordinates)}
+                value={<span dir="ltr">{coord(data.latitude)}, {coord(data.longitude)}</span>} />
+            </ToolCards>
 
-            {/* ISP */}
-            <Row icon="🏢" title={stripLeadingEmoji(t.ipAddress.isp)}>
-              {isp}
-              <span style={{ color: 'var(--text3)', fontSize: '0.8rem', marginLeft: '0.5rem' }}>{asn}</span>
-            </Row>
-
-            {/* Timezone */}
-            <Row icon="🕐" title={stripLeadingEmoji(t.ipAddress.timezone)}>
-              {data.timezone}
-              <span style={{
-                marginLeft: '0.5rem',
-                background: 'rgba(93,76,255,0.12)',
-                border: '1px solid rgba(93,76,255,0.2)',
-                borderRadius: 5,
-                padding: '1px 6px',
-                fontSize: '0.78rem',
-                color: 'var(--purple3)',
-              }}>
-                {utcLabel(data.utc_offset)}
-              </span>
-            </Row>
-
-            {/* Coordinates */}
-            <Row icon="🗺️" title={stripLeadingEmoji(t.ipAddress.coordinates)}>
-              <span style={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                {data.latitude.toFixed(4)}° N, {data.longitude.toFixed(4)}° E
-              </span>
-            </Row>
+            <ToolButton onClick={copyIP}>{copied ? t.ipAddress.copied : t.ipAddress.copy}</ToolButton>
           </>
         );
       })()}
-    </div>
+
+      <style>{`
+        .ip-addr { display: block; font: 800 clamp(28px, 9vw, 44px)/1.15 ui-monospace, Menlo, monospace; letter-spacing: .02em; word-break: break-all; }
+        .ip-online { display: inline-flex; align-items: center; gap: 6px; color: #86EFAC; }
+        .ip-online i { width: 8px; height: 8px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 8px #22C55E; }
+        .ip-loc { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ip-skeleton { height: 160px; border-radius: 22px; background: rgba(255,255,255,0.04); animation: shimmer 1.4s ease-in-out infinite; }
+        @keyframes shimmer { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+      `}</style>
+    </ToolFrame>
   );
 }

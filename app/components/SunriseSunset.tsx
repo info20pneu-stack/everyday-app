@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import { fmt2, fmtNumber, fmtUnit } from '../../lib/formatNumber';
+import { toolStrings } from '../../lib/toolsI18n';
+import { homeStrings } from '../../lib/homeI18n';
+import ToolFrame, { plain, ToolButton, ToolCard, ToolCards, ToolHero } from './tools/ToolFrame';
+import { localizedCity } from '../../lib/cityNames';
 
 type SunData = {
   sunrise: Date;
@@ -15,25 +20,26 @@ type SunData = {
 
 type Status = 'idle' | 'locating' | 'loading' | 'ok' | 'error';
 
-async function fetchCity(lat: number, lon: number): Promise<string> {
+/** City name in the UI language; '' when unknown (the caller shows "My location"). */
+async function fetchCity(lat: number, lon: number, lang: string): Promise<string> {
   try {
     const r = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
-      { headers: { 'Accept-Language': 'en' } }
+      { headers: { 'Accept-Language': lang } }
     );
     const j = await r.json();
-    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || 'My location';
+    return j.address?.city || j.address?.town || j.address?.village || j.address?.county || '';
   } catch {
-    return 'My location';
+    return '';
   }
 }
 
-async function fetchSunData(lat: number, lon: number): Promise<SunData> {
+async function fetchSunData(lat: number, lon: number, lang: string): Promise<SunData> {
   const [sunRes, city] = await Promise.all([
     fetch(
       `https://api.sunrise-sunset.org/json?lat=${lat.toFixed(6)}&lng=${lon.toFixed(6)}&formatted=0`
     ),
-    fetchCity(lat, lon),
+    fetchCity(lat, lon, lang),
   ]);
   if (!sunRes.ok) throw new Error('API error');
   const d = await sunRes.json();
@@ -50,21 +56,35 @@ async function fetchSunData(lat: number, lon: number): Promise<SunData> {
   };
 }
 
-function fmt(date: Date) {
-  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+/** Clock time in the language's own format (24 h or 12 h). */
+function fmt(date: Date, lang: string) {
+  return date.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
 }
 
-function fmtDuration(seconds: number) {
+/** "13 h 5 min" with the language's unit names. */
+function fmtDuration(seconds: number, lang: string) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
-  return `${h}h ${m}min`;
+  return h > 0 ? `${fmtUnit(h, 'hour', lang)} ${fmtUnit(m, 'minute', lang)}` : fmtUnit(m, 'minute', lang);
 }
 
-function fmtCountdown(ms: number) {
+function fmtCountdown(ms: number, lang: string) {
+  if (ms <= 0) return null;
+  return fmtDuration(Math.floor(ms / 1000), lang);
+}
+
+/** Big "H:MM" for the hero plus its unit. */
+function heroCountdown(ms: number, lang: string): { value: string; unit: string } | null {
   if (ms <= 0) return null;
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
-  return h > 0 ? `${h}h ${m}min` : `${m} min`;
+  if (h === 0) return { value: fmtNumber(m, lang), unit: unitName('minute', lang) };
+  return { value: `${fmtNumber(h, lang)}:${fmt2(m, lang)}`, unit: unitName('hour', lang) };
+}
+
+function unitName(unit: string, lang: string): string {
+  return new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'short' })
+    .formatToParts(2).filter(p => p.type === 'unit').map(p => p.value).join('').trim();
 }
 
 /* ── Compact star positions (deterministic) ── */
@@ -75,32 +95,20 @@ const STARS = Array.from({ length: 18 }, (_, i) => ({
   o: 0.3 + (i % 4) * 0.15,
 }));
 
-const card: React.CSSProperties = {
-  background: 'rgba(15,20,40,0.92)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 'var(--card-radius)',
-  padding: '1.25rem',
-  boxShadow: 'var(--card-shadow)',
-};
-
-const statBox = (accent?: string): React.CSSProperties => ({
-  background: accent ? `rgba(${accent},0.08)` : 'rgba(255,255,255,0.03)',
-  border: `1px solid ${accent ? `rgba(${accent},0.22)` : 'rgba(255,255,255,0.06)'}`,
-  borderRadius: '12px',
-  padding: '.75rem',
-});
+type ErrorKind = 'geo' | 'denied' | 'load';
 
 export default function SunriseSunset() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
   const [status, setStatus] = useState<Status>('idle');
   const [data, setData] = useState<SunData | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<ErrorKind>('load');
   const [now, setNow] = useState(() => new Date());
 
   function load() {
     if (!navigator.geolocation) {
       setStatus('error');
-      setError('Geolocation is not available in this browser.');
+      setError('geo');
       return;
     }
     setStatus('locating');
@@ -108,22 +116,23 @@ export default function SunriseSunset() {
       async pos => {
         setStatus('loading');
         try {
-          const d = await fetchSunData(pos.coords.latitude, pos.coords.longitude);
+          const d = await fetchSunData(pos.coords.latitude, pos.coords.longitude, lang);
           setData(d);
           setStatus('ok');
         } catch {
           setStatus('error');
-          setError('Failed to load sun data.');
+          setError('load');
         }
       },
       () => {
         setStatus('error');
-        setError('Location access was denied.');
+        setError('denied');
       },
       { timeout: 10_000 }
     );
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on open; the refresh button reloads
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
@@ -134,30 +143,22 @@ export default function SunriseSunset() {
   /* ── Loading / error ── */
   if (status !== 'ok') {
     return (
-      <div className="card" style={card}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1.5rem' }}>
-          {t.sunriseSunset.title}
-        </h2>
-        {status !== 'error' ? (
-          <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-            <div style={{ fontSize: '32px', marginBottom: '1rem' }}>
-              {status === 'locating' ? '📍' : '☀️'}
-            </div>
-            {status === 'locating' ? t.sunriseSunset.locating : t.sunriseSunset.loadingData}
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-            <div style={{ fontSize: '32px', marginBottom: '.75rem' }}>⚠️</div>
-            <div style={{ color: 'var(--text2)', fontSize: '13px', marginBottom: '1rem' }}>{error}</div>
-            <button onClick={load} style={{
-              background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-              border: 'none', borderRadius: '8px',
-              color: '#fff', fontSize: '12px',
-              padding: '7px 16px', cursor: 'pointer',
-            }}>{t.sunriseSunset.tryAgain}</button>
-          </div>
-        )}
-      </div>
+      <ToolFrame toolId="slunce">
+        <div className="tf-panel" style={{ alignItems: 'center', textAlign: 'center', padding: '2.5rem 1rem' }}>
+          {status !== 'error' ? (
+            <>
+              <div style={{ fontSize: 34 }}>{status === 'locating' ? '📍' : '☀️'}</div>
+              <div className="tf-note">{status === 'locating' ? t.sunriseSunset.locating : t.sunriseSunset.loadingData}</div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontSize: 34 }}>⚠️</div>
+              <div>{error === 'geo' ? st.geoUnavailable : error === 'denied' ? st.locationDenied : st.sunLoadFailed}</div>
+              <ToolButton onClick={load}>{t.sunriseSunset.tryAgain}</ToolButton>
+            </>
+          )}
+        </div>
+      </ToolFrame>
     );
   }
 
@@ -176,8 +177,8 @@ export default function SunriseSunset() {
 
   const msUntilSunset = sunsetMs - nowMs;
   const msUntilSunrise = sunriseMs - nowMs;
-  const countdownSunset = fmtCountdown(msUntilSunset);
-  const countdownSunrise = fmtCountdown(msUntilSunrise);
+  const countdownSunset = fmtCountdown(msUntilSunset, lang);
+  const countdownSunrise = fmtCountdown(msUntilSunrise, lang);
 
   /* ── SVG arc geometry ── */
   const W = 300;
@@ -209,27 +210,32 @@ export default function SunriseSunset() {
       ? 'linear-gradient(180deg,#0D0818 0%,#2A1008 50%,#5C2400 100%)'
       : 'linear-gradient(180deg,#030C22 0%,#071840 55%,#0F2A5E 100%)';
 
+  const heroLabel = isGoldenHour
+    ? t.sunriseSunset.goldenHour
+    : !isAboveHorizon && nowMs < sunriseMs
+      ? t.sunriseSunset.untilSunrise
+      : countdownSunset
+        ? t.sunriseSunset.untilSunset
+        : t.sunriseSunset.sunHasSet;
+  const heroMs = isGoldenHour
+    ? (nowMs <= goldenMorningEndMs ? goldenMorningEndMs - nowMs : sunsetMs - nowMs)
+    : !isAboveHorizon && nowMs < sunriseMs ? msUntilSunrise : msUntilSunset;
+  const hero = heroCountdown(heroMs, lang);
+
   return (
-    <div style={card}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.75rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>{t.sunriseSunset.title}</h2>
-        <button className="icon-btn" onClick={load} title="Refresh" style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '8px', color: 'var(--text3)',
-          fontSize: '13px', padding: '3px 8px', cursor: 'pointer',
-        }}>↺</button>
-      </div>
-
-      <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '.85rem' }}>📍 {city}</div>
-
+    <ToolFrame toolId="slunce">
+      <ToolHero
+        label={plain(heroLabel)}
+        value={hero ? <span dir="ltr">{hero.value}</span> : '—'}
+        unit={hero?.unit}
+        sub={<>📍 {city ? localizedCity(city, lang) : homeStrings(lang).myDay.myLocation}</>}
+      >
       {/* ── Sky visualization ── */}
-      <div style={{
+      <div dir="ltr" style={{
         borderRadius: '14px',
         overflow: 'hidden',
         background: skyBg,
-        marginBottom: '1rem',
+        marginTop: '14px',
         position: 'relative',
         transition: 'background 1s ease',
       }}>
@@ -303,19 +309,19 @@ export default function SunriseSunset() {
           {/* Sunrise dot */}
           <circle cx={cx - r} cy={cy} r="4" fill={isAboveHorizon || nowMs < sunriseMs ? '#FF8C00' : 'rgba(255,140,0,0.3)'} />
           <text x={cx - r} y={cy + 13} textAnchor="middle" fill="rgba(255,255,255,0.65)" fontSize="8.5">
-            {fmt(sunrise)}
+            {fmt(sunrise, lang)}
           </text>
 
           {/* Sunset dot */}
           <circle cx={cx + r} cy={cy} r="4" fill={nowMs < sunsetMs ? '#C080FF' : 'rgba(180,100,255,0.3)'} />
           <text x={cx + r} y={cy + 13} textAnchor="middle" fill="rgba(255,255,255,0.65)" fontSize="8.5">
-            {fmt(sunset)}
+            {fmt(sunset, lang)}
           </text>
 
           {/* Solar noon tick */}
           <line x1={cx} y1={cy - r - 5} x2={cx} y2={cy - r + 5} stroke="rgba(255,255,255,0.25)" strokeWidth="1" />
           <text x={cx} y={cy - r - 9} textAnchor="middle" fill="rgba(255,255,255,0.35)" fontSize="7.5">
-            {fmt(solarNoon)}
+            {fmt(solarNoon, lang)}
           </text>
 
           {/* Sun glow halo */}
@@ -352,83 +358,24 @@ export default function SunriseSunset() {
         </svg>
       </div>
 
-      {/* ── Info grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
-        {/* Sunrise */}
-        <div style={statBox('255,140,0')}>
-          <div style={{ fontSize: '12px', color: 'rgba(255,140,0,0.75)', marginBottom: '3px' }}>{t.sunriseSunset.sunrise}</div>
-          <div style={{ fontSize: '19px', fontWeight: '600', color: '#FFB300', fontFamily: 'Poppins' }}>
-            {fmt(sunrise)}
-          </div>
-        </div>
+      </ToolHero>
 
-        {/* Sunset */}
-        <div style={statBox('160,100,255')}>
-          <div style={{ fontSize: '12px', color: 'rgba(160,100,255,0.8)', marginBottom: '3px' }}>{t.sunriseSunset.sunset}</div>
-          <div style={{ fontSize: '19px', fontWeight: '600', color: 'var(--purple3)', fontFamily: 'Poppins' }}>
-            {fmt(sunset)}
-          </div>
-        </div>
-      </div>
+      <ToolCards>
+        <ToolCard icon="🌅" color="#FF8C00" label={plain(t.sunriseSunset.sunrise)} value={fmt(sunrise, lang)} />
+        <ToolCard icon="🌇" color="#A78BFA" label={plain(t.sunriseSunset.sunset)} value={fmt(sunset, lang)} />
+        <ToolCard icon="☀️" color="#FACC15" label={plain(t.sunriseSunset.dayLength)} value={fmtDuration(dayLength, lang)} />
+        <ToolCard icon="⏳" color="#38BDF8"
+          label={plain(!isAboveHorizon && nowMs < sunriseMs ? t.sunriseSunset.untilSunrise : countdownSunset ? t.sunriseSunset.untilSunset : t.sunriseSunset.sunHasSet)}
+          value={!isAboveHorizon && nowMs < sunriseMs ? countdownSunrise ?? '—' : countdownSunset ?? '—'} />
+        <ToolCard wide icon="🌄" color="#F59E0B" label={plain(t.sunriseSunset.goldenHour)}
+          value={<span className="ss-golden"><span>{fmt(sunrise, lang)} – {fmt(new Date(goldenMorningEndMs), lang)}</span><span>{fmt(new Date(goldenEveningStartMs), lang)} – {fmt(sunset, lang)}</span></span>}
+          sub={isGoldenHour ? t.sunriseSunset.goldenHourNow : undefined} />
+      </ToolCards>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', marginBottom: '.5rem' }}>
-        {/* Day length */}
-        <div style={statBox()}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '3px' }}>{t.sunriseSunset.dayLength}</div>
-          <div style={{ fontSize: '14px', fontWeight: '500', color: '#fff' }}>{fmtDuration(dayLength)}</div>
-        </div>
+      <ToolButton onClick={load}>↺ {st.refresh}</ToolButton>
 
-        {/* Countdown / golden hour */}
-        <div style={statBox(isGoldenHour ? '255,160,0' : undefined)}>
-          <div style={{ fontSize: '12px', color: isGoldenHour ? 'rgba(255,160,0,0.8)' : 'var(--text3)', marginBottom: '3px' }}>
-            {isGoldenHour
-              ? t.sunriseSunset.goldenHour
-              : !isAboveHorizon && nowMs < sunriseMs
-                ? t.sunriseSunset.untilSunrise
-                : countdownSunset
-                  ? t.sunriseSunset.untilSunset
-                  : t.sunriseSunset.sunHasSet}
-          </div>
-          <div style={{ fontSize: '14px', fontWeight: '500', color: isGoldenHour ? '#FFB300' : '#fff' }}>
-            {isGoldenHour
-              ? (nowMs <= goldenMorningEndMs
-                  ? fmtCountdown(goldenMorningEndMs - nowMs)
-                  : fmtCountdown(sunsetMs - nowMs))
-              : !isAboveHorizon && nowMs < sunriseMs
-                ? countdownSunrise ?? '—'
-                : countdownSunset ?? '—'}
-          </div>
-        </div>
-      </div>
-
-      {/* Golden hour info row */}
-      <div style={statBox()}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>{t.sunriseSunset.goldenHour}</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#FFB300' }}>
-          <span>🌄 {fmt(sunrise)} – {fmt(new Date(goldenMorningEndMs))}</span>
-          <span>🌆 {fmt(new Date(goldenEveningStartMs))} – {fmt(sunset)}</span>
-        </div>
-      </div>
-
-      {/* Golden hour active banner */}
-      {isGoldenHour && (
-        <div style={{
-          marginTop: '.5rem',
-          background: 'linear-gradient(135deg, rgba(255,140,0,0.14), rgba(255,69,0,0.08))',
-          border: '1px solid rgba(255,140,0,0.3)',
-          borderRadius: '10px',
-          padding: '.55rem 1rem',
-          fontSize: '12px',
-          color: '#FFB300',
-          textAlign: 'center',
-        }}>
-          {t.sunriseSunset.goldenHourNow}
-        </div>
-      )}
-
-      <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-        {t.sunriseSunset.source}
-      </div>
-    </div>
+      <div className="tf-note">{t.sunriseSunset.source}</div>
+      <style>{`.ss-golden { display: flex; flex-wrap: wrap; gap: 4px 16px; }`}</style>
+    </ToolFrame>
   );
 }

@@ -1,5 +1,9 @@
 'use client';
 
+import { useLang } from '../../lib/LanguageContext';
+import { countryNameFromFlag } from '../../lib/flags';
+import { localizedCity } from '../../lib/cityNames';
+import { sportsStrings, type SportsStrings } from '../../lib/sportsI18n';
 import { useState, useEffect, useMemo } from 'react';
 import FlagText from './FlagText';
 
@@ -177,29 +181,24 @@ function buildMatches(): WCMatch[] {
 const ALL_MATCHES = buildMatches();
 
 /* ── Timezone helpers ── */
-const EN_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const EN_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/** "pondělí 15. června", time and zone, in the UI language and the user's time zone. */
+function dayLine(date: Date, userTz: string, lang: string): string {
+  const s = date.toLocaleDateString(lang, { timeZone: userTz, weekday: 'long', day: 'numeric', month: 'long' });
+  return s.charAt(0).toLocaleUpperCase(lang) + s.slice(1);
+}
 
-function formatMatchTime(utcStr: string, userTz: string): { line1: string; time: string; tzAbbr: string } {
+function formatMatchTime(utcStr: string, userTz: string, lang: string): { line1: string; time: string; tzAbbr: string } {
   const date = new Date(utcStr);
-  const inTz = new Date(date.toLocaleString('en-US', { timeZone: userTz }));
-  const day = EN_DAYS[inTz.getDay()];
-  const month = EN_MONTHS[inTz.getMonth()];
-  const dayNum = inTz.getDate();
+  const time = new Intl.DateTimeFormat(lang, { timeZone: userTz, hour: '2-digit', minute: '2-digit' }).format(date);
+  const tzAbbr = new Intl.DateTimeFormat(lang, { timeZone: userTz, timeZoneName: 'short' })
+    .formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? '';
+  return { line1: dayLine(date, userTz, lang), time, tzAbbr };
+}
 
-  const time = new Intl.DateTimeFormat('en-US', {
-    timeZone: userTz, hour: '2-digit', minute: '2-digit', hour12: false,
-  }).format(date);
-
-  const tzAbbr = new Intl.DateTimeFormat('en-US', {
-    timeZone: userTz, timeZoneName: 'short',
-  }).formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? '';
-
-  return {
-    line1: `${day} ${dayNum} ${month}`,
-    time,
-    tzAbbr,
-  };
+/** Team name in the UI language (from its flag); England etc. keep their name. */
+function teamName(name: string, flag: string, lang: string, ss: SportsStrings): string {
+  if (name === 'TBD') return ss.tbd;
+  return countryNameFromFlag(flag, name, lang);
 }
 
 function isToday(utcStr: string, userTz: string): boolean {
@@ -210,7 +209,9 @@ function isToday(utcStr: string, userTz: string): boolean {
 
 /* ── Match card ── */
 function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick: () => void }) {
-  const fmt = formatMatchTime(m.utc, userTz);
+  const { lang } = useLang();
+  const ss = sportsStrings(lang);
+  const fmt = formatMatchTime(m.utc, userTz, lang);
   const today = isToday(m.utc, userTz);
   const isDone = m.status === 'final';
 
@@ -229,21 +230,21 @@ function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick
           {fmt.line1} · {fmt.time} {fmt.tzAbbr}
         </span>
         <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px' }}>
-          {m.venueName}, {m.venueCity}
+          {m.venueName}, {localizedCity(m.venueCity, lang)}
         </span>
       </div>
       {/* Teams + score */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ display: 'inline-flex' }}><FlagText text={m.f1} size={20} /></span>
-        <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s1! > m.s2!) ? '#fff' : 'var(--text2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.t1}</span>
+        <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s1! > m.s2!) ? '#fff' : 'var(--text2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(m.t1, m.f1, lang, ss)}</span>
         {isDone ? (
-          <span style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Poppins', color: '#fff', flexShrink: 0 }}>
+          <span dir="ltr" style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Poppins', color: '#fff', flexShrink: 0 }}>
             {m.s1} – {m.s2}
           </span>
         ) : (
-          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>vs</span>
+          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{ss.vs}</span>
         )}
-        <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s2! > m.s1!) ? '#fff' : 'var(--text2)', flex: 1, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.t2}</span>
+        <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s2! > m.s1!) ? '#fff' : 'var(--text2)', flex: 1, textAlign: 'end', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(m.t2, m.f2, lang, ss)}</span>
         <span style={{ display: 'inline-flex' }}><FlagText text={m.f2} size={20} /></span>
       </div>
     </div>
@@ -252,7 +253,9 @@ function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick
 
 /* ── Match detail popup ── */
 function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClose: () => void }) {
-  const fmt = formatMatchTime(m.utc, userTz);
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
+  const fmt = formatMatchTime(m.utc, userTz, lang);
   const isDone = m.status === 'final';
   const groupTeams = GROUPS[m.group];
   const t1data = groupTeams.find(t => t.name === m.t1);
@@ -262,18 +265,18 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box" style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px 20px', width: '100%', maxWidth: '380px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'wDetailIn 0.2s ease', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close" className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
+        <button onClick={onClose} aria-label={t.games.close} className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
 
         {/* Group badge */}
         <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', alignItems: 'center' }}>
           <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--green2)', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '2px 8px', letterSpacing: '1px' }}>
-            GROUP {m.group}
+            {ss.group.replace('{g}', m.group)}
           </span>
           <span style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px' }}>
-            Matchday {m.matchday}
+            {ss.matchday.replace('{n}', String(m.matchday))}
           </span>
           {isDone && (
-            <span style={{ fontSize: '12px', color: '#fff', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px' }}>Final</span>
+            <span style={{ fontSize: '12px', color: '#fff', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px' }}>{ss.final}</span>
           )}
         </div>
 
@@ -282,8 +285,8 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
           {/* Team 1 */}
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ lineHeight: 0 }}><FlagText text={m.f1} size={52} /></div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{m.t1}</div>
-            {t1data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t1data.pts} pts</div>}
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{teamName(m.t1, m.f1, lang, ss)}</div>
+            {t1data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t1data.pts} {ss.pts}</div>}
           </div>
           {/* Score / VS */}
           <div style={{ textAlign: 'center', flexShrink: 0 }}>
@@ -293,7 +296,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
               </div>
             ) : (
               <>
-                <div style={{ fontFamily: 'Poppins', fontSize: '22px', fontWeight: '700', color: 'var(--text3)' }}>vs</div>
+                <div style={{ fontFamily: 'Poppins', fontSize: '22px', fontWeight: '700', color: 'var(--text3)' }}>{ss.vs}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>⚽ WC 2026</div>
               </>
             )}
@@ -301,8 +304,8 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
           {/* Team 2 */}
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ lineHeight: 0 }}><FlagText text={m.f2} size={52} /></div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{m.t2}</div>
-            {t2data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t2data.pts} pts</div>}
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{teamName(m.t2, m.f2, lang, ss)}</div>
+            {t2data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t2data.pts} {ss.pts}</div>}
           </div>
         </div>
 
@@ -321,7 +324,7 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
             <span style={{ fontSize: '14px' }}>🏟️</span>
             <div>
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{m.venueName}</div>
-              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{m.venueCity}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{localizedCity(m.venueCity, lang)}</div>
             </div>
           </div>
         </div>
@@ -334,24 +337,26 @@ function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClo
 
 /* ── Group table ── */
 function GroupTable({ letter, teams }: { letter: string; teams: WCTeam[] }) {
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
   const sorted = [...teams].sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga));
   return (
     <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
-      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '5px 10px', fontSize: '12px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px' }}>GROUP {letter}</div>
+      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '5px 10px', fontSize: '12px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px' }}>{ss.group.replace('{g}', letter)}</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '3px 8px', fontSize: '12px', color: 'var(--text3)' }}>
-        <div>Team</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>V</div><div style={{textAlign:'center'}}>R</div><div style={{textAlign:'center'}}>P</div><div style={{textAlign:'center'}}>GD</div><div style={{textAlign:'center'}}>B</div>
+        <div>{t.sports.team}</div><div style={{textAlign:'center'}}>{ss.gp}</div><div style={{textAlign:'center'}}>{ss.w}</div><div style={{textAlign:'center'}}>{ss.d}</div><div style={{textAlign:'center'}}>{ss.l}</div><div style={{textAlign:'center'}}>{ss.gd}</div><div style={{textAlign:'center'}}>{ss.pts}</div>
       </div>
-      {sorted.map((t, i) => (
-        <div key={t.name} style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '5px 8px', borderTop: '1px solid rgba(255,255,255,0.04)', background: i < 2 ? 'rgba(34,197,94,0.05)' : 'transparent', borderLeft: i < 2 ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
+      {sorted.map((tm, i) => (
+        <div key={tm.name} style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '5px 8px', borderTop: '1px solid rgba(255,255,255,0.04)', background: i < 2 ? 'rgba(34,197,94,0.05)' : 'transparent', borderLeft: i < 2 ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-            <span style={{ display: 'inline-flex' }}><FlagText text={t.flag} size={16} /></span>
-            <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+            <span style={{ display: 'inline-flex' }}><FlagText text={tm.flag} size={16} /></span>
+            <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(tm.name, tm.flag, lang, ss)}</span>
           </div>
-          {[t.p, t.w, t.d, t.l].map((v, vi) => (
+          {[tm.p, tm.w, tm.d, tm.l].map((v, vi) => (
             <div key={vi} style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{v}</div>
           ))}
-          <div style={{ textAlign: 'center', fontSize: '12px', color: t.gf-t.ga > 0 ? 'var(--green2)' : 'var(--text2)' }}>{t.gf-t.ga > 0 ? `+${t.gf-t.ga}` : t.gf-t.ga}</div>
-          <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{t.pts}</div>
+          <div style={{ textAlign: 'center', fontSize: '12px', color: tm.gf-tm.ga > 0 ? 'var(--green2)' : 'var(--text2)' }}>{tm.gf-tm.ga > 0 ? `+${tm.gf-tm.ga}` : tm.gf-tm.ga}</div>
+          <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{tm.pts}</div>
         </div>
       ))}
     </div>
@@ -379,13 +384,15 @@ const SF: BracketMatch[]  = [{ t1:'TBD',f1:'?',t2:'TBD',f2:'?' },{ t1:'TBD',f1:'
 const FINAL: BracketMatch = { t1:'TBD',f1:'?',t2:'TBD',f2:'?' };
 
 function BracketRow({ m }: { m: BracketMatch }) {
+  const { lang } = useLang();
+  const ss = sportsStrings(lang);
   return (
     <div style={{ background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'8px',padding:'6px 10px',display:'flex',alignItems:'center',gap:'4px' }}>
       <span style={{ display: 'inline-flex' }}><FlagText text={m.f1} size={18} /></span>
-      <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s1!>m.s2!?'#fff':'var(--text3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{m.t1}</span>
+      <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s1!>m.s2!?'#fff':'var(--text3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{teamName(m.t1, m.f1, lang, ss)}</span>
       {m.done ? <span style={{ fontSize:'13px',fontWeight:'700',color:'#fff',fontFamily:'Poppins',fontVariantNumeric:'tabular-nums',flexShrink:0 }}>{m.s1}–{m.s2}</span>
-              : <span style={{ fontSize:'12px',color:'var(--text3)',flexShrink:0 }}>vs</span>}
-      <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s2!>m.s1!?'#fff':'var(--text3)',flex:1,textAlign:'right',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{m.t2}</span>
+              : <span style={{ fontSize:'12px',color:'var(--text3)',flexShrink:0 }}>{ss.vs}</span>}
+      <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s2!>m.s1!?'#fff':'var(--text3)',flex:1,textAlign:'end',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{teamName(m.t2, m.f2, lang, ss)}</span>
       <span style={{ display: 'inline-flex' }}><FlagText text={m.f2} size={18} /></span>
     </div>
   );
@@ -393,6 +400,8 @@ function BracketRow({ m }: { m: BracketMatch }) {
 
 /* ── Main component ── */
 export default function WC2026() {
+  const { lang } = useLang();
+  const ss = sportsStrings(lang);
   const [view, setView]   = useState<'matches' | 'groups' | 'bracket'>('matches');
   const [filterGroup, setFilterGroup] = useState<string>('All');
   const [filterMD, setFilterMD]       = useState<number>(0); // 0 = all
@@ -442,9 +451,9 @@ export default function WC2026() {
     <div>
       {/* View toggle */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-        <button style={viewBtn('matches')} onClick={() => setView('matches')}>📅 Matches</button>
-        <button style={viewBtn('groups')}  onClick={() => setView('groups')}>📊 Groups</button>
-        <button style={viewBtn('bracket')} onClick={() => setView('bracket')}>🏆 Bracket</button>
+        <button style={viewBtn('matches')} onClick={() => setView('matches')}>{ss.matches}</button>
+        <button style={viewBtn('groups')}  onClick={() => setView('groups')}>{ss.groups}</button>
+        <button style={viewBtn('bracket')} onClick={() => setView('bracket')}>{ss.bracket}</button>
       </div>
 
       {/* MATCHES view */}
@@ -456,7 +465,7 @@ export default function WC2026() {
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '5px' }}>
               {['All','A','B','C','D','E','F','G','H'].map(g => (
                 <button key={g} style={filterBtn(filterGroup === g)} onClick={() => setFilterGroup(g)}>
-                  {g === 'All' ? 'All' : `Group ${g}`}
+                  {g === 'All' ? ss.all : ss.group.replace('{g}', g)}
                 </button>
               ))}
             </div>
@@ -464,7 +473,7 @@ export default function WC2026() {
             <div style={{ display: 'flex', gap: '4px' }}>
               {[0,1,2,3].map(md => (
                 <button key={md} style={filterBtn(filterMD === md)} onClick={() => setFilterMD(md)}>
-                  {md === 0 ? 'All' : `Round ${md}`}
+                  {md === 0 ? ss.all : ss.round.replace('{n}', String(md))}
                 </button>
               ))}
             </div>
@@ -472,24 +481,20 @@ export default function WC2026() {
 
           {/* Timezone info */}
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
-            🕐 Your timezone: <span style={{ color: 'var(--purple3)' }}>{userTz.replace('_',' ')}</span>
+            🕐 {ss.yourTz}: <span style={{ color: 'var(--purple3)' }}>{userTz.replace(/_/g, ' ')}</span>
           </div>
 
           {/* Match list grouped by date */}
           <div style={{ maxHeight: '440px', overflowY: 'auto', paddingRight: '2px' }}>
             {Array.from(byDate.entries()).map(([dateKey, dayMatches]) => {
               const firstDate = new Date(dayMatches[0].utc);
-              const inTz = new Date(firstDate.toLocaleString('en-US', { timeZone: userTz }));
-              const czDay = EN_DAYS[inTz.getDay()];
-              const czMonth = EN_MONTHS[inTz.getMonth()];
-              const dayNum = inTz.getDate();
               const todayStr = new Date().toLocaleDateString('en-US', { timeZone: userTz });
               const isToday_ = dateKey === todayStr;
               return (
                 <div key={dateKey} style={{ marginBottom: '10px' }}>
                   <div style={{ fontSize: '12px', fontWeight: '700', color: isToday_ ? 'var(--green2)' : 'var(--text3)', marginBottom: '5px', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px' }}>TODAY</span>}
-                    {czDay} {dayNum} {czMonth}
+                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px' }}>{ss.today}</span>}
+                    {dayLine(firstDate, userTz, lang)}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {dayMatches.map(m => (
@@ -501,12 +506,12 @@ export default function WC2026() {
             })}
             {filtered.length === 0 && (
               <div style={{ textAlign:'center',padding:'2rem',color:'var(--text3)',fontSize:'13px' }}>
-                No matches for the selected filter
+                {ss.noMatches}
               </div>
             )}
           </div>
           <div style={{ fontSize:'12px',color:'var(--text3)',textAlign:'center',marginTop:'6px' }}>
-            {ALL_MATCHES.length} group stage matches · {ALL_MATCHES.filter(m => m.status === 'final').length} played
+            {ss.stage.replace('{n}', String(ALL_MATCHES.length)).replace('{m}', String(ALL_MATCHES.filter(m => m.status === 'final').length))}
           </div>
         </>
       )}
@@ -522,16 +527,16 @@ export default function WC2026() {
       {view === 'bracket' && (
         <div>
           <div style={{ fontSize:'12px',color:'rgba(34,197,94,0.8)',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'8px',padding:'5px 10px',marginBottom:'10px',textAlign:'center' }}>
-            ✓ R16 results in · QF not started
+            {ss.r16Note}
           </div>
-          {[{ label:'ROUND OF 16',matches:R16 },{ label:'QUARTER-FINALS',matches:QF },{ label:'SEMI-FINALS',matches:SF }].map(r => (
+          {[{ label:ss.r16,matches:R16 },{ label:ss.qf,matches:QF },{ label:ss.sf,matches:SF }].map(r => (
             <div key={r.label} style={{ marginBottom:'10px' }}>
               <div style={{ fontSize:'12px',color:'var(--text3)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>{r.label}</div>
               <div style={{ display:'flex',flexDirection:'column',gap:'3px' }}>{r.matches.map((m,i) => <BracketRow key={i} m={m} />)}</div>
             </div>
           ))}
           <div style={{ marginBottom:'10px' }}>
-            <div style={{ fontSize:'12px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 FINAL</div>
+            <div style={{ fontSize:'12px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 {ss.wcFinal}</div>
             <BracketRow m={FINAL} />
           </div>
         </div>

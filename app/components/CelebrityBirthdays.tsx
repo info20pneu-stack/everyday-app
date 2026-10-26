@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { BirthdayCeleb, Category, HistoricalEvent, BirthdaysResponse } from '../api/birthdays/route';
 import FlagText from './FlagText';
+import { countryNameFromFlag } from '../../lib/flags';
+import { professionName } from '../../lib/professionsI18n';
+import { fmtNumber, fmtUnit } from '../../lib/formatNumber';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolHero } from './tools/ToolFrame';
 
 /* ── Helpers ── */
 function getLocaleCountry(): string {
@@ -36,8 +41,16 @@ const CATEGORY_META: Record<Category | 'all', { label: string; emoji: string; co
   other: { label: 'Other',     emoji: '🌍', color: '#60A5FA' },
 };
 
-const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const MONTH_NAMES_CZ = ['Ledna','Února','Března','Dubna','Května','Června','Července','Srpna','Září','Října','Listopadu','Prosince'];
+/** Month names in the UI language (stand-alone form: "říjen", "October"). */
+function monthNames(lang: string): string[] {
+  const f = new Intl.DateTimeFormat(lang, { month: 'long', timeZone: 'UTC' });
+  return Array.from({ length: 12 }, (_, i) => f.format(new Date(Date.UTC(2000, i, 15))));
+}
+
+/** "26. října" / "October 26" for a month and day, in the UI language. */
+function dayLabel(month: number, day: number, lang: string): string {
+  return new Date(Date.UTC(2000, month - 1, day)).toLocaleDateString(lang, { day: 'numeric', month: 'long', timeZone: 'UTC' });
+}
 
 function daysInMonth(month: number): number {
   return new Date(2000, month, 0).getDate();
@@ -58,11 +71,13 @@ function eraColor(year: number): string {
 
 /* ── Profile popup ── */
 function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () => void }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
+  const country = countryNameFromFlag(celeb.countryFlag, celeb.country, lang);
   const meta = CATEGORY_META[celeb.category];
   const [copied, setCopied] = useState(false);
 
-  const shareText = `🎂 Birthday today: ${celeb.name} (${celeb.age})!\n${celeb.profession}${celeb.country ? ` ${celeb.countryFlag} ${celeb.country}` : ''}\n\n${celeb.description.slice(0, 100)}...\n\n${celeb.url}`;
+  const shareText = `${st.celebShare.replace('{name}', celeb.name).replace('{age}', fmtUnit(celeb.age, 'year', lang, 'long'))}\n${professionName(celeb.profession, lang)}${country ? ` ${celeb.countryFlag ?? ''} ${country}` : ''}\n\n${celeb.description.slice(0, 100)}…\n\n${celeb.url}`;
 
   async function copyText() {
     try { await navigator.clipboard.writeText(shareText); } catch {}
@@ -90,7 +105,7 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
     <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box" style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px 20px', width: '100%', maxWidth: '360px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'cbPopIn 0.22s cubic-bezier(.34,1.56,.64,1)', position: 'relative' }}>
-        <button onClick={onClose} aria-label="Close" className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
+        <button onClick={onClose} aria-label={t.games.close} className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
 
         {/* Photo + header */}
         <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', marginBottom: '14px' }}>
@@ -102,12 +117,12 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: 'Poppins', fontSize: '17px', fontWeight: '800', color: '#fff', lineHeight: 1.2, marginBottom: '6px' }}>{celeb.name}</div>
             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '12px', fontWeight: '700', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', padding: '2px 8px', color: '#fff' }}>🎂 {celeb.age} yrs</span>
-              <span style={{ fontSize: '12px', fontWeight: '600', background: `${meta.color}22`, border: `1px solid ${meta.color}44`, borderRadius: '6px', padding: '2px 8px', color: meta.color }}>{meta.emoji} {celeb.profession}</span>
+              <span style={{ fontSize: '12px', fontWeight: '700', background: 'rgba(255,255,255,0.08)', borderRadius: '6px', padding: '2px 8px', color: '#fff' }}>🎂 {fmtUnit(celeb.age, 'year', lang)}</span>
+              <span style={{ fontSize: '12px', fontWeight: '600', background: `${meta.color}22`, border: `1px solid ${meta.color}44`, borderRadius: '6px', padding: '2px 8px', color: meta.color }}>{meta.emoji} {professionName(celeb.profession, lang)}</span>
             </div>
             {celeb.country && (
               <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '4px' }}>
-                <span style={{ marginRight: '4px', display: 'inline-flex', verticalAlign: 'middle' }}><FlagText text={celeb.countryFlag} size={16} /></span>{celeb.country} · b. {celeb.year}
+                <span style={{ marginRight: '4px', display: 'inline-flex', verticalAlign: 'middle' }}><FlagText text={celeb.countryFlag} size={16} /></span>{country} · {st.born.replace('{year}', String(celeb.year))}
               </div>
             )}
           </div>
@@ -120,13 +135,13 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
 
         {/* Share */}
         <div style={{ marginBottom: '10px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>Share</div>
+          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '5px', letterSpacing: '0.8px', textTransform: 'uppercase' }}>{st.share}</div>
           <div style={{ display: 'flex', gap: '5px' }}>
             {[
-              { label: '📤 Share', action: nativeShare, bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', color: '#fff' },
+              { label: `📤 ${st.share}`, action: nativeShare, bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)', color: '#fff' },
               { label: t.celebrity.shareTweet, action: () => shareVia('twitter'), bg: 'rgba(0,0,0,0.3)', border: 'rgba(255,255,255,0.08)', color: '#fff' },
               { label: t.celebrity.shareWhatsapp, action: () => shareVia('whatsapp'), bg: 'rgba(37,211,102,0.1)', border: 'rgba(37,211,102,0.25)', color: '#25D366' },
-              { label: copied ? '✓ OK' : t.celebrity.shareCopy, action: copyText, bg: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: copied ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)', color: copied ? 'var(--green2)' : '#fff' },
+              { label: copied ? '✓' : t.celebrity.shareCopy, action: copyText, bg: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)', border: copied ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)', color: copied ? 'var(--green2)' : '#fff' },
             ].map(({ label, action, bg, border, color }) => (
               <button key={label} onClick={action} style={{ flex: 1, background: bg, border: `1px solid ${border}`, borderRadius: '8px', color, fontSize: '12px', fontWeight: '600', padding: '7px 2px', cursor: 'pointer', transition: 'all 0.15s' }}>{label}</button>
             ))}
@@ -143,11 +158,11 @@ function ProfilePopup({ celeb, onClose }: { celeb: BirthdayCeleb; onClose: () =>
 
 /* ── Celebrity card ── */
 function CelebCard({ celeb, rank, onClick }: { celeb: BirthdayCeleb; rank: number; onClick: () => void }) {
+  const { lang } = useLang();
   const meta = CATEGORY_META[celeb.category];
+  const ageParts = new Intl.NumberFormat(lang, { style: 'unit', unit: 'year', unitDisplay: 'short' }).formatToParts(celeb.age);
   return (
-    <div onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '7px 9px', borderRadius: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer', transition: 'background 0.15s, border-color 0.15s, transform 0.1s' }}
-      onMouseEnter={e => { const d = e.currentTarget; d.style.background = 'rgba(93,76,255,0.08)'; d.style.borderColor = 'rgba(93,76,255,0.2)'; d.style.transform = 'translateX(2px)'; }}
-      onMouseLeave={e => { const d = e.currentTarget; d.style.background = 'rgba(255,255,255,0.02)'; d.style.borderColor = 'rgba(255,255,255,0.05)'; d.style.transform = 'translateX(0)'; }}>
+    <button type="button" onClick={onClick} className="cb-row">
       <div style={{ flexShrink: 0, width: 22, height: 22, borderRadius: '6px', background: rank <= 3 ? 'rgba(255,179,0,0.15)' : 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '700', color: rank <= 3 ? '#FFB300' : 'var(--text3)' }}>
         {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
       </div>
@@ -159,22 +174,22 @@ function CelebCard({ celeb, rank, onClick }: { celeb: BirthdayCeleb; rank: numbe
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{celeb.name}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '2px' }}>
-          <span style={{ fontSize: '12px', background: `${meta.color}22`, color: meta.color, borderRadius: '4px', padding: '1px 5px', whiteSpace: 'nowrap' }}>{celeb.profession}</span>
+          <span style={{ fontSize: '12px', background: `${meta.color}22`, color: meta.color, borderRadius: '4px', padding: '1px 5px', whiteSpace: 'nowrap' }}>{professionName(celeb.profession, lang)}</span>
           {celeb.countryFlag && <span style={{ display: 'inline-flex' }}><FlagText text={celeb.countryFlag} size={16} /></span>}
-          <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{celeb.year}</span>
+          <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{new Intl.NumberFormat(lang, { useGrouping: false }).format(celeb.year)}</span>
         </div>
       </div>
-      <div style={{ flexShrink: 0, textAlign: 'right' }}>
-        <div style={{ fontSize: '14px', fontWeight: '700', color: 'var(--purple3)', fontFamily: 'Poppins', lineHeight: 1 }}>{celeb.age}</div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>yrs</div>
+      <div style={{ flexShrink: 0, textAlign: 'end' }}>
+        <div className="cb-age">{ageParts.filter(p => p.type === 'integer').map(p => p.value).join('')}</div>
+        <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '1px' }}>{ageParts.filter(p => p.type === 'unit').map(p => p.value).join('')}</div>
       </div>
-    </div>
+    </button>
   );
 }
 
 /* ── Historical events section ── */
-function EventsSection({ events, dateLabel }: { events: HistoricalEvent[]; dateLabel: string }) {
-  const { t } = useLang();
+function EventsSection({ events }: { events: HistoricalEvent[] }) {
+  const { t, lang } = useLang();
   if (!events.length) return null;
   return (
     <div style={{ marginTop: '16px' }}>
@@ -190,7 +205,7 @@ function EventsSection({ events, dateLabel }: { events: HistoricalEvent[]; dateL
           <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '7px 10px', borderRadius: '9px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)' }}>
             {/* Year badge */}
             <div style={{ flexShrink: 0, background: `${eraColor(ev.year)}18`, border: `1px solid ${eraColor(ev.year)}40`, borderRadius: '6px', padding: '2px 7px', fontSize: '12px', fontWeight: '700', color: eraColor(ev.year), fontVariantNumeric: 'tabular-nums', lineHeight: 1.4 }}>
-              {ev.year}
+              {new Intl.NumberFormat(lang, { useGrouping: false }).format(ev.year)}
             </div>
             {/* Text */}
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -228,6 +243,8 @@ function DatePicker({
   onChange: (m: number, d: number) => void;
   isToday: boolean; onReset: () => void;
 }) {
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
   function prevDay() {
     if (day > 1) { onChange(month, day - 1); return; }
     const pm = month === 1 ? 12 : month - 1;
@@ -238,46 +255,26 @@ function DatePicker({
     if (day < maxD) { onChange(month, day + 1); return; }
     onChange(month === 12 ? 1 : month + 1, 1);
   }
-
-  const selectStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: '8px', color: '#fff', padding: '5px 6px', fontSize: '12px',
-    outline: 'none', cursor: 'pointer',
-  };
-
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '5px 8px', flexWrap: 'wrap' }}>
-      {/* Prev */}
-      <button onClick={prevDay} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '6px', color: 'var(--text2)', fontSize: '13px', width: '26px', height: '26px', cursor: 'pointer', flexShrink: 0 }}>‹</button>
-
-      {/* Month */}
-      <select value={month} onChange={e => onChange(Number(e.target.value), Math.min(day, daysInMonth(Number(e.target.value))))} style={selectStyle}>
-        {MONTH_NAMES.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-      </select>
-
-      {/* Day */}
-      <select value={day} onChange={e => onChange(month, Number(e.target.value))} style={selectStyle}>
-        {Array.from({ length: daysInMonth(month) }, (_, i) => (
-          <option key={i + 1} value={i + 1}>{i + 1}</option>
-        ))}
-      </select>
-
-      {/* Next */}
-      <button onClick={nextDay} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '6px', color: 'var(--text2)', fontSize: '13px', width: '26px', height: '26px', cursor: 'pointer', flexShrink: 0 }}>›</button>
-
-      {/* Today */}
-      {!isToday && (
-        <button onClick={onReset} style={{ background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.35)', borderRadius: '6px', color: 'var(--purple3)', fontSize: '12px', fontWeight: '700', padding: '4px 8px', cursor: 'pointer', flexShrink: 0 }}>
-          Today
-        </button>
-      )}
+    <div className="tf-panel">
+      <div className="tf-row" style={{ alignItems: 'center' }}>
+        <button type="button" className="tf-chip cb-step" onClick={prevDay} aria-label="‹">‹</button>
+        <select className="tf-input" style={{ flex: 1 }} value={day} onChange={e => onChange(month, Number(e.target.value))} aria-label={t.celebrity.selectDate}>
+          {Array.from({ length: daysInMonth(month) }, (_, i) => <option key={i + 1} value={i + 1}>{fmtNumber(i + 1, lang)}</option>)}
+        </select>
+        <select className="tf-input" style={{ flex: 2 }} value={month} onChange={e => onChange(Number(e.target.value), Math.min(day, daysInMonth(Number(e.target.value))))} aria-label={t.celebrity.selectDate}>
+          {monthNames(lang).map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+        </select>
+        <button type="button" className="tf-chip cb-step" onClick={nextDay} aria-label="›">›</button>
+      </div>
+      {!isToday && <button type="button" className="tf-chip" style={{ alignSelf: 'flex-start' }} onClick={onReset}>📅 {st.today}</button>}
     </div>
   );
 }
 
 /* ── Main component ── */
 export default function CelebrityBirthdays() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const now = new Date();
   const todayM = now.getMonth() + 1;
   const todayD = now.getDate();
@@ -324,104 +321,81 @@ export default function CelebrityBirthdays() {
   };
 
   const close = useCallback(() => setSelected(null), []);
+  const st = toolStrings(lang);
 
   return (
-    <div className="card" style={{ background: 'rgba(15,20,40,0.92)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--card-radius)', padding: '1.25rem', boxShadow: 'var(--card-shadow)' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div>
-            <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', lineHeight: 1.2 }}>{t.celebrity.title}</h2>
-            <div style={{ fontSize: '12px', color: isToday ? 'var(--green2)' : 'var(--text3)' }}>
-              {isToday ? t.celebrity.todayLabel : data?.dateLabel ?? ''}
-            </div>
-          </div>
-        </div>
-        {state === 'ok' && (
-          <span style={{ fontSize: '12px', color: 'var(--green2)', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '6px', padding: '2px 8px' }}>
-            {filtered.length} {t.celebrity.celebUnit}
-          </span>
-        )}
-      </div>
+    <ToolFrame toolId="narozeniny">
+      <DatePicker month={selMonth} day={selDay} onChange={handleDateChange} isToday={isToday} onReset={() => handleDateChange(todayM, todayD)} />
 
-      {/* Date picker */}
-      <div style={{ marginBottom: '10px' }}>
-        <DatePicker month={selMonth} day={selDay} onChange={handleDateChange} isToday={isToday} onReset={() => handleDateChange(todayM, todayD)} />
-      </div>
+      <ToolHero
+        label={`${isToday ? `${st.today} · ` : ''}${dayLabel(selMonth, selDay, lang)}`}
+        value={state === 'ok' ? fmtNumber(filtered.length, lang) : '—'}
+        sub={st.celebsCount}
+      />
 
-      {/* Category tabs */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap' }}>
+      <div className="tf-chips">
         {tabs.map(cat => {
-          const m = CATEGORY_META[cat];
-          const isActive = tab === cat;
           return (
-            <button key={cat} onClick={() => setTab(cat)} style={{ padding: '4px 8px', borderRadius: '7px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: isActive ? '700' : '400', background: isActive ? `${m.color}22` : 'rgba(255,255,255,0.04)', color: isActive ? m.color : 'var(--text3)', outline: isActive ? `1px solid ${m.color}55` : 'none', display: 'flex', alignItems: 'center', gap: '3px', transition: 'all 0.15s' }}>
-              <span>{m.emoji}</span>
-              <span>{tabLabels[cat]}</span>
-              {state === 'ok' && <span style={{ fontSize: '12px', opacity: 0.6 }}>({tabCounts[cat]})</span>}
+            <button key={cat} type="button" className={`tf-chip${tab === cat ? ' is-on' : ''}`} aria-pressed={tab === cat} onClick={() => setTab(cat)}>
+              {tabLabels[cat]}{state === 'ok' && <span style={{ opacity: 0.7 }}> ({fmtNumber(tabCounts[cat], lang)})</span>}
             </button>
           );
         })}
       </div>
 
-      {/* Loading */}
       {state === 'loading' && <Skeleton />}
 
-      {/* Error */}
       {state === 'error' && (
-        <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text3)' }}>
-          <div style={{ fontSize: '28px', marginBottom: '8px' }}>📡</div>
-          <div style={{ fontSize: '13px' }}>{t.celebrity.failedToLoad}</div>
-          <button onClick={() => loadData(selMonth, selDay)} style={{ marginTop: '10px', background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)', borderRadius: '8px', color: 'var(--purple3)', fontSize: '12px', padding: '6px 14px', cursor: 'pointer' }}>{t.celebrity.tryAgain}</button>
+        <div className="tf-panel" style={{ alignItems: 'center', textAlign: 'center' }}>
+          <div style={{ fontSize: 28 }}>📡</div>
+          <div>{t.celebrity.failedToLoad}</div>
+          <ToolButton onClick={() => loadData(selMonth, selDay)}>{t.celebrity.tryAgain}</ToolButton>
         </div>
       )}
 
-      {/* Content */}
       {state === 'ok' && (
         <>
-          {/* From your region */}
           {localFiltered.length > 0 && (
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>{t.celebrity.fromYourRegion}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(93,76,255,0.05)', border: '1px solid rgba(93,76,255,0.12)', borderRadius: '12px', padding: '6px' }}>
-                {localFiltered.slice(0, 5).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
-              </div>
+            <div className="tf-panel">
+              <div className="tf-label">{t.celebrity.fromYourRegion}</div>
+              {localFiltered.slice(0, 5).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
             </div>
           )}
 
-          {/* Global list */}
           {filtered.length > 0 ? (
-            <div>
-              <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-                {t.celebrity.topByPopularity.replace('{count}', String(Math.min(filtered.length, 15)))}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {filtered.slice(0, 15).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
-              </div>
+            <div className="tf-panel">
+              <div className="tf-label">{t.celebrity.topByPopularity.replace('{count}', fmtNumber(Math.min(filtered.length, 15), lang))}</div>
+              {filtered.slice(0, 15).map((c, i) => <CelebCard key={c.name} celeb={c} rank={i + 1} onClick={() => setSelected(c)} />)}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '1.5rem 0', color: 'var(--text3)', fontSize: '13px' }}>
-              <div style={{ fontSize: '24px', marginBottom: '6px' }}>{CATEGORY_META[tab].emoji}</div>
+            <div className="tf-note" style={{ padding: '1.5rem 0' }}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{CATEGORY_META[tab].emoji}</div>
               {t.celebrity.noCelebrities}
             </div>
           )}
 
-          {/* Historical events */}
-          <EventsSection events={events} dateLabel={data?.dateLabel ?? ''} />
+          <EventsSection events={events} />
 
-          <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>
-            {t.celebrity.source}
-          </div>
+          <div className="tf-note">{t.celebrity.source}</div>
         </>
       )}
 
-      {/* Profile popup */}
       {selected && <ProfilePopup celeb={selected} onClose={close} />}
 
       <style>{`
+        .cb-step { min-width: 44px; padding: 0; font-size: 18px; flex: 0 0 auto !important; }
+        .cb-row {
+          display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; text-align: start; font: inherit; color: inherit;
+          border-radius: 14px; cursor: pointer; border: 1px solid rgba(255,255,255,.06);
+          background: linear-gradient(160deg, rgba(28,34,88,.7), rgba(18,22,64,.7));
+          transition: border-color .15s, transform .1s;
+        }
+        .cb-row:hover { border-color: color-mix(in srgb, var(--tc) 50%, transparent); transform: translateX(2px); }
+        [dir="rtl"] .cb-row:hover { transform: translateX(-2px); }
+        .cb-age { font: 800 17px/1 'Poppins', sans-serif; color: color-mix(in srgb, var(--tc) 55%, #fff); }
         @keyframes cbPopIn { from{opacity:0;transform:scale(0.9) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
         @keyframes cbShimmer { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
       `}</style>
-    </div>
+    </ToolFrame>
   );
 }

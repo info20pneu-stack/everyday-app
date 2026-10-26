@@ -131,6 +131,8 @@ export interface CatalogGame {
   icon: string;
   /** Accent colour of the game: banner gradient, icon glow and page glow (see GameFrame). */
   color: string;
+  /** Day the game was added (YYYY-MM-DD); the games page marks it "New" for 14 days. */
+  addedAt?: string;
   /** Where the card leads. Ignored while `soon` is true. */
   route: string;
   nameKey: GameTextKey;
@@ -147,43 +149,43 @@ export const GAMES_CATALOG: CatalogGame[] = [
     nameKey: 'gamesHub.name_breathing', descKey: 'gamesHub.desc_breathing', soon: true },
 
   /* ── Mini games ── */
-  { id: 'sky-tower', section: 'mini', duration: '2', icon: '🗼', color: '#FFC94D', route: '/games/sky-tower',
+  { id: 'sky-tower', section: 'mini', duration: '2', icon: '🗼', color: '#FFC94D', addedAt: '2026-10-24', route: '/games/sky-tower',
     nameKey: 'gamesHub.name_skyTower', descKey: 'gamesHub.desc_skyTower', leaderboard: 'skytower' },
-  { id: 'daily-blocks', section: 'mini', duration: '10+', icon: '🧱', color: '#38BDF8', route: '/games/daily-blocks',
+  { id: 'daily-blocks', section: 'mini', duration: '10+', icon: '🧱', color: '#38BDF8', addedAt: '2026-10-24', route: '/games/daily-blocks',
     nameKey: 'gamesHub.name_dailyBlocks', descKey: 'gamesHub.desc_dailyBlocks', leaderboard: 'dailyblocks' },
   { id: 'sudoku-cube', section: 'mini', duration: '10+', icon: '🧊', color: '#60A5FA', route: '/games/sudoku-cube',
     nameKey: 'gamesHub.name_sudokuCube', descKey: 'gamesHub.desc_sudokuCube', soon: true, leaderboard: 'sudokucube' },
-  { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', route: '/daily-games?play=memory',
+  { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', addedAt: '2026-05-24', route: '/daily-games?play=memory',
     nameKey: 'games.memory', descKey: 'gamesHub.desc_memory', leaderboard: 'memory' },
-  { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', route: '/daily-games?play=sliding',
+  { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', addedAt: '2026-05-24', route: '/daily-games?play=sliding',
     nameKey: 'games.sliding', descKey: 'gamesHub.desc_sliding', leaderboard: 'sliding' },
-  { id: 'wordchain', section: 'mini', duration: '2', icon: '📝', color: '#34D399', route: '/daily-games?play=wordchain',
+  { id: 'wordchain', section: 'mini', duration: '2', icon: '📝', color: '#34D399', addedAt: '2026-05-24', route: '/daily-games?play=wordchain',
     nameKey: 'games.wordchain', descKey: 'gamesHub.desc_wordchain', leaderboard: 'wordchain' },
-  { id: 'felixjump', section: 'mini', duration: '2', icon: '🏃', color: '#FB923C', route: '/daily-games?play=felixjump',
+  { id: 'felixjump', section: 'mini', duration: '2', icon: '🏃', color: '#FB923C', addedAt: '2026-05-24', route: '/daily-games?play=felixjump',
     nameKey: 'games.felixJump', descKey: 'gamesHub.desc_felixjump', leaderboard: 'felixjump' },
-  { id: 'reaction', section: 'mini', duration: '2', icon: '⚡', color: '#FACC15', route: '/daily-games?play=reaction',
+  { id: 'reaction', section: 'mini', duration: '2', icon: '⚡', color: '#FACC15', addedAt: '2026-05-24', route: '/daily-games?play=reaction',
     nameKey: 'games.reaction', descKey: 'gamesHub.desc_reaction', leaderboard: 'reaction' },
-  { id: 'reflex', section: 'mini', duration: '2', icon: '⏱', color: '#F87171', route: '/daily-games?play=reflex',
+  { id: 'reflex', section: 'mini', duration: '2', icon: '⏱', color: '#F87171', addedAt: '2026-05-24', route: '/daily-games?play=reflex',
     nameKey: 'games.reflex', descKey: 'gamesHub.desc_reflex', leaderboard: 'reflex' },
 
   /* ── Quizzes ── */
-  { id: 'daily-puzzle', section: 'quiz', duration: '2', icon: '🧩', color: '#2FE39A', route: '/games/daily-puzzle',
+  { id: 'daily-puzzle', section: 'quiz', duration: '2', icon: '🧩', color: '#2FE39A', addedAt: '2026-10-15', route: '/games/daily-puzzle',
     nameKey: 'dailyPuzzle.title', descKey: 'dailyPuzzle.subtitle' },
-  { id: 'higher-lower', section: 'quiz', duration: '2', icon: '↕️', color: '#8B5CF6', route: '/games/higher-lower',
+  { id: 'higher-lower', section: 'quiz', duration: '2', icon: '↕️', color: '#8B5CF6', addedAt: '2026-10-25', route: '/games/higher-lower',
     nameKey: 'gamesHub.name_higherLower', descKey: 'gamesHub.desc_higherLower', leaderboard: 'higherlower' },
-  { id: 'connect-four', section: 'quiz', duration: '5', icon: '🔗', color: '#8B5CF6', route: '/games/connect-four',
+  { id: 'connect-four', section: 'quiz', duration: '5', icon: '🔗', color: '#8B5CF6', addedAt: '2026-10-25', route: '/games/connect-four',
     nameKey: 'gamesHub.name_connectFour', descKey: 'gamesHub.desc_connectFour', leaderboard: 'connectfour' },
-  { id: 'flagquiz', section: 'quiz', duration: '2', icon: '🌍', color: '#22D3EE', route: '/daily-games?play=flagquiz',
+  { id: 'flagquiz', section: 'quiz', duration: '2', icon: '🌍', color: '#22D3EE', addedAt: '2026-05-24', route: '/daily-games?play=flagquiz',
     nameKey: 'games.flagquiz', descKey: 'gamesHub.desc_flagquiz', leaderboard: 'flagquiz' },
-  { id: 'mathrush', section: 'quiz', duration: '2', icon: '🔢', color: '#FB7185', route: '/daily-games?play=mathrush',
+  { id: 'mathrush', section: 'quiz', duration: '2', icon: '🔢', color: '#FB7185', addedAt: '2026-05-24', route: '/daily-games?play=mathrush',
     nameKey: 'games.mathrush', descKey: 'gamesHub.desc_mathrush', leaderboard: 'mathrush' },
-  { id: 'wordle', section: 'quiz', duration: '5', icon: '🟩', color: '#22C55E', route: '/daily-games?cat=wordle',
+  { id: 'wordle', section: 'quiz', duration: '5', icon: '🟩', color: '#22C55E', addedAt: '2026-05-30', route: '/daily-games?cat=wordle',
     nameKey: 'gamesHub.name_wordle', descKey: 'gamesHub.desc_wordle' },
 
   /* ── Curiosities ── */
-  { id: 'human-benchmark', section: 'curious', duration: '5', icon: '🧠', color: '#3B82F6', route: '/daily-games?cat=hb',
+  { id: 'human-benchmark', section: 'curious', duration: '5', icon: '🧠', color: '#3B82F6', addedAt: '2026-05-29', route: '/daily-games?cat=hb',
     nameKey: 'gamesHub.name_humanBenchmark', descKey: 'gamesHub.desc_humanBenchmark' },
-  { id: 'typing', section: 'curious', duration: '2', icon: '⌨️', color: '#818CF8', route: '/daily-games?play=typing',
+  { id: 'typing', section: 'curious', duration: '2', icon: '⌨️', color: '#818CF8', addedAt: '2026-06-01', route: '/daily-games?play=typing',
     nameKey: 'gamesHub.name_typing', descKey: 'gamesHub.desc_typing', leaderboard: 'typing' },
 ];
 
@@ -196,4 +198,11 @@ export function gameText(t: Translations, key: GameTextKey): string {
   const [ns, field] = key.split('.') as ['games' | 'gamesHub' | 'dailyPuzzle', string];
   const value = (t[ns] as Record<string, unknown>)[field];
   return typeof value === 'string' ? value : field;
+}
+
+/** True for 14 days after the game's addedAt. */
+export function isNewGame(g: CatalogGame, now = Date.now()): boolean {
+  if (!g.addedAt) return false;
+  const added = Date.parse(`${g.addedAt}T00:00:00Z`);
+  return now - added >= 0 && now - added < 14 * 86_400_000;
 }

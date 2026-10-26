@@ -2,6 +2,9 @@
 
 import { useState, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
+import { fmtDecimal, fmtNumber } from '../../lib/formatNumber';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolCard, ToolCards } from './tools/ToolFrame';
 
 type Phase = 'idle' | 'ping' | 'download' | 'upload' | 'done' | 'error';
 
@@ -40,8 +43,17 @@ function stripLeadingEmoji(s: string): string {
   return s.slice(s.indexOf(' ') + 1);
 }
 
+/** Short unit symbol in the UI language ("Mb/s", "ms"). */
+function unitWord(unit: string, lang: string): string {
+  try {
+    return new Intl.NumberFormat(lang, { style: 'unit', unit, unitDisplay: 'short' })
+      .formatToParts(1).filter(p => p.type === 'unit').map(p => p.value).join('').trim();
+  } catch { return unit; }
+}
+
 function Gauge({ value, phase }: { value: number; phase: Phase }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
   const pct = Math.min(value / MAX_MBPS, 1);
   const vDeg = START_DEG + pct * SWEEP;
   const tip = polarR(R - 15, vDeg);
@@ -91,7 +103,7 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
             <text x={lbl.x.toFixed(1)} y={lbl.y.toFixed(1)}
               textAnchor="middle" dominantBaseline="middle"
               fill="rgba(255,255,255,0.3)" fontSize="12" fontFamily="monospace">
-              {spd}
+              {fmtNumber(spd, lang)}
             </text>
           </g>
         );
@@ -124,11 +136,11 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
             fill={active && value > 0 ? 'white' : 'rgba(255,255,255,0.15)'}
             fontSize="30" fontWeight="700" fontFamily="monospace"
             style={{ transition: 'fill 0.1s' }}>
-            {active && value > 0 ? value.toFixed(1) : '—'}
+            {active && value > 0 ? fmtDecimal(value, lang, 1) : '—'}
           </text>
           <text x={CX} y={CY + 50} textAnchor="middle"
-            fill="rgba(255,255,255,0.3)" fontSize="12">
-            Mbps
+            fill="rgba(255,255,255,0.4)" fontSize="12">
+            {unitWord('megabit-per-second', lang)}
           </text>
         </>
       ) : (
@@ -139,7 +151,7 @@ function Gauge({ value, phase }: { value: number; phase: Phase }) {
           </text>
           <text x={CX} y={CY + 50} textAnchor="middle"
             fill="rgba(255,255,255,0.25)" fontSize="12">
-            measuring...
+            {st.stMeasuring}
           </text>
         </>
       )}
@@ -215,19 +227,19 @@ async function measureUpload(onProgress: (mbps: number) => void): Promise<number
 
 /* ─── Main component ─── */
 export default function SpeedTest() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
   const [phase, setPhase] = useState<Phase>('idle');
   const [gauge, setGauge] = useState(0);
   const [ping, setPing] = useState<number | null>(null);
   const [download, setDownload] = useState<number | null>(null);
   const [upload, setUpload] = useState<number | null>(null);
-  const [errMsg, setErrMsg] = useState('');
 
   const running = phase !== 'idle' && phase !== 'done' && phase !== 'error';
 
   const runTest = useCallback(async () => {
     setPing(null); setDownload(null); setUpload(null);
-    setGauge(0); setErrMsg('');
+    setGauge(0);
 
     try {
       setPhase('ping');
@@ -247,186 +259,71 @@ export default function SpeedTest() {
       setGauge(ul);
 
       setPhase('done');
-    } catch (e) {
-      setErrMsg('Cannot connect to test server. Possible CORS restriction or connection failure.');
+    } catch {
       setPhase('error');
     }
   }, []);
 
   function pingQuality(ms: number) {
-    if (ms < 20) return { label: 'Excellent', color: '#22C55E' };
-    if (ms < 50) return { label: 'Good', color: '#60A5FA' };
-    if (ms < 100) return { label: 'Average', color: '#FFB300' };
-    return { label: 'High', color: '#FF5555' };
+    if (ms < 20) return { label: st.qExcellent, color: '#22C55E' };
+    if (ms < 50) return { label: st.qGood, color: '#60A5FA' };
+    if (ms < 100) return { label: st.qAverage, color: '#FFB300' };
+    return { label: st.qHigh, color: '#FF5555' };
+  }
+  function speedQuality(mbps: number, fast: number, ok: number) {
+    return mbps > fast ? { label: st.qExcellent, color: '#22C55E' }
+      : mbps > ok ? { label: st.qGood, color: '#60A5FA' }
+      : { label: st.qSlow, color: '#FF5555' };
   }
 
+  const mbps = unitWord('megabit-per-second', lang);
   const stats = [
-    {
-      icon: '📡', label: stripLeadingEmoji(t.speedTest.ping), value: ping,
-      fmt: (v: number) => v.toFixed(0), unit: 'ms',
-      quality: ping != null ? pingQuality(ping) : null,
-    },
-    {
-      icon: '↓', label: stripLeadingEmoji(t.speedTest.download), value: download,
-      fmt: (v: number) => v.toFixed(1), unit: 'Mbps',
-      quality: download != null ? {
-        label: download > 100 ? 'Excellent' : download > 30 ? 'Good' : 'Slow',
-        color: download > 100 ? '#22C55E' : download > 30 ? '#60A5FA' : '#FF5555',
-      } : null,
-    },
-    {
-      icon: '↑', label: stripLeadingEmoji(t.speedTest.upload), value: upload,
-      fmt: (v: number) => v.toFixed(1), unit: 'Mbps',
-      quality: upload != null ? {
-        label: upload > 50 ? 'Excellent' : upload > 10 ? 'Good' : 'Slow',
-        color: upload > 50 ? '#22C55E' : upload > 10 ? '#60A5FA' : '#FF5555',
-      } : null,
-    },
+    { icon: '📡', label: stripLeadingEmoji(t.speedTest.ping), value: ping, text: ping != null ? `${fmtNumber(Math.round(ping), lang)} ${unitWord('millisecond', lang)}` : '—', quality: ping != null ? pingQuality(ping) : null },
+    { icon: '⬇️', label: stripLeadingEmoji(t.speedTest.download), value: download, text: download != null ? `${fmtDecimal(download, lang, 1)} ${mbps}` : '—', quality: download != null ? speedQuality(download, 100, 30) : null },
+    { icon: '⬆️', label: stripLeadingEmoji(t.speedTest.upload), value: upload, text: upload != null ? `${fmtDecimal(upload, lang, 1)} ${mbps}` : '—', quality: upload != null ? speedQuality(upload, 50, 10) : null },
   ];
 
   const phaseLabel: Record<Phase, string> = {
-    idle: '', ping: t.speedTest.measuring, download: t.speedTest.testingDownload,
-    upload: t.speedTest.testingUpload, done: t.speedTest.complete, error: '',
+    idle: st.stSpeed, ping: t.speedTest.measuring, download: t.speedTest.testingDownload,
+    upload: t.speedTest.testingUpload, done: `✓ ${t.speedTest.complete}`, error: st.stSpeed,
   };
 
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      boxShadow: 'var(--card-shadow)',
-      padding: '1.25rem',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1.25rem',
-    }}>
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>{t.speedTest.title}</span>
+    <ToolFrame toolId="rychlost">
+      <section className="tf-hero">
+        <div className={`tf-hero-label${running ? ' st-blink' : ''}`}>{phaseLabel[phase]}</div>
+        <div className="st-gauge"><Gauge value={gauge} phase={phase} /></div>
+        <div className="st-strip">
+          {(['ping', 'download', 'upload'] as Phase[]).map((p, i) => {
+            const done = phase === 'done' || (phase === 'upload' && i < 2) || (phase === 'download' && i < 1);
+            return <i key={p} className={done ? 'done' : phase === p ? 'now' : ''} />;
+          })}
         </div>
-        {running && (
-          <span style={{ color: 'var(--purple3)', fontSize: '0.78rem', animation: 'stBlink 1.2s ease-in-out infinite' }}>
-            {phaseLabel[phase]}
-          </span>
-        )}
-        {phase === 'done' && (
-          <span style={{
-            background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)',
-            borderRadius: 7, padding: '2px 8px', fontSize: '0.75rem', color: '#4ADE80',
-          }}>
-            ✓ {t.speedTest.complete}
-          </span>
-        )}
-      </div>
+      </section>
 
-      {/* Gauge */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '-0.5rem' }}>
-        <Gauge value={gauge} phase={phase} />
-      </div>
-
-      {/* Phase indicator strip */}
-      <div style={{ display: 'flex', gap: '0.4rem' }}>
-        {(['ping', 'download', 'upload'] as Phase[]).map((p, i) => {
-          const done = phase === 'done' || (phase === 'upload' && i < 2) || (phase === 'download' && i < 1);
-          const active = phase === p;
-          return (
-            <div key={p} style={{
-              flex: 1, height: 3, borderRadius: 2,
-              background: done ? 'var(--green)' : active ? 'var(--purple2)' : 'rgba(255,255,255,0.07)',
-              transition: 'background 0.4s',
-              ...(active ? { animation: 'stPulse 1.2s ease-in-out infinite' } : {}),
-            }} />
-          );
-        })}
-      </div>
-      <div style={{ display: 'flex', gap: '0.4rem', marginTop: '-0.75rem' }}>
-        {[stripLeadingEmoji(t.speedTest.ping), stripLeadingEmoji(t.speedTest.download), stripLeadingEmoji(t.speedTest.upload)].map((l) => (
-          <div key={l} style={{
-            flex: 1, textAlign: 'center',
-            fontSize: '0.75rem', color: 'var(--text3)',
-          }}>{l}</div>
+      <ToolCards>
+        {stats.map(({ icon, label, text, quality }, i) => (
+          <ToolCard key={label} wide={i === 0} icon={icon} color={quality?.color ?? '#8B5CF6'} label={label}
+            value={<span dir="ltr">{text}</span>} sub={quality?.label} />
         ))}
-      </div>
+      </ToolCards>
 
-      {/* Result cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.65rem' }}>
-        {stats.map(({ icon, label, value, fmt, unit, quality }) => (
-          <div key={label} style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: `1px solid ${quality ? quality.color + '33' : 'rgba(255,255,255,0.06)'}`,
-            borderRadius: 12, padding: '0.7rem 0.5rem',
-            textAlign: 'center', transition: 'border-color 0.4s',
-          }}>
-            <div style={{ fontSize: '1rem', marginBottom: '0.2rem' }}>{icon}</div>
-            <div style={{ color: 'var(--text3)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {label}
-            </div>
-            <div style={{
-              fontFamily: 'monospace', fontWeight: 700,
-              fontSize: value != null ? '1.15rem' : '1.3rem',
-              color: quality ? quality.color : 'rgba(255,255,255,0.18)',
-              marginTop: '0.15rem', transition: 'color 0.4s',
-              lineHeight: 1.2,
-            }}>
-              {value != null ? fmt(value) : '—'}
-            </div>
-            <div style={{ color: 'var(--text3)', fontSize: '0.75rem', marginTop: '1px' }}>{unit}</div>
-            {quality && (
-              <div style={{ color: quality.color, fontSize: '0.75rem', marginTop: '3px', opacity: 0.8 }}>
-                {quality.label}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {phase === 'error' && <div className="tf-note" style={{ color: '#FCA5A5' }}>⚠️ {st.stError}</div>}
 
-      {/* Error */}
-      {phase === 'error' && (
-        <div style={{
-          background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
-          borderRadius: 10, padding: '0.7rem 1rem',
-          color: '#FCA5A5', fontSize: '0.8rem',
-        }}>
-          ⚠️ {errMsg}
-        </div>
-      )}
-
-      {/* Button */}
-      <button
-        onClick={runTest}
-        disabled={running}
-        style={{
-          background: running
-            ? 'rgba(255,255,255,0.04)'
-            : 'linear-gradient(135deg, var(--purple), var(--purple2))',
-          border: 'none', borderRadius: 12,
-          color: running ? 'rgba(255,255,255,0.3)' : 'white',
-          cursor: running ? 'not-allowed' : 'pointer',
-          fontSize: '0.9rem', fontWeight: 600,
-          padding: '0.8rem',
-          transition: 'all 0.2s',
-          letterSpacing: '0.3px',
-        }}
-      >
-        {running
-          ? t.speedTest.running
-          : phase === 'done' || phase === 'error'
-            ? t.speedTest.runAgain
-            : t.speedTest.runTest}
-      </button>
+      <ToolButton onClick={runTest} disabled={running}>
+        {running ? t.speedTest.running : phase === 'done' || phase === 'error' ? t.speedTest.runAgain : t.speedTest.runTest}
+      </ToolButton>
 
       <style>{`
-        @keyframes stPulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.35; }
-        }
-        @keyframes stBlink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
+        .st-gauge { display: flex; justify-content: center; margin: 18px 0 -6px; }
+        .st-strip { display: flex; gap: 6px; margin-top: 8px; }
+        .st-strip i { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); transition: background .4s; }
+        .st-strip i.done { background: #22C55E; }
+        .st-strip i.now { background: var(--tc); animation: stPulse 1.2s ease-in-out infinite; }
+        .st-blink { animation: stBlink 1.2s ease-in-out infinite; }
+        @keyframes stPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        @keyframes stBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
       `}</style>
-    </div>
+    </ToolFrame>
   );
 }

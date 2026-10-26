@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import FlagText from './FlagText';
+import { fmtNumber } from '../../lib/formatNumber';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolHero } from './tools/ToolFrame';
 
 /* ─── Feed definitions ─── */
 type Source = { id: string; name: string; flag: string; url: string; lang: string };
@@ -41,15 +44,17 @@ function stripHtml(s: string): string {
     .trim();
 }
 
-function timeAgo(dateStr: string): string {
+/** "před 5 min", "5 min ago", "now" — relative time in the UI language. */
+function timeAgo(dateStr: string, lang: string): string {
   if (!dateStr) return '';
-  try {
-    const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-    if (diff < 90)     return 'Just now';
-    if (diff < 3600)   return `${Math.floor(diff / 60)} min`;
-    if (diff < 86400)  return `${Math.floor(diff / 3600)} hr`;
-    return `${Math.floor(diff / 86400)} d`;
-  } catch { return ''; }
+  const time = new Date(dateStr).getTime();
+  if (isNaN(time)) return '';
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto', style: 'short' });
+  const diff = (Date.now() - time) / 1000;
+  if (diff < 90)    return rtf.format(0, 'second');
+  if (diff < 3600)  return rtf.format(-Math.floor(diff / 60), 'minute');
+  if (diff < 86400) return rtf.format(-Math.floor(diff / 3600), 'hour');
+  return rtf.format(-Math.floor(diff / 86400), 'day');
 }
 
 function parseRss(xml: string): Article[] {
@@ -84,16 +89,15 @@ function parseRss(xml: string): Article[] {
   });
 }
 
-function defaultSource(): string {
-  if (typeof navigator === 'undefined') return 'bbc';
-  const lang = navigator.language.split('-')[0].toLowerCase();
-  const match = SOURCES.find(s => s.lang === lang);
-  return match?.id ?? 'bbc';
+/** A source in the UI language when there is one, else BBC. */
+function defaultSource(uiLang: string): string {
+  return SOURCES.find(s => s.lang === uiLang)?.id ?? 'bbc';
 }
 
 /* ─── Article card ─── */
 function ArticleCard({ article, index }: { article: Article; index: number }) {
-  const ago = timeAgo(article.pubDate);
+  const { lang } = useLang();
+  const ago = timeAgo(article.pubDate, lang);
   return (
     <a
       href={article.link}
@@ -101,24 +105,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
       rel="noopener noreferrer"
       style={{ textDecoration: 'none' }}
     >
-      <div style={{
-        display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
-        padding: '0.75rem',
-        borderRadius: 12,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.04)',
-        transition: 'background 0.2s, border-color 0.2s',
-        cursor: 'pointer',
-      }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLDivElement).style.background = 'rgba(93,76,255,0.07)';
-          (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(93,76,255,0.2)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.02)';
-          (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.04)';
-        }}
-      >
+      <div className="nw-card">
         {/* Index */}
         <div style={{
           flexShrink: 0, width: 22, height: 22, borderRadius: 6,
@@ -128,7 +115,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
           fontSize: '0.75rem', fontWeight: 700, color: 'var(--purple3)',
           marginTop: '2px',
         }}>
-          {index + 1}
+          {fmtNumber(index + 1, lang)}
         </div>
 
         {/* Text */}
@@ -162,7 +149,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
                 {ago}
               </span>
             )}
-            <span style={{ fontSize: '0.75rem', color: 'var(--purple3)', marginLeft: 'auto', opacity: 0.7 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--purple3)', marginInlineStart: 'auto', opacity: 0.7 }}>
               ↗
             </span>
           </div>
@@ -209,12 +196,14 @@ function Skeleton() {
 
 /* ─── Main component ─── */
 export default function News() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
   const [activeId, setActiveId] = useState<string>('bbc');
   const [cache, setCache] = useState<Record<string, { articles: Article[]; ts: number }>>({});
   const [state, setState] = useState<LoadState>('idle');
   const [articles, setArticles] = useState<Article[]>([]);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [picked, setPicked] = useState(false);
 
   const loadFeed = useCallback(async (sourceId: string, force = false) => {
     const source = SOURCES.find(s => s.id === sourceId);
@@ -244,166 +233,81 @@ export default function News() {
     }
   }, [cache]);
 
-  // Init: detect language, set source, load
+  // Load the source in the UI language (again when the language loads, until the reader picks one)
   useEffect(() => {
-    const id = defaultSource();
+    if (picked) return;
+    const id = defaultSource(lang);
     setActiveId(id);
     loadFeed(id);
-  }, []); // eslint-disable-line
+  }, [lang]); // eslint-disable-line
 
   function switchSource(id: string) {
+    setPicked(true);
     setActiveId(id);
     loadFeed(id);
   }
 
   const source = SOURCES.find(s => s.id === activeId)!;
 
+  const top = articles[0];
+
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      boxShadow: 'var(--card-shadow)',
-      padding: '1.25rem',
-      display: 'flex', flexDirection: 'column', gap: '1.1rem',
-    }}>
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>{t.news.title}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {lastRefresh && (
-            <span style={{ color: 'var(--text3)', fontSize: '0.75rem' }}>
-              {lastRefresh.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            </span>
-          )}
-          <button
-            onClick={() => loadFeed(activeId, true)}
-            disabled={state === 'loading'}
-            title={t.news.refresh}
-            className="icon-btn"
-            style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 7, cursor: state === 'loading' ? 'not-allowed' : 'pointer',
-              color: 'var(--text3)', fontSize: '0.8rem',
-              padding: '3px 7px',
-              opacity: state === 'loading' ? 0.4 : 1,
-              transition: 'opacity 0.2s',
-            }}
-          >
-            ↺
-          </button>
-        </div>
-      </div>
-
-      {/* Source tabs */}
-      <div style={{
-        display: 'flex', gap: '0.4rem', flexWrap: 'wrap',
-      }}>
+    <ToolFrame toolId="zpravy" wide>
+      <div className="tf-chips">
         {SOURCES.map(s => (
-          <button
-            key={s.id}
-            onClick={() => switchSource(s.id)}
-            style={{
-              background: activeId === s.id
-                ? 'linear-gradient(135deg, rgba(93,76,255,0.25), rgba(93,76,255,0.12))'
-                : 'rgba(255,255,255,0.03)',
-              border: `1px solid ${activeId === s.id ? 'rgba(93,76,255,0.4)' : 'rgba(255,255,255,0.06)'}`,
-              borderRadius: 8, cursor: 'pointer',
-              color: activeId === s.id ? 'var(--purple3)' : 'var(--text3)',
-              fontSize: '0.75rem', fontWeight: activeId === s.id ? 600 : 400,
-              padding: '0.3rem 0.6rem',
-              display: 'flex', alignItems: 'center', gap: '0.3rem',
-              transition: 'all 0.18s',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span style={{ display: 'inline-flex' }}><FlagText text={s.flag} size={16} /></span>
-            <span>{s.name}</span>
+          <button key={s.id} type="button" className={`tf-chip${activeId === s.id ? ' is-on' : ''}`} aria-pressed={activeId === s.id} onClick={() => switchSource(s.id)}>
+            <span style={{ display: 'inline-flex', verticalAlign: 'middle' }}><FlagText text={s.flag} size={16} /></span> {s.name}
           </button>
         ))}
       </div>
 
-      {/* Active source bar */}
-      {state === 'ok' && (
-        <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.5rem',
-          padding: '0.4rem 0.7rem',
-          background: 'rgba(93,76,255,0.06)',
-          border: '1px solid rgba(93,76,255,0.12)',
-          borderRadius: 8,
-        }}>
-          <span style={{ display: 'inline-flex' }}><FlagText text={source.flag} size={16} /></span>
-          <span style={{ color: 'var(--text2)', fontSize: '0.78rem', fontWeight: 500 }}>
-            {source.name}
-          </span>
-          <span style={{
-            marginLeft: 'auto',
-            background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
-            borderRadius: 5, padding: '1px 6px',
-            color: '#4ADE80', fontSize: '0.75rem',
-          }}>
-            {articles.length} {t.news.articleUnit}
-          </span>
-        </div>
-      )}
-
-      {/* Content */}
       {state === 'loading' && <Skeleton />}
 
       {state === 'error' && (
-        <div style={{
-          textAlign: 'center', padding: '1.5rem 0',
-          color: 'var(--text3)',
-        }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📡</div>
-          <div style={{ fontSize: '0.9rem', color: 'var(--text2)', marginBottom: '0.3rem' }}>
-            {t.news.failedToLoad}
-          </div>
-          <div style={{ fontSize: '0.78rem' }}>
-            {t.news.checkConnection}
-          </div>
-          <button
-            onClick={() => loadFeed(activeId, true)}
-            style={{
-              marginTop: '0.75rem',
-              background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.25)',
-              borderRadius: 8, cursor: 'pointer', color: 'var(--purple3)',
-              fontSize: '0.8rem', padding: '0.4rem 0.9rem',
-            }}
-          >
-            {t.news.tryAgain}
-          </button>
+        <div className="tf-panel" style={{ alignItems: 'center', textAlign: 'center' }}>
+          <div style={{ fontSize: 30 }}>📡</div>
+          <div>{t.news.failedToLoad}</div>
+          <div className="tf-note">{t.news.checkConnection}</div>
+          <ToolButton onClick={() => loadFeed(activeId, true)}>{t.news.tryAgain}</ToolButton>
         </div>
       )}
 
-      {state === 'ok' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
-          {articles.map((a, i) => <ArticleCard key={i} article={a} index={i} />)}
-        </div>
-      )}
-
-      {/* Footer */}
-      {state === 'ok' && (
-        <div style={{
-          paddingTop: '0.5rem',
-          borderTop: '1px solid rgba(255,255,255,0.05)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>
-            {t.news.source} {source.name} · {t.news.refreshNote}
-          </span>
-          <a
-            href={source.url} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: '0.75rem', color: 'var(--purple3)', textDecoration: 'none', opacity: 0.7, display: 'inline-flex', alignItems: 'center', minHeight: '44px', padding: '0 8px' }}
-          >
-            RSS ↗
+      {state === 'ok' && top && (
+        <>
+          <a href={top.link} target="_blank" rel="noopener noreferrer" className="nw-hero-link">
+            <ToolHero
+              label={<span className="nw-hero-label"><FlagText text={source.flag} size={16} /> {source.name} · {fmtNumber(articles.length, lang)} {t.news.articleUnit}</span>}
+              value={<span className="nw-headline">{top.title}</span>}
+              sub={<>{timeAgo(top.pubDate, lang)}{top.pubDate && ' · '}↗</>}
+            />
           </a>
-        </div>
+
+          <div className="tf-panel">
+            {articles.slice(1).map((a, i) => <ArticleCard key={i} article={a} index={i + 1} />)}
+          </div>
+
+          <ToolButton onClick={() => loadFeed(activeId, true)}>↺ {st.refresh}</ToolButton>
+
+          <div className="tf-note">
+            {t.news.source} {source.name} · {t.news.refreshNote}
+            {lastRefresh && <> · 🕐 {lastRefresh.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })}</>}
+            {' · '}<a href={source.url} target="_blank" rel="noopener noreferrer" style={{ color: '#C4B5FD' }}>RSS ↗</a>
+          </div>
+        </>
       )}
-    </div>
+
+      <style>{`
+        .nw-hero-link { text-decoration: none; color: inherit; display: block; }
+        .nw-hero-label { display: inline-flex; align-items: center; gap: 6px; }
+        .nw-headline { display: block; font: 800 clamp(20px, 5.5vw, 26px)/1.25 'Poppins', system-ui, sans-serif; text-shadow: none; text-wrap: balance; }
+        .nw-card {
+          display: flex; gap: .75rem; align-items: flex-start; padding: .75rem; border-radius: 14px; cursor: pointer;
+          background: linear-gradient(160deg, rgba(28,34,88,.6), rgba(18,22,64,.6)); border: 1px solid rgba(255,255,255,.06);
+          transition: border-color .2s;
+        }
+        .nw-card:hover { border-color: color-mix(in srgb, var(--tc) 50%, transparent); }
+        @keyframes shimmer { 0%, 100% { opacity: .6; } 50% { opacity: 1; } }
+      `}</style>
+    </ToolFrame>
   );
 }

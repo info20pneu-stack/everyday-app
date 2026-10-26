@@ -3,6 +3,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
+import { fmtNumber } from '../../lib/formatNumber';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolField, ToolHero } from './tools/ToolFrame';
 
 const CHARS = {
   upper:   'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -62,10 +65,10 @@ function shuffleIndices(n: number): number[] {
   return arr;
 }
 
-type Strength = { label: string; color: string; bars: number; desc: string };
+type Strength = { level: 0 | 1 | 2 | 3 | 4; color: string };
 
 function calcStrength(pwd: string, opts: Options): Strength {
-  if (!pwd) return { label: '', color: 'transparent', bars: 0, desc: '' };
+  if (!pwd) return { level: 0, color: 'transparent' };
 
   let score = 0;
   const len = pwd.length;
@@ -81,84 +84,17 @@ function calcStrength(pwd: string, opts: Options): Strength {
   if (activeSets >= 3) score++;
   if (activeSets === 4) score++;
 
-  if (score <= 2) return { label: 'Weak',        color: '#FF5555', bars: 1, desc: 'Easily cracked' };
-  if (score <= 4) return { label: 'Fair',        color: '#FFB300', bars: 2, desc: 'Acceptable for general use' };
-  if (score <= 6) return { label: 'Strong',      color: '#60A5FA', bars: 3, desc: 'Well protected' };
-  return              { label: 'Very strong',  color: '#22C55E', bars: 4, desc: 'Excellent protection' };
+  if (score <= 2) return { level: 1, color: '#FF5555' };
+  if (score <= 4) return { level: 2, color: '#FFB300' };
+  if (score <= 6) return { level: 3, color: '#60A5FA' };
+  return { level: 4, color: '#22C55E' };
 }
 
-function PasswordDisplay({ pwd, onCopy, copied }: {
-  pwd: string; onCopy: () => void; copied: boolean;
-}) {
-  const { t } = useLang();
-  if (!pwd) return null;
-  return (
-    <div style={{
-      background: 'rgba(0,0,0,0.3)',
-      border: '1px solid rgba(93,76,255,0.25)',
-      borderRadius: 12,
-      padding: '0.85rem 1rem',
-      display: 'flex', alignItems: 'center', gap: '0.75rem',
-    }}>
-      <span style={{
-        flex: 1, fontFamily: 'monospace', fontSize: '1.05rem',
-        color: 'var(--text1)', wordBreak: 'break-all', lineHeight: 1.5,
-        letterSpacing: '0.5px',
-      }}>
-        {pwd.split('').map((ch, i) => {
-          const color =
-            CHARS.upper.includes(ch)   ? '#C084FC' :
-            CHARS.digits.includes(ch)  ? '#60A5FA' :
-            CHARS.symbols.includes(ch) ? '#34D399' :
-            'var(--text1)';
-          return <span key={i} style={{ color }}>{ch}</span>;
-        })}
-      </span>
-      <button
-        onClick={onCopy}
-        title="Copy password"
-        style={{
-          flexShrink: 0,
-          background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(93,76,255,0.15)',
-          border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(93,76,255,0.3)'}`,
-          borderRadius: 8, cursor: 'pointer',
-          color: copied ? '#4ADE80' : 'var(--purple3)',
-          fontSize: '0.78rem', fontWeight: 600,
-          padding: '0.35rem 0.7rem',
-          transition: 'all 0.2s',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {copied ? t.passwordGen.copied : t.passwordGen.copy}
-      </button>
-    </div>
-  );
-}
-
-function StrengthBar({ strength }: { strength: Strength }) {
-  if (!strength.label) return null;
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-        <span style={{ fontSize: '0.78rem', color: strength.color, fontWeight: 600 }}>
-          {strength.label}
-        </span>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>
-          {strength.desc}
-        </span>
-      </div>
-      <div style={{ display: 'flex', gap: '4px' }}>
-        {[1, 2, 3, 4].map(n => (
-          <div key={n} style={{
-            flex: 1, height: 5, borderRadius: 3,
-            background: n <= strength.bars ? strength.color : 'rgba(255,255,255,0.07)',
-            transition: 'background 0.3s',
-            boxShadow: n <= strength.bars ? `0 0 6px ${strength.color}66` : 'none',
-          }} />
-        ))}
-      </div>
-    </div>
-  );
+function charColor(ch: string): string {
+  return CHARS.upper.includes(ch) ? '#D8B4FE'
+    : CHARS.digits.includes(ch) ? '#7DD3FC'
+    : CHARS.symbols.includes(ch) ? '#6EE7B7'
+    : '#F2F3FF';
 }
 
 function getToggleOptions(t: Translations) {
@@ -171,7 +107,7 @@ function getToggleOptions(t: Translations) {
 }
 
 export default function PasswordGenerator() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const TOGGLE_OPTIONS = getToggleOptions(t);
   const [length, setLength] = useState(16);
   const [opts, setOpts] = useState<Options>({ upper: true, lower: true, digits: true, symbols: false });
@@ -211,6 +147,9 @@ export default function PasswordGenerator() {
 
   const strength = calcStrength(password, opts);
   const activeCount = Object.values(opts).filter(Boolean).length;
+  const st = toolStrings(lang);
+  const levelLabel = ['', st.pwWeak, st.pwFair, st.pwStrong, st.pwVeryStrong][strength.level];
+  const levelDesc = ['', st.pwWeakDesc, st.pwFairDesc, st.pwStrongDesc, st.pwVeryStrongDesc][strength.level];
 
   // Entropy estimate
   const poolSize =
@@ -221,187 +160,102 @@ export default function PasswordGenerator() {
   const entropy = poolSize > 0 ? Math.floor(length * Math.log2(poolSize)) : 0;
 
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      boxShadow: 'var(--card-shadow)',
-      padding: '1.25rem',
-      display: 'flex', flexDirection: 'column', gap: '1.25rem',
-    }}>
-
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <span style={{ color: 'var(--text1)', fontWeight: 600, fontSize: '1rem' }}>
-            {t.passwordGen.title}
+    <ToolFrame toolId="hesla">
+      <ToolHero
+        label={st.pwYour}
+        value={
+          <span className="pg-pwd" dir="ltr" translate="no">
+            {password.split('').map((ch, i) => <span key={i} style={{ color: charColor(ch) }}>{ch}</span>)}
           </span>
-        </div>
-        <span style={{
-          background: 'rgba(93,76,255,0.1)', border: '1px solid rgba(93,76,255,0.2)',
-          borderRadius: 7, padding: '2px 8px',
-          color: 'var(--purple3)', fontSize: '0.75rem', fontFamily: 'monospace',
-        }}>
-          ~{entropy} bit
-        </span>
-      </div>
-
-      {/* Password display */}
-      <PasswordDisplay pwd={password} onCopy={copyPassword} copied={copied} />
-
-      {/* Strength */}
-      <StrengthBar strength={strength} />
-
-      {/* Length slider */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
-          <span style={{ color: 'var(--text2)', fontSize: '0.82rem' }}>{t.passwordGen.passwordLength}</span>
-          <span style={{
-            fontFamily: 'monospace', fontWeight: 700,
-            color: 'var(--purple3)', fontSize: '1rem',
-          }}>
-            {length}
-          </span>
-        </div>
-        <input
-          type="range" min={8} max={64} value={length}
-          onChange={e => changeLength(Number(e.target.value))}
-          style={{ width: '100%', accentColor: 'var(--purple2)', cursor: 'pointer' }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.2rem' }}>
-          <span style={{ color: 'var(--text3)', fontSize: '0.75rem' }}>8</span>
-          <span style={{ color: 'var(--text3)', fontSize: '0.75rem' }}>64</span>
-        </div>
-      </div>
-
-      {/* Character set toggles */}
-      <div>
-        <div style={{ color: 'var(--text2)', fontSize: '0.82rem', marginBottom: '0.6rem' }}>
-          {t.passwordGen.characterSets}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.5rem' }}>
-          {TOGGLE_OPTIONS.map(({ key, label, title, color }) => {
-            const on = opts[key];
-            const disabled = on && activeCount === 1;
-            return (
-              <button
-                key={key}
-                onClick={() => toggleOpt(key)}
-                disabled={disabled}
-                title={title}
-                style={{
-                  background: on ? `${color}18` : 'rgba(255,255,255,0.03)',
-                  border: `1.5px solid ${on ? color + '55' : 'rgba(255,255,255,0.07)'}`,
-                  borderRadius: 10, cursor: disabled ? 'not-allowed' : 'pointer',
-                  padding: '0.5rem 0.25rem',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px',
-                  transition: 'all 0.2s',
-                  opacity: disabled ? 0.4 : 1,
-                }}
-              >
-                <span style={{
-                  fontFamily: 'monospace', fontWeight: 700, fontSize: '0.85rem',
-                  color: on ? color : 'var(--text3)',
-                  transition: 'color 0.2s',
-                }}>
-                  {label}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: on ? color : 'var(--text3)', opacity: 0.8 }}>
-                  {title}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Action buttons */}
-      <div style={{ display: 'flex', gap: '0.6rem' }}>
-        <button
-          onClick={() => regen()}
-          style={{
-            flex: 1,
-            background: 'linear-gradient(135deg, var(--purple), var(--purple2))',
-            border: 'none', borderRadius: 10, cursor: 'pointer',
-            color: 'white', fontWeight: 600, fontSize: '0.88rem',
-            padding: '0.7rem',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-          onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-        >
-          {t.passwordGen.generate}
-        </button>
-        <button
-          onClick={copyPassword}
-          style={{
-            flex: 1,
-            background: copied ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)',
-            border: `1px solid ${copied ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'}`,
-            borderRadius: 10, cursor: 'pointer',
-            color: copied ? '#4ADE80' : 'var(--text2)',
-            fontWeight: 600, fontSize: '0.88rem',
-            padding: '0.7rem',
-            transition: 'all 0.2s',
-          }}
-        >
-          {copied ? t.passwordGen.copied : t.passwordGen.copy}
-        </button>
-      </div>
-
-      {/* History */}
-      {history.length > 0 && (
-        <div>
-          <div style={{ color: 'var(--text3)', fontSize: '0.75rem', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {t.passwordGen.recentPasswords}
+        }
+        sub={strength.level > 0 && (
+          <div className="pg-strength">
+            <div className="pg-bars" aria-hidden="true">
+              {[1, 2, 3, 4].map(n => (
+                <i key={n} style={n <= strength.level ? { background: strength.color, boxShadow: `0 0 8px ${strength.color}` } : undefined} />
+              ))}
+            </div>
+            <div><b style={{ color: strength.color }}>{levelLabel}</b> · {levelDesc} · {st.pwBits.replace('{n}', fmtNumber(entropy, lang))}</div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {history.map((h, i) => (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.05)',
-                borderRadius: 8, padding: '0.4rem 0.7rem',
-              }}>
-                <span style={{
-                  fontFamily: 'monospace', fontSize: '0.78rem',
-                  color: 'var(--text3)', flex: 1, overflow: 'hidden',
-                  textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>
-                  {h}
-                </span>
-                <button
-                  onClick={() => navigator.clipboard.writeText(h)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--text3)', fontSize: '0.75rem', padding: '0 0 0 0.5rem',
-                    flexShrink: 0,
-                  }}
-                  title="Copy"
-                >
-                  ⎘
+        )}
+      />
+
+      <div className="tf-actions">
+        <ToolButton ghost onClick={() => regen()}>{t.passwordGen.generate}</ToolButton>
+        <ToolButton onClick={copyPassword}>{copied ? t.passwordGen.copied : t.passwordGen.copy}</ToolButton>
+      </div>
+
+      <div className="tf-panel">
+        <ToolField label={<span className="pg-len">{t.passwordGen.passwordLength}<b>{fmtNumber(length, lang)}</b></span>} htmlFor="pg-len">
+          <input id="pg-len" type="range" min={8} max={64} value={length} className="pg-range"
+            onChange={e => changeLength(Number(e.target.value))} />
+        </ToolField>
+
+        <ToolField label={t.passwordGen.characterSets}>
+          <div className="pg-sets">
+            {TOGGLE_OPTIONS.map(({ key, label, title, color }) => {
+              const on = opts[key];
+              const disabled = on && activeCount === 1;
+              return (
+                <button key={key} type="button" className={`tf-chip pg-set${on ? ' is-on' : ''}`} aria-pressed={on}
+                  onClick={() => toggleOpt(key)} disabled={disabled} title={title} style={{ '--pc': color } as React.CSSProperties}>
+                  <b dir="ltr">{label}</b>
+                  <span>{title}</span>
                 </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
+        </ToolField>
+      </div>
+
+      {history.length > 0 && (
+        <div className="tf-panel">
+          <div className="tf-label">🕘 {t.passwordGen.recentPasswords}</div>
+          {history.map((h, i) => (
+            <div key={i} className="pg-hist">
+              <span dir="ltr" translate="no">{h}</span>
+              <button type="button" onClick={() => navigator.clipboard.writeText(h)} title={t.passwordGen.copy} aria-label={t.passwordGen.copy}>⎘</button>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div className="pg-legend">
         {[
-          { color: '#C084FC', label: t.passwordGen.legend_upper },
-          { color: '#A78BFA', label: t.passwordGen.legend_lower },
-          { color: '#60A5FA', label: t.passwordGen.legend_digits },
-          { color: '#34D399', label: t.passwordGen.legend_symbols },
+          { color: '#D8B4FE', label: t.passwordGen.legend_upper },
+          { color: '#F2F3FF', label: t.passwordGen.legend_lower },
+          { color: '#7DD3FC', label: t.passwordGen.legend_digits },
+          { color: '#6EE7B7', label: t.passwordGen.legend_symbols },
         ].map(({ color, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <div style={{ width: 8, height: 8, borderRadius: 2, background: color }} />
-            <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>{label}</span>
-          </div>
+          <span key={label}><i style={{ background: color }} />{label}</span>
         ))}
       </div>
 
-    </div>
+      <style>{`
+        .pg-pwd {
+          display: block; font: 700 clamp(20px, 6vw, 28px)/1.35 ui-monospace, 'SFMono-Regular', Menlo, monospace;
+          letter-spacing: .04em; word-break: break-all; text-shadow: none; min-height: 1.35em;
+        }
+        .pg-strength { display: flex; flex-direction: column; gap: 8px; align-items: center; font-weight: 500; font-size: 13px; }
+        .pg-bars { display: flex; gap: 5px; width: min(240px, 100%); }
+        .pg-bars i { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); transition: background .3s; }
+        .pg-len { display: flex; justify-content: space-between; width: 100%; }
+        .pg-len b { color: #FDE68A; font-size: 15px; }
+        .pg-range { width: 100%; accent-color: var(--tc); cursor: pointer; }
+        .pg-sets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+        .pg-set { display: flex; flex-direction: column; gap: 2px; align-items: center; justify-content: center; min-height: 58px; padding: 6px 4px; border-radius: 14px; white-space: normal; }
+        .pg-set b { font-family: ui-monospace, monospace; font-size: 15px; color: var(--pc); }
+        .pg-set span { font-size: 11px; font-weight: 600; line-height: 1.2; text-align: center; }
+        .pg-set.is-on b { color: #fff; }
+        .pg-set:disabled { opacity: .6; cursor: not-allowed; }
+        .pg-hist { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(10,14,42,.6); }
+        .pg-hist span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; font-size: 13px; color: #C9CCE4; }
+        .pg-hist button { background: none; border: 0; color: #C4B5FD; cursor: pointer; font-size: 16px; }
+        .pg-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 12px; color: var(--tf-dim); }
+        .pg-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .pg-legend i { width: 9px; height: 9px; border-radius: 3px; }
+        @media (max-width: 400px) { .pg-sets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      `}</style>
+    </ToolFrame>
   );
 }

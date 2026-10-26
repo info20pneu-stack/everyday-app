@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useDeviceDetect } from '../../lib/hooks/useDeviceDetect';
 import { useLang } from '../../lib/LanguageContext';
 import FlagText from './FlagText';
+import { fmtNumber, fmtUnit } from '../../lib/formatNumber';
+import { localizedCity } from '../../lib/cityNames';
+import { countryNameFromFlag } from '../../lib/flags';
+import { myDaySet, useMyDayRaw } from '../../lib/myDay';
+import { useIsClient } from '../../lib/games/useIsClient';
+import { toolStrings } from '../../lib/toolsI18n';
+import ToolFrame, { ToolButton, ToolHero } from './tools/ToolFrame';
 
 export type City = {
   name: string;
@@ -131,10 +138,9 @@ export const ALL_CITIES: City[] = [...CITIES, ...SEARCH_EXTRA];
 export const WORLDTIME_FAVORITES_KEY = 'worldtime_favorites_v2';
 
 /* ── Time helpers ── */
-function getTime(tz: string): string {
-  return new Date().toLocaleTimeString('en-US', {
-    timeZone: tz, hour12: false,
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
+function getTime(tz: string, lang = 'en-GB'): string {
+  return new Date().toLocaleTimeString(lang, {
+    timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
 }
 
@@ -160,13 +166,15 @@ function minutesToHHMM(totalMin: number): string {
   return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 }
 
-function formatRelDiff(diffMin: number): { label: string; color: string } {
-  if (diffMin === 0) return { label: 'you', color: 'var(--text3)' };
-  const sign = diffMin > 0 ? '+' : '-';
+function formatRelDiff(diffMin: number, you: string, lang: string): { label: string; color: string } {
+  if (diffMin === 0) return { label: you, color: 'var(--text3)' };
+  const sign = diffMin > 0 ? '+' : '−';
   const abs = Math.abs(diffMin);
   const h = Math.floor(abs / 60);
   const m = abs % 60;
-  const label = m === 0 ? `${sign}${h}h` : `${sign}${h}:${String(m).padStart(2, '0')}h`;
+  const label = m === 0
+    ? `${sign}${fmtUnit(h, 'hour', lang, 'narrow')}`
+    : `${sign}${fmtUnit(h, 'hour', lang, 'narrow')} ${fmtUnit(m, 'minute', lang, 'narrow')}`;
   const color = diffMin > 0 ? '#4ade80' : '#f87171';
   return { label, color };
 }
@@ -178,84 +186,89 @@ function isDay(tz: string): boolean {
   return h >= 6 && h < 20;
 }
 
-const CONTINENTS = ['All', 'Americas', 'Europe', 'Asia', 'Pacific', 'Africa'];
-const SORTS = [
-  { label: 'A–Z',       value: 'name' },
-  { label: 'UTC offset',value: 'offset' },
-  { label: 'Continent', value: 'continent' },
-];
+const CONTINENTS = ['All', 'Americas', 'Europe', 'Asia', 'Pacific', 'Africa'] as const;
+const CONTINENT_KEY = { Americas: 'contAmericas', Europe: 'contEurope', Asia: 'contAsia', Pacific: 'contPacific', Africa: 'contAfrica' } as const;
+/** Capital first letter only (not every word). */
+function capFirst(s: string, lang: string): string {
+  return s.charAt(0).toLocaleUpperCase(lang) + s.slice(1);
+}
+
 const MAX_FAV = 3;
 const LS_KEY  = WORLDTIME_FAVORITES_KEY;
 
 export default function WorldTime() {
   const { listLimit, isMobile } = useDeviceDetect();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const st = toolStrings(lang);
+  const w = t.worldTime;
 
   const [times,        setTimes]        = useState<Record<string, string>>({});
   const [search,       setSearch]       = useState('');
-  const [continent,    setContinent]    = useState('All');
+  const [continent,    setContinent]    = useState<string>('All');
   const [sort,         setSort]         = useState('offset');
   const [showAll,      setShowAll]      = useState(false);
-  const [favorites,    setFavorites]    = useState<string[]>([]);
   const [suggestions,  setSuggestions]  = useState<City[]>([]);
   const [showSugg,     setShowSugg]     = useState(false);
   const [userOffMin,   setUserOffMin]   = useState(0);
+  const [heroName,     setHeroName]     = useState<string | null>(null);
   const [plannerMin,   setPlannerMin]   = useState(() => {
     const now = new Date();
     return now.getHours() * 60 + now.getMinutes();
   });
+  const favRaw = useMyDayRaw(LS_KEY);
+  const favorites = useMemo<string[]>(() => { try { return favRaw ? JSON.parse(favRaw) : []; } catch { return []; } }, [favRaw]);
 
   const searchWrap = useRef<HTMLDivElement>(null);
 
-  /* Load favorites + user offset on mount */
+  /* User offset + the city of the user's own time zone on mount */
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) setFavorites(JSON.parse(saved));
-    } catch {}
     setUserOffMin(-new Date().getTimezoneOffset());
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    setHeroName((ALL_CITIES.find(c => c.tz === tz) ?? ALL_CITIES.find(c => c.name === 'London'))!.name);
   }, []);
 
   /* 1-second tick */
   useEffect(() => {
     const tick = () => {
-      const t: Record<string, string> = {};
-      ALL_CITIES.forEach(c => { t[c.name] = getTime(c.tz); });
-      setTimes(t);
+      const next: Record<string, string> = {};
+      ALL_CITIES.forEach(c => { next[c.name] = getTime(c.tz, lang); });
+      setTimes(next);
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [lang]);
 
   /* Close dropdown on outside click */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (searchWrap.current && !searchWrap.current.contains(e.target as Node)) {
-        setShowSugg(false);
-      }
+      if (searchWrap.current && !searchWrap.current.contains(e.target as Node)) setShowSugg(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const toggleFavorite = useCallback((name: string) => {
-    setFavorites(prev => {
-      const next = prev.includes(name)
-        ? prev.filter(f => f !== name)
-        : prev.length < MAX_FAV ? [...prev, name] : prev;
-      try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch {}
-      return next;
-    });
-  }, []);
+    const next = favorites.includes(name)
+      ? favorites.filter(f => f !== name)
+      : favorites.length < MAX_FAV ? [...favorites, name] : favorites;
+    myDaySet(LS_KEY, next);
+  }, [favorites]);
+
+  const cityName = (c: City) => localizedCity(c.name, lang);
+  // Intl names differ between Node's and the browser's ICU, so they appear after hydration
+  const isClient = useIsClient();
+  const countryName = (c: City) => isClient ? countryNameFromFlag(c.flag, c.country, lang) : c.country;
+  const contName = (c: string) => c === 'All' ? w.allContinents : st[CONTINENT_KEY[c as keyof typeof CONTINENT_KEY]];
+  const matches = (c: City, q: string) => {
+    const lo = q.toLocaleLowerCase(lang);
+    return [c.name, c.country, cityName(c), countryName(c)].some(x => x.toLocaleLowerCase(lang).includes(lo));
+  };
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
     if (val.length >= 1) {
-      const lo = val.toLowerCase();
-      const sugg = ALL_CITIES
-        .filter(c => c.name.toLowerCase().includes(lo) || c.country.toLowerCase().includes(lo))
-        .slice(0, 8);
+      const sugg = ALL_CITIES.filter(c => matches(c, val)).slice(0, 8);
       setSuggestions(sugg);
       setShowSugg(sugg.length > 0);
     } else {
@@ -265,8 +278,9 @@ export default function WorldTime() {
   };
 
   const selectSuggestion = (city: City) => {
-    setSearch(city.name);
+    setSearch('');
     setShowSugg(false);
+    setHeroName(city.name);
   };
 
   /* Derived lists */
@@ -276,13 +290,9 @@ export default function WorldTime() {
 
   const source = search ? ALL_CITIES : CITIES;
   const filtered = source
-    .filter(c =>
-      (continent === 'All' || c.continent === continent) &&
-      (c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.country.toLowerCase().includes(search.toLowerCase()))
-    )
+    .filter(c => (continent === 'All' || c.continent === continent) && (!search || matches(c, search)))
     .sort((a, b) => {
-      if (sort === 'name')      return a.name.localeCompare(b.name);
+      if (sort === 'name')      return cityName(a).localeCompare(cityName(b), lang);
       if (sort === 'offset')    return getUTCOffsetMin(a.tz) - getUTCOffsetMin(b.tz);
       if (sort === 'continent') return a.continent.localeCompare(b.continent);
       return 0;
@@ -292,235 +302,159 @@ export default function WorldTime() {
     ? filtered.slice(0, listLimit)
     : filtered;
 
-  /* Style helpers */
-  const btnStyle = (active: boolean): React.CSSProperties => ({
-    background: active ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '20px',
-    padding: '4px 12px',
-    fontSize: '12px',
-    color: active ? '#fff' : 'var(--text3)',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap' as const,
-  });
+  const hero = heroName ? ALL_CITIES.find(c => c.name === heroName) ?? null : null;
+  const heroSaved = !!hero && favorites.includes(hero.name);
+  const heroFull = favorites.length >= MAX_FAV && !heroSaved;
 
   /* City row renderer */
   const renderRow = (city: City, keyPrefix = '') => {
     const isFav = favorites.includes(city.name);
     const atMax = favorites.length >= MAX_FAV && !isFav;
     const diffMin = getUTCOffsetMin(city.tz) - userOffMin;
-    const { label: diffLabel, color: diffColor } = formatRelDiff(diffMin);
+    const { label: diffLabel, color: diffColor } = formatRelDiff(diffMin, w.youLabel, lang);
 
     return (
-      <div key={`${keyPrefix}${city.name}`} style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.04)',
-      }}>
-        {/* Left side */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-          <button
-            className="icon-btn"
-            onClick={() => toggleFavorite(city.name)}
-            title={isFav ? 'Remove from My Cities' : atMax ? `Max ${MAX_FAV} favorites` : 'Add to My Cities'}
-            style={{
-              background: 'none', border: 'none', padding: '0 2px',
-              cursor: atMax ? 'not-allowed' : 'pointer',
-              fontSize: '13px', flexShrink: 0,
-              opacity: atMax ? 0.25 : isFav ? 1 : 0.35,
-              filter: isFav ? 'none' : 'grayscale(1)',
-              transition: 'opacity 0.15s',
-            }}
-          >⭐</button>
-          <span style={{ display: 'inline-flex', flexShrink: 0 }}><FlagText text={city.flag} size={22} /></span>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff', display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{city.name}</span>
-              <span style={{
-                width: '6px', height: '6px', borderRadius: '50%', flexShrink: 0,
-                background: isDay(city.tz) ? '#FFB300' : '#5D4CFF',
-                display: 'inline-block',
-              }} />
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {city.country} · {city.continent}
-            </div>
-          </div>
-        </div>
-
-        {/* Right side */}
-        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '8px' }}>
-          <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--blue2)', fontVariantNumeric: 'tabular-nums' }}>
-            {times[city.name] || '--:--:--'}
-          </div>
-          <div style={{ display: 'flex', gap: '5px', justifyContent: 'flex-end', alignItems: 'center' }}>
-            <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{getOffsetLabel(city.tz)}</span>
-            <span style={{ fontSize: '12px', fontWeight: '600', color: diffColor }}>{diffLabel}</span>
-          </div>
-        </div>
+      <div key={`${keyPrefix}${city.name}`} className={`wt-row${city.name === heroName ? ' is-hero' : ''}`}>
+        <button type="button" className="wt-star" onClick={() => toggleFavorite(city.name)} disabled={atMax}
+          aria-pressed={isFav}
+          title={isFav ? w.removeFavorite : atMax ? w.maxFavorites.replace('{n}', String(MAX_FAV)) : w.addFavorite}
+          style={{ opacity: atMax ? 0.25 : isFav ? 1 : 0.4, filter: isFav ? 'none' : 'grayscale(1)' }}>⭐</button>
+        <button type="button" className="wt-pick" onClick={() => setHeroName(city.name)}>
+          <span className="wt-flag"><FlagText text={city.flag} size={22} /></span>
+          <span className="wt-names">
+            <span className="wt-city">{cityName(city)}<i style={{ background: isDay(city.tz) ? '#FFB300' : '#5D4CFF' }} /></span>
+            <span className="wt-country">{countryName(city)} · {contName(city.continent)}</span>
+          </span>
+        </button>
+        <span className="wt-time">
+          <b dir="ltr">{times[city.name] || '--:--:--'}</b>
+          <span><span dir="ltr">{getOffsetLabel(city.tz)}</span> <span style={{ color: diffColor }} dir="ltr">{diffLabel}</span></span>
+        </span>
       </div>
     );
   };
 
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      padding: '1.25rem',
-      boxShadow: 'var(--card-shadow)',
-    }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff' }}>🕐 World Time</h2>
-        <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{filtered.length} cities</span>
-      </div>
-
-      {/* My Cities */}
-      {favCities.length > 0 && (
-        <div style={{ marginBottom: '1rem' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
-            ⭐ My Cities
-          </div>
-          <div style={{
-            background: 'rgba(93,76,255,0.06)',
-            border: '1px solid rgba(93,76,255,0.15)',
-            borderRadius: '12px', padding: '0 10px',
-          }}>
-            {favCities.map(c => renderRow(c, 'fav-'))}
-          </div>
-
-          {/* Meeting planner */}
-          <div style={{
-            marginTop: '10px', background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '10px 14px',
-          }}>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '8px' }}>
-              {t.worldTime.meetingPlanner}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.worldTime.myTime}</span>
-              <span style={{ fontFamily: 'monospace', fontSize: '16px', fontWeight: '700', color: '#fff', marginLeft: 'auto' }}>
-                {minutesToHHMM(plannerMin)}
-              </span>
-            </div>
-            <input
-              type="range" min={0} max={1439} step={15} value={plannerMin}
-              onChange={e => setPlannerMin(Number(e.target.value))}
-              style={{ width: '100%', marginBottom: '10px', accentColor: 'var(--purple3)' }}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {favCities.map(c => {
-                const cityOffMin = getUTCOffsetMin(c.tz);
-                const diff = cityOffMin - userOffMin;
-                const total = plannerMin + diff;
-                const dayOffset = Math.floor(total / 1440);
-                return (
-                  <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
-                    <span style={{ display: 'inline-flex' }}><FlagText text={c.flag} size={16} /></span>
-                    <span style={{ color: 'var(--text2)', flex: 1 }}>{c.name}</span>
-                    <span style={{ fontFamily: 'monospace', fontWeight: '700', color: 'var(--purple3)' }}>
-                      {minutesToHHMM(total)}
-                    </span>
-                    {dayOffset !== 0 && (
-                      <span style={{ fontSize: '12px', color: 'var(--text3)' }}>{dayOffset > 0 ? '+1d' : '-1d'}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Search with autocomplete */}
-      <div ref={searchWrap} style={{ position: 'relative', marginBottom: '.75rem' }}>
-        <input
-          type="text"
-          placeholder="🔍 Search city or country..."
-          value={search}
-          onChange={e => handleSearchChange(e.target.value)}
-          onFocus={() => search && suggestions.length > 0 && setShowSugg(true)}
-          style={{
-            width: '100%', boxSizing: 'border-box',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: showSugg ? '10px 10px 0 0' : '10px',
-            padding: '8px 14px', color: '#fff', fontSize: '13px', outline: 'none',
-          }}
+    <ToolFrame
+      toolId="cas"
+      myDay={hero && !heroFull ? { saved: heroSaved, onSave: () => toggleFavorite(hero.name) } : undefined}
+    >
+      {hero ? (
+        <ToolHero
+          label={<span className="wt-hero-label"><FlagText text={hero.flag} size={18} /> {cityName(hero)} · {countryName(hero)}</span>}
+          value={<span dir="ltr">{times[hero.name] || getTime(hero.tz, lang)}</span>}
+          sub={<>
+            <span>{capFirst(new Date().toLocaleDateString(lang, { timeZone: hero.tz, weekday: 'long', day: 'numeric', month: 'long' }), lang)}</span>
+            {' · '}<span dir="ltr">{getOffsetLabel(hero.tz)}</span>
+          </>}
         />
-        {showSugg && (
-          <div style={{
-            position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
-            background: 'rgba(18,22,48,0.98)',
-            border: '1px solid rgba(255,255,255,0.1)', borderTop: 'none',
-            borderRadius: '0 0 10px 10px',
-            maxHeight: '240px', overflowY: 'auto',
-          }}>
-            {suggestions.map(city => (
-              <div
-                key={city.name}
-                onMouseDown={() => selectSuggestion(city)}
-                style={{
-                  padding: '8px 14px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  borderBottom: '1px solid rgba(255,255,255,0.04)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(93,76,255,0.12)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-              >
-                <span style={{ display: 'inline-flex' }}><FlagText text={city.flag} size={20} /></span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '13px', color: '#fff' }}>{city.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{city.country} · {city.continent}</div>
-                </div>
-                <span style={{ fontSize: '12px', color: 'var(--blue2)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
-                  {times[city.name] || getTime(city.tz)}
-                </span>
-              </div>
-            ))}
+      ) : <div className="wt-skel" />}
+
+      {favCities.length > 0 && (
+        <div className="tf-panel">
+          <div className="tf-label">⭐ {w.myCities}</div>
+          {favCities.map(c => renderRow(c, 'fav-'))}
+
+          <div className="tf-label" style={{ marginTop: 6 }}>{w.meetingPlanner}</div>
+          <div className="wt-planner-top">
+            <span>{w.myTime}</span>
+            <b dir="ltr">{minutesToHHMM(plannerMin)}</b>
           </div>
-        )}
-      </div>
-
-      {/* Continent filter */}
-      <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '.5rem' }}>
-        {CONTINENTS.map(c => (
-          <button key={c} className="icon-btn" onClick={() => setContinent(c)} style={btnStyle(continent === c)}>{c}</button>
-        ))}
-      </div>
-
-      {/* Sort */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '1rem', alignItems: 'center' }}>
-        <span style={{ fontSize: '12px', color: 'var(--text3)', marginRight: '4px' }}>Sort:</span>
-        {SORTS.map(s => (
-          <button key={s.value} onClick={() => setSort(s.value)} style={btnStyle(sort === s.value)}>{s.label}</button>
-        ))}
-      </div>
-
-      {isMobile && !showAll && !search && continent === 'All' && filtered.length > listLimit && (
-        <div style={{ marginBottom: '.5rem', fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>
-          Showing {listLimit} of {filtered.length} cities
+          <input type="range" min={0} max={1439} step={15} value={plannerMin}
+            onChange={e => setPlannerMin(Number(e.target.value))} className="wt-range" aria-label={w.myTime} />
+          {favCities.map(c => {
+            const total = plannerMin + getUTCOffsetMin(c.tz) - userOffMin;
+            const dayOffset = Math.floor(total / 1440);
+            return (
+              <div key={c.name} className="wt-plan-row">
+                <FlagText text={c.flag} size={16} />
+                <span style={{ flex: 1 }}>{cityName(c)}</span>
+                <b dir="ltr">{minutesToHHMM(total)}</b>
+                {dayOffset !== 0 && <span className="wt-dayoff" dir="ltr">{dayOffset > 0 ? '+' : '−'}{fmtUnit(1, 'day', lang, 'narrow')}</span>}
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* City list */}
-      <div>
+      <div className="tf-panel">
+        <div ref={searchWrap} style={{ position: 'relative' }}>
+          <input type="search" className="tf-input" placeholder={w.searchPlaceholder} value={search}
+            onChange={e => handleSearchChange(e.target.value)}
+            onFocus={() => search && suggestions.length > 0 && setShowSugg(true)} />
+          {showSugg && (
+            <div className="wt-sugg">
+              {suggestions.map(city => (
+                <button key={city.name} type="button" onMouseDown={() => selectSuggestion(city)}>
+                  <FlagText text={city.flag} size={20} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span className="wt-city">{cityName(city)}</span>
+                    <span className="wt-country">{countryName(city)} · {contName(city.continent)}</span>
+                  </span>
+                  <span className="wt-sugg-time" dir="ltr">{times[city.name] || getTime(city.tz, lang)}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="tf-chips">
+          {CONTINENTS.map(c => (
+            <button key={c} type="button" className={`tf-chip${continent === c ? ' is-on' : ''}`} aria-pressed={continent === c} onClick={() => setContinent(c)}>{contName(c)}</button>
+          ))}
+        </div>
+        <div className="tf-chips" style={{ alignItems: 'center' }}>
+          <span className="tf-label">{w.sort}</span>
+          {([['name', w.sortAZ], ['offset', w.sortOffset], ['continent', w.sortContinent]] as const).map(([v, l]) => (
+            <button key={v} type="button" className={`tf-chip${sort === v ? ' is-on' : ''}`} aria-pressed={sort === v} onClick={() => setSort(v)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      <div className="tf-panel">
+        <div className="tf-label">🌍 {fmtNumber(filtered.length, lang)} {w.cities}</div>
+        {isMobile && !showAll && !search && continent === 'All' && filtered.length > listLimit && (
+          <div className="tf-note">{w.showingOf.replace('{n}', fmtNumber(listLimit, lang)).replace('{total}', fmtNumber(filtered.length, lang))}</div>
+        )}
         {displayList.map(city => renderRow(city))}
       </div>
 
       {isMobile && !search && continent === 'All' && filtered.length > listLimit && (
-        <button
-          onClick={() => setShowAll(v => !v)}
-          style={{
-            marginTop: '.75rem', width: '100%',
-            background: 'rgba(93,76,255,0.12)', border: '1px solid rgba(93,76,255,0.3)',
-            borderRadius: '10px', color: 'var(--purple3)',
-            fontSize: '12px', fontWeight: '600', padding: '8px', cursor: 'pointer',
-          }}
-        >
-          {showAll ? 'Show less ↑' : `Show all cities (${filtered.length}) ↓`}
-        </button>
+        <ToolButton ghost onClick={() => setShowAll(v => !v)}>
+          {showAll ? w.showLess : w.showAll.replace('{n}', fmtNumber(filtered.length, lang))}
+        </ToolButton>
       )}
-    </div>
+
+      <style>{`
+        .wt-skel { height: 170px; border-radius: 22px; background: rgba(255,255,255,0.04); }
+        .wt-hero-label { display: inline-flex; align-items: center; gap: 8px; }
+        .wt-row { display: flex; align-items: center; gap: 6px; padding: 8px 6px; border-radius: 12px; border-bottom: 1px solid rgba(255,255,255,.04); }
+        .wt-row.is-hero { background: color-mix(in srgb, var(--tc) 14%, transparent); }
+        .wt-star { background: none; border: 0; padding: 0 2px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+        .wt-star:disabled { cursor: not-allowed; }
+        .wt-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+        .wt-flag { display: inline-flex; flex-shrink: 0; }
+        .wt-names { min-width: 0; display: flex; flex-direction: column; }
+        .wt-city { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wt-city i { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .wt-country { display: block; font-size: 12px; color: var(--tf-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wt-time { flex-shrink: 0; text-align: end; display: flex; flex-direction: column; align-items: flex-end; }
+        .wt-time b { font-size: 15px; color: #A5B4FC; font-variant-numeric: tabular-nums; }
+        .wt-time > span { font-size: 11px; color: var(--tf-dim); }
+        .wt-planner-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--tf-dim); }
+        .wt-planner-top b { font-size: 18px; color: #fff; font-variant-numeric: tabular-nums; }
+        .wt-range { width: 100%; accent-color: var(--tc); }
+        .wt-plan-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+        .wt-plan-row b { color: #C7D2FE; font-variant-numeric: tabular-nums; }
+        .wt-dayoff { font-size: 11px; color: var(--tf-dim); }
+        .wt-sugg {
+          position: absolute; top: calc(100% + 4px); inset-inline: 0; z-index: 50; max-height: 260px; overflow-y: auto;
+          border-radius: 12px; background: #121640; border: 1px solid rgba(139,92,246,.35); box-shadow: 0 16px 40px rgba(0,0,0,.5);
+        }
+        .wt-sugg button { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.04); color: inherit; font: inherit; text-align: start; cursor: pointer; }
+        .wt-sugg button:hover { background: rgba(139,92,246,.16); }
+        .wt-sugg-time { font-size: 12px; color: #A5B4FC; font-variant-numeric: tabular-nums; }
+      `}</style>
+    </ToolFrame>
   );
 }

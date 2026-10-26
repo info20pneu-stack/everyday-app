@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function GamesPage() {
   return (
-    <PageShell>
+    <PageShell maxWidth={1040}>
       <GamesHub />
     </PageShell>
   );

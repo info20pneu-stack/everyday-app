@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
-import { fmt2, fmtNumber, fmtUnit } from '../../lib/formatNumber';
+import { fmt2, fmtCompact, fmtNumber, fmtUnit } from '../../lib/formatNumber';
+import { useIsClient } from '../../lib/games/useIsClient';
+import { toolStrings } from '../../lib/toolsI18n';
+import { dayWord, formatDays } from '../../lib/homeI18n';
+import ToolFrame, { ToolButton, ToolField, ToolHero, ToolTiles, useShare } from './tools/ToolFrame';
 
 type Diff = {
   years: number;
@@ -71,16 +75,27 @@ function toLocalInput(d: Date) {
 }
 
 export default function DateCounter() {
+  // The default dates are "now", so the inputs render in the browser only (no hydration mismatch)
+  const isClient = useIsClient();
+  return (
+    <ToolFrame toolId="dny">
+      {isClient ? <DateCounterBody /> : <div style={{ minHeight: 560 }} />}
+    </ToolFrame>
+  );
+}
+
+function DateCounterBody() {
   const { t, lang } = useLang();
+  const s = toolStrings(lang);
   const STAT_LABELS = getStatLabels(t);
-  const now = new Date();
-  const [fromVal, setFromVal] = useState(toLocalInput(now));
+  const [fromVal, setFromVal] = useState(() => toLocalInput(new Date()));
   const [toVal, setToVal] = useState(() => {
-    const d = new Date(now);
+    const d = new Date();
     d.setFullYear(d.getFullYear() + 1);
     return toLocalInput(d);
   });
-  const [tick, setTick] = useState(0);
+  const [, setTick] = useState(0);
+  const { share, done } = useShare();
 
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 1000);
@@ -91,176 +106,66 @@ export default function DateCounter() {
   const to = new Date(toVal);
   const valid = !isNaN(from.getTime()) && !isNaN(to.getTime());
   const diff = valid ? calcDiff(from, to) : null;
+  const dateFmt: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
 
-  const inputStyle: React.CSSProperties = {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '8px',
-    color: '#fff',
-    padding: '6px 10px',
-    fontSize: '12px',
-    outline: 'none',
-    width: '100%',
-    colorScheme: 'dark',
-  };
+  function shareDiff() {
+    if (!diff) return;
+    share(`${from.toLocaleString(lang, dateFmt)} → ${to.toLocaleString(lang, dateFmt)}: ${formatDays(diff.totalDays, lang)}\nhttps://www.everyday1234567.com/date-counter`);
+  }
 
   return (
-    <div className="card" style={{
-      background: 'rgba(15,20,40,0.92)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 'var(--card-radius)',
-      padding: '1.25rem',
-      boxShadow: 'var(--card-shadow)',
-    }}>
-      <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '1rem' }}>
-        {t.dateCounter.title}
-      </h2>
-
-      {/* Inputs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '.75rem', marginBottom: '1rem' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.from}</div>
-          <input
-            type="datetime-local"
-            value={fromVal}
-            onChange={e => setFromVal(e.target.value)}
-            style={inputStyle}
-          />
+    <>
+      <div className="tf-panel">
+        <div className="tf-row dc-row">
+          <ToolField label={t.dateCounter.from} htmlFor="dc-from">
+            <input id="dc-from" type="datetime-local" className="tf-input dc-input" value={fromVal} onChange={e => setFromVal(e.target.value)} />
+          </ToolField>
+          <ToolField label={t.dateCounter.to} htmlFor="dc-to">
+            <input id="dc-to" type="datetime-local" className="tf-input dc-input" value={toVal} onChange={e => setToVal(e.target.value)} />
+          </ToolField>
         </div>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '4px' }}>{t.dateCounter.to}</div>
-          <input
-            type="datetime-local"
-            value={toVal}
-            onChange={e => setToVal(e.target.value)}
-            style={inputStyle}
-          />
-        </div>
+        <button type="button" className="tf-chip" style={{ alignSelf: 'flex-start' }} onClick={() => setFromVal(toLocalInput(new Date()))}>
+          ⏱ {t.dateCounter.setFromNow}
+        </button>
       </div>
 
-      {/* Direction badge */}
+      {!valid && <div className="tf-note" style={{ padding: '2rem 0' }}>{t.dateCounter.enterBothDates}</div>}
+
       {diff && (
-        <div style={{
-          textAlign: 'center',
-          marginBottom: '.75rem',
-          fontSize: '12px',
-          color: diff.past ? 'var(--amber)' : 'var(--green2)',
-        }}>
-          {diff.past ? t.dateCounter.inThePast : t.dateCounter.inTheFuture}
-        </div>
+        <>
+          <ToolHero
+            label={diff.past ? t.dateCounter.inThePast : t.dateCounter.inTheFuture}
+            value={fmtNumber(diff.totalDays, lang)}
+            unit={dayWord(diff.totalDays, lang)}
+            sub={
+              <>
+                {[
+                  diff.years > 0 && fmtUnit(diff.years, 'year', lang, 'long'),
+                  diff.months > 0 && fmtUnit(diff.months, 'month', lang, 'long'),
+                  diff.days > 0 && formatDays(diff.days, lang),
+                ].filter(Boolean).join(' · ')}
+                {(diff.years > 0 || diff.months > 0 || diff.days > 0) && ' · '}
+                <span dir="ltr" className="tabular-nums">
+                  {fmt2(diff.restHours, lang)}:{fmt2(diff.restMinutes, lang)}:<span style={{ color: '#FDBA74' }}>{fmt2(diff.restSeconds, lang)}</span>
+                </span>
+              </>
+            }
+          />
+
+          <ToolTiles items={STAT_LABELS.map(({ key, label }) => ({
+            label,
+            value: fmtCompact(key === 'weeks' ? diff.weeks : key === 'days' ? diff.days : diff[key], lang),
+            accent: key === 'seconds',
+          }))} />
+
+          <ToolButton onClick={shareDiff}>{done ? s.copied : <>📤 {s.share}</>}</ToolButton>
+        </>
       )}
 
-      {/* Big clock */}
-      {diff && (
-        <div style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.06)',
-          borderRadius: '14px',
-          padding: '1.25rem 1rem',
-          marginBottom: '.75rem',
-          textAlign: 'center',
-        }}>
-          {/* Whole difference: total days + the remaining time (e.g. "364 dní 00:00:00") */}
-          <div style={{
-            fontFamily: 'Poppins, monospace',
-            fontSize: '32px',
-            fontWeight: '300',
-            color: '#fff',
-            display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'baseline', columnGap: '12px',
-          }}>
-            {diff.totalDays > 0 && (
-              <span style={{ fontWeight: '500' }}>{fmtUnit(diff.totalDays, 'day', lang, 'long')}</span>
-            )}
-            <span dir="ltr" style={{ letterSpacing: '2px' }}>
-              {fmt2(diff.restHours, lang)}
-              <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
-              {fmt2(diff.restMinutes, lang)}
-              <span style={{ color: 'var(--text3)', margin: '0 2px' }}>:</span>
-              <span style={{ color: 'var(--purple3)' }}>{fmt2(diff.restSeconds, lang)}</span>
-            </span>
-          </div>
-          {(diff.years > 0 || diff.months > 0) && (
-            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>
-              {[
-                diff.years > 0 && fmtUnit(diff.years, 'year', lang, 'long'),
-                diff.months > 0 && fmtUnit(diff.months, 'month', lang, 'long'),
-                diff.days > 0 && fmtUnit(diff.days, 'day', lang, 'long'),
-              ].filter(Boolean).join(' · ')}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Stats grid */}
-      {diff && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          gap: '.5rem',
-        }}>
-          {STAT_LABELS.map(({ key, label }) => {
-            const val = key === 'weeks' ? diff.weeks : key === 'days' ? diff.days : diff[key];
-            const isSeconds = key === 'seconds';
-            return (
-              <div key={key} style={{
-                background: 'rgba(255,255,255,0.03)',
-                borderRadius: '10px',
-                padding: '.6rem .4rem',
-                textAlign: 'center',
-              }}>
-                <div style={{
-                  fontSize: '18px',
-                  fontWeight: '500',
-                  fontFamily: 'Poppins',
-                  color: isSeconds ? 'var(--purple3)' : '#fff',
-                }}>
-                  {fmtNumber(val, lang)}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>{label}</div>
-              </div>
-            );
-          })}
-
-          {/* Total days — span 3 */}
-          <div style={{
-            background: 'rgba(93,76,255,0.12)',
-            border: '1px solid rgba(93,76,255,0.25)',
-            borderRadius: '10px',
-            padding: '.6rem .4rem',
-            textAlign: 'center',
-            gridColumn: 'span 3',
-          }}>
-            <div style={{ fontSize: '18px', fontWeight: '500', fontFamily: 'Poppins', color: 'var(--purple3)' }}>
-              {fmtNumber(diff.totalDays, lang)}
-            </div>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>{t.dateCounter.totalDays}</div>
-          </div>
-        </div>
-      )}
-
-      {!valid && (
-        <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '2rem 0' }}>
-          {t.dateCounter.enterBothDates}
-        </div>
-      )}
-
-      {/* Now shortcut */}
-      <button
-        onClick={() => setFromVal(toLocalInput(new Date()))}
-        style={{
-          marginTop: '.75rem',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: '8px',
-          color: 'var(--text2)',
-          fontSize: '12px',
-          padding: '5px 12px',
-          cursor: 'pointer',
-          width: '100%',
-        }}
-      >
-        {t.dateCounter.setFromNow}
-      </button>
-    </div>
+      <style>{`
+        .dc-input { color-scheme: dark; }
+        @media (max-width: 520px) { .dc-row { flex-direction: column; align-items: stretch; } }
+      `}</style>
+    </>
   );
 }

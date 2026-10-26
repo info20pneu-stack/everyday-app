@@ -28,3 +28,12 @@ export function flagEmojiToCode(emoji: string): string | null {
   }
   return null;
 }
+
+/** Country name in the UI language from a flag emoji (🇨🇿 → "Česko"); `fallback` for anything else. */
+export function countryNameFromFlag(flag: string | undefined, fallback: string | undefined, lang: string): string {
+  const code = flag ? flagEmojiToCode(flag) : null;
+  if (code && code.length === 2) {
+    try { return new Intl.DisplayNames([lang], { type: 'region' }).of(code.toUpperCase()) ?? fallback ?? ''; } catch {}
+  }
+  return fallback ?? '';
+}
