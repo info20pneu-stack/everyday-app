@@ -132,3 +132,55 @@ export function recordLeaderboardRank(rank: number): StreakState {
 }
 
 export const STREAK_UPDATED_EVENT = EVENT;
+
+/* ── Box breathing: days with a finished exercise ──
+   Separate from the game counters (it is not a game), but a finished exercise still keeps
+   the overall day streak alive, like a Daily Boost activity. */
+
+const BREATHING_KEY = 'everyday_breathing_v1';
+
+export type BreathingState = {
+  /** Days with at least one finished exercise. */
+  totalDays: number;
+  /** Days in a row (0 once a day has been missed). */
+  currentStreak: number;
+  longestStreak: number;
+  /** Local date YYYY-MM-DD of the last finished exercise. */
+  lastDate: string;
+  /** Finished exercises in total. */
+  sessions: number;
+};
+
+const BREATHING_DEFAULT: BreathingState = { totalDays: 0, currentStreak: 0, longestStreak: 0, lastDate: '', sessions: 0 };
+
+export function getBreathingState(): BreathingState {
+  if (typeof window === 'undefined') return BREATHING_DEFAULT;
+  let s = BREATHING_DEFAULT;
+  try {
+    const raw = localStorage.getItem(BREATHING_KEY);
+    if (raw) s = { ...BREATHING_DEFAULT, ...JSON.parse(raw) };
+  } catch {}
+  if (s.lastDate && s.lastDate !== todayKey() && s.lastDate !== yesterdayKey()) s = { ...s, currentStreak: 0 };
+  return s;
+}
+
+export function breathingDoneToday(): boolean {
+  return getBreathingState().lastDate === todayKey();
+}
+
+/** Call when a breathing exercise runs to the end. */
+export function recordBreathingSession(): BreathingState {
+  const prev = getBreathingState();
+  const today = todayKey();
+  let next: BreathingState = { ...prev, sessions: prev.sessions + 1 };
+  if (prev.lastDate !== today) {
+    const current = prev.lastDate === yesterdayKey() ? prev.currentStreak + 1 : 1;
+    next = { ...next, totalDays: prev.totalDays + 1, currentStreak: current, longestStreak: Math.max(prev.longestStreak, current), lastDate: today };
+  }
+  try { localStorage.setItem(BREATHING_KEY, JSON.stringify(next)); } catch {}
+  // Keeps the overall EVERY DAY streak going (and fires STREAK_UPDATED_EVENT)
+  const state = markDayCompleted(getStreakState());
+  state.unlockedBadges = recomputeBadges(state);
+  save(state);
+  return next;
+}

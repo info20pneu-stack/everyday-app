@@ -17,7 +17,8 @@ export interface LeaderboardConfig {
   variants?: boolean;
   /** One board per UTC day, stored as `<id>_<yyyymmdd>` (see dailyLeaderboardId). Implies variants. */
   daily?: boolean;
-  /** With `daily`: one daily board per region, stored as `<id>_<region>_<yyyymmdd>`. */
+  /** With `daily`: one daily board per region (or other variant, e.g. a difficulty),
+   *  stored as `<id>_<region>_<yyyymmdd>`. */
   regional?: boolean;
 }
 
@@ -42,7 +43,8 @@ export const LEADERBOARD_GAMES = {
   higherlower: { ...POINTS, variants: true, daily: true },
   // One daily board per region: connectfour_<region>_<yyyymmdd>
   connectfour: { ...TIME, variants: true, daily: true, regional: true },
-  sudokucube: { ...TIME, variants: true },
+  // One daily board per difficulty: sudokucube_<easy|mid|hard>_<yyyymmdd>
+  sudokucube: { ...TIME, variants: true, daily: true, regional: true },
 } satisfies Record<string, LeaderboardConfig>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;
@@ -145,16 +147,16 @@ export interface CatalogGame {
 
 export const GAMES_CATALOG: CatalogGame[] = [
   /* ── Relax ── */
-  { id: 'breathing', section: 'relax', duration: '2', icon: '🫁', color: '#5EEAD4', route: '/relax/breathing',
-    nameKey: 'gamesHub.name_breathing', descKey: 'gamesHub.desc_breathing', soon: true },
+  { id: 'breathing', section: 'relax', duration: '2', icon: '🫁', color: '#14B8A6', addedAt: '2026-10-26', route: '/relax/breathing',
+    nameKey: 'gamesHub.name_breathing', descKey: 'gamesHub.desc_breathing' },
 
   /* ── Mini games ── */
   { id: 'sky-tower', section: 'mini', duration: '2', icon: '🗼', color: '#FFC94D', addedAt: '2026-10-24', route: '/games/sky-tower',
     nameKey: 'gamesHub.name_skyTower', descKey: 'gamesHub.desc_skyTower', leaderboard: 'skytower' },
   { id: 'daily-blocks', section: 'mini', duration: '10+', icon: '🧱', color: '#38BDF8', addedAt: '2026-10-24', route: '/games/daily-blocks',
     nameKey: 'gamesHub.name_dailyBlocks', descKey: 'gamesHub.desc_dailyBlocks', leaderboard: 'dailyblocks' },
-  { id: 'sudoku-cube', section: 'mini', duration: '10+', icon: '🧊', color: '#60A5FA', route: '/games/sudoku-cube',
-    nameKey: 'gamesHub.name_sudokuCube', descKey: 'gamesHub.desc_sudokuCube', soon: true, leaderboard: 'sudokucube' },
+  { id: 'sudoku-cube', section: 'mini', duration: '10+', icon: '🧊', color: '#40AAFF', addedAt: '2026-10-26', route: '/games/sudoku-cube',
+    nameKey: 'gamesHub.name_sudokuCube', descKey: 'gamesHub.desc_sudokuCube', leaderboard: 'sudokucube' },
   { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', addedAt: '2026-05-24', route: '/daily-games?play=memory',
     nameKey: 'games.memory', descKey: 'gamesHub.desc_memory', leaderboard: 'memory' },
   { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', addedAt: '2026-05-24', route: '/daily-games?play=sliding',

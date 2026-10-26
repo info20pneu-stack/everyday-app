@@ -10,35 +10,18 @@ import {
   TEAMS_BY_LEAGUE, LEAGUE_META as TEAM_LEAGUE_META, type League as TeamLeague,
   type MyTeam, loadMyTeam, saveMyTeam, type MatchInfo, fetchMyTeamMatches,
 } from '../../lib/teams';
+import {
+  parseScoreboard, periodLabel, startParts, statusLine, type GameSide, type ScoreGame,
+} from '../../lib/sports/scoreboard';
+import type { ProLeague } from '../../lib/sports/types';
+import TeamBadge from './sports/TeamBadge';
+import LiveStandings, { type StandingsTab } from './sports/LiveStandings';
 
 /* ═══════════════════════ TYPES ═══════════════════════ */
 
-type GameStatus = 'live' | 'final' | 'upcoming' | 'postponed';
-type LeagueId = 'nhl' | 'nba' | 'nfl' | 'wc2026';
+type LeagueId = ProLeague | 'wc2026';
 type FetchState = 'idle' | 'loading' | 'ok' | 'error';
-
-type Team = {
-  id: string;
-  abbr: string;
-  name: string;
-  color: string;
-  score?: number;
-  record?: string;
-  logo?: string;
-};
-
-type Game = {
-  id: string;
-  home: Team;
-  away: Team;
-  status: GameStatus;
-  /** Period / quarter number of a live game. */
-  period?: number;
-  time?: string;
-  /** Start time (ISO) of an upcoming game, formatted in the UI language when shown. */
-  scheduledTime?: string;
-  date?: string;
-};
+type Game = ScoreGame;
 
 type PeriodScore = { n: number; home: number; away: number };
 type TopPerformer = { team: string; player: string; line: string };
@@ -53,7 +36,6 @@ type GameDetail = {
   attendance?: string;
 };
 
-type StandingRow = { rank: number; abbr: string; name: string; color: string; cols: string[] };
 type LeagueCache = { games: Game[]; state: FetchState; error?: string };
 type DetailCache = { detail: GameDetail | null; state: FetchState };
 
@@ -86,192 +68,16 @@ const ESPN_CONFIG = {
   },
 } as const satisfies Record<string, { statLabels: readonly (keyof SportsStrings)[] } & Record<string, unknown>>;
 
-/** "2.", "3rd", "OT", "Q4"… — a period or quarter in the UI language. */
+/** Period / quarter header of the score table ("1.", "Q4", "OT"). */
 function periodName(n: number, leagueId: LeagueId, ss: SportsStrings): string {
   const cfg = ESPN_CONFIG[leagueId as keyof typeof ESPN_CONFIG] ?? ESPN_CONFIG.nhl;
   if (n > cfg.regularPeriods) return ss.ot;
   return (leagueId === 'nhl' ? ss.period : ss.quarter).replace('{n}', String(n));
 }
 
-/* ═══════════════════════ MOCK STANDINGS (ESPN standings API vrací neúplná data) ═══════════════════════ */
-
-/* ── NHL extended data ── */
-interface Scorer { rank: number; name: string; team: string; color: string; goals: number; assists: number; pts: number; }
-const NHL_EAST: { conf: string; headers: (keyof SportsStrings)[]; rows: StandingRow[] }[] = [
-  { conf: 'Atlantic', headers: ['gp','w','l','otl','pts'], rows: [
-    { rank:1, abbr:'FLA', name:'Panthers',    color:'#C8102E', cols:['82','52','20','10','114'] },
-    { rank:2, abbr:'TBL', name:'Lightning',   color:'#002868', cols:['82','48','24','10','106'] },
-    { rank:3, abbr:'BOS', name:'Bruins',      color:'#FFB81C', cols:['82','48','26','8', '104'] },
-    { rank:4, abbr:'TOR', name:'Maple Leafs', color:'#003E7E', cols:['82','46','26','10','102'] },
-    { rank:5, abbr:'BUF', name:'Sabres',      color:'#002654', cols:['82','40','35','7', '87'] },
-    { rank:6, abbr:'OTT', name:'Senators',    color:'#E31837', cols:['82','36','38','8', '80'] },
-    { rank:7, abbr:'MTL', name:'Canadiens',   color:'#AF1E2D', cols:['82','30','44','8', '68'] },
-  ]},
-  { conf: 'Metropolitan', headers: ['gp','w','l','otl','pts'], rows: [
-    { rank:1, abbr:'NYR', name:'Rangers',     color:'#0038A8', cols:['82','55','19','8','118'] },
-    { rank:2, abbr:'CAR', name:'Hurricanes',  color:'#CC0000', cols:['82','52','21','9','113'] },
-    { rank:3, abbr:'PIT', name:'Penguins',    color:'#FCB514', cols:['82','42','31','9', '93'] },
-    { rank:4, abbr:'WSH', name:'Capitals',    color:'#041E42', cols:['82','40','34','8', '88'] },
-    { rank:5, abbr:'PHI', name:'Flyers',      color:'#F74902', cols:['82','38','36','8', '84'] },
-    { rank:6, abbr:'NJD', name:'Devils',      color:'#CE1126', cols:['82','35','39','8', '78'] },
-    { rank:7, abbr:'NYI', name:'Islanders',   color:'#00539B', cols:['82','32','43','7', '71'] },
-  ]},
-];
-const NHL_WEST: { conf: string; headers: (keyof SportsStrings)[]; rows: StandingRow[] }[] = [
-  { conf: 'Central', headers: ['gp','w','l','otl','pts'], rows: [
-    { rank:1, abbr:'COL', name:'Avalanche',    color:'#6F263D', cols:['82','58','18','6','122'] },
-    { rank:2, abbr:'DAL', name:'Stars',        color:'#006847', cols:['82','52','22','8','112'] },
-    { rank:3, abbr:'NSH', name:'Predators',    color:'#FFB81C', cols:['82','45','28','9', '99'] },
-    { rank:4, abbr:'STL', name:'Blues',        color:'#002F87', cols:['82','42','32','8', '92'] },
-    { rank:5, abbr:'MIN', name:'Wild',         color:'#154734', cols:['82','39','35','8', '86'] },
-    { rank:6, abbr:'WPG', name:'Jets',         color:'#041E42', cols:['82','38','36','8', '84'] },
-    { rank:7, abbr:'CHI', name:'Blackhawks',   color:'#CF0A2C', cols:['82','28','48','6', '62'] },
-  ]},
-  { conf: 'Pacific', headers: ['gp','w','l','otl','pts'], rows: [
-    { rank:1, abbr:'EDM', name:'Oilers',         color:'#FF4C00', cols:['82','55','21','6','116'] },
-    { rank:2, abbr:'VGK', name:'Golden Knights', color:'#B4975A', cols:['82','50','25','7','107'] },
-    { rank:3, abbr:'VAN', name:'Canucks',        color:'#00843D', cols:['82','46','28','8','100'] },
-    { rank:4, abbr:'LAK', name:'Kings',          color:'#111111', cols:['82','44','30','8', '96'] },
-    { rank:5, abbr:'CGY', name:'Flames',         color:'#C8102E', cols:['82','39','36','7', '85'] },
-    { rank:6, abbr:'SEA', name:'Kraken',         color:'#96D8D8', cols:['82','36','40','6', '78'] },
-    { rank:7, abbr:'ANA', name:'Ducks',          color:'#F47A38', cols:['82','30','46','6', '66'] },
-  ]},
-];
-const NHL_SCORERS: Scorer[] = [
-  { rank:1, name:'Connor McDavid',   team:'EDM', color:'#FF4C00', goals:62, assists:75, pts:137 },
-  { rank:2, name:'Leon Draisaitl',   team:'EDM', color:'#FF4C00', goals:54, assists:67, pts:121 },
-  { rank:3, name:'Nathan MacKinnon', team:'COL', color:'#6F263D', goals:49, assists:70, pts:119 },
-  { rank:4, name:'Nikita Kucherov',  team:'TBL', color:'#002868', goals:42, assists:72, pts:114 },
-  { rank:5, name:'David Pastrnak',   team:'BOS', color:'#FFB81C', goals:55, assists:54, pts:109 },
-  { rank:6, name:'Artemi Panarin',   team:'NYR', color:'#0038A8', goals:35, assists:72, pts:107 },
-  { rank:7, name:'Sam Reinhart',     team:'FLA', color:'#C8102E', goals:46, assists:58, pts:104 },
-  { rank:8, name:'Mitch Marner',     team:'TOR', color:'#003E7E', goals:28, assists:75, pts:103 },
-  { rank:9, name:'Kyle Connor',      team:'WPG', color:'#041E42', goals:45, assists:57, pts:102 },
-  { rank:10,name:'Jason Robertson', team:'DAL', color:'#006847', goals:48, assists:52, pts:100 },
-];
-type NhlView = 'league' | 'conference' | 'scorers' | 'playoff';
-const NHL_PLAYOFF: { round: keyof SportsStrings; matches: Array<{t1:string;c1:string;s1:number;t2:string;c2:string;s2:number;done:boolean}> }[] = [
-  { round:'round1', matches:[
-    {t1:'EDM',c1:'#FF4C00',s1:4,t2:'LAK',c2:'#111',s2:2,done:true},
-    {t1:'VGK',c1:'#B4975A',s1:4,t2:'VAN',c2:'#00843D',s2:3,done:true},
-    {t1:'COL',c1:'#6F263D',s1:4,t2:'DAL',c2:'#006847',s2:1,done:true},
-    {t1:'NYR',c1:'#0038A8',s1:4,t2:'WSH',c2:'#041E42',s2:2,done:true},
-    {t1:'FLA',c1:'#C8102E',s1:4,t2:'TBL',c2:'#002868',s2:3,done:true},
-    {t1:'CAR',c1:'#CC0000',s1:4,t2:'PIT',c2:'#FCB514',s2:0,done:true},
-    {t1:'BOS',c1:'#FFB81C',s1:4,t2:'TOR',c2:'#003E7E',s2:3,done:true},
-    {t1:'DAL',c1:'#006847',s1:4,t2:'NSH',c2:'#FFB81C',s2:2,done:true},
-  ]},
-  { round:'round2', matches:[
-    {t1:'EDM',c1:'#FF4C00',s1:4,t2:'VGK',c2:'#B4975A',s2:2,done:true},
-    {t1:'COL',c1:'#6F263D',s1:3,t2:'NYR',c2:'#0038A8',s2:4,done:true},
-    {t1:'FLA',c1:'#C8102E',s1:4,t2:'CAR',c2:'#CC0000',s2:1,done:true},
-    {t1:'BOS',c1:'#FFB81C',s1:4,t2:'DAL',c2:'#006847',s2:3,done:true},
-  ]},
-  { round:'confFinals', matches:[
-    {t1:'EDM',c1:'#FF4C00',s1:2,t2:'NYR',c2:'#0038A8',s2:2,done:false},
-    {t1:'FLA',c1:'#C8102E',s1:3,t2:'BOS',c2:'#FFB81C',s2:2,done:false},
-  ]},
-  { round:'cupFinal', matches:[
-    {t1:'TBD',c1:'#555',s1:0,t2:'TBD',c2:'#555',s2:0,done:false},
-  ]},
-];
-
-const STANDINGS: Partial<Record<LeagueId, { rows: StandingRow[]; headers: (keyof SportsStrings)[] }>> = {
-  nhl: {
-    headers: ['gp', 'w', 'l', 'otl', 'pts', 'diff'],
-    rows: [
-      { rank: 1, abbr: 'FLA', name: 'Panthers',       color: '#C8102E', cols: ['72','44','19','9', '97','+44'] },
-      { rank: 2, abbr: 'COL', name: 'Avalanche',      color: '#6F263D', cols: ['70','45','18','7', '97','+62'] },
-      { rank: 3, abbr: 'NYR', name: 'Rangers',         color: '#0038A8', cols: ['73','42','20','11','95','+31'] },
-      { rank: 4, abbr: 'BOS', name: 'Bruins',          color: '#FFB81C', cols: ['71','41','22','8', '90','+28'] },
-      { rank: 5, abbr: 'TOR', name: 'Maple Leafs',     color: '#003E7E', cols: ['73','38','25','10','86','+11'] },
-      { rank: 6, abbr: 'EDM', name: 'Oilers',          color: '#FF4C00', cols: ['73','40','25','8', '88','+17'] },
-      { rank: 7, abbr: 'VGK', name: 'Golden Knights',  color: '#B4975A', cols: ['72','40','23','9', '89','+19'] },
-      { rank: 8, abbr: 'TBL', name: 'Lightning',       color: '#002868', cols: ['72','39','24','9', '87', '+8'] },
-      { rank: 9, abbr: 'CGY', name: 'Flames',          color: '#C8102E', cols: ['72','35','27','10','80', '-9'] },
-    ],
-  },
-  nba: {
-    headers: ['gp', 'w', 'l', 'pct', 'gb'],
-    rows: [
-      { rank: 1, abbr: 'BOS', name: 'Celtics',          color: '#007A33', cols: ['71','54','17','.761','—'  ] },
-      { rank: 2, abbr: 'DEN', name: 'Nuggets',           color: '#0E2240', cols: ['70','52','18','.743','1.5'] },
-      { rank: 3, abbr: 'MIN', name: 'Timberwolves',      color: '#0C2340', cols: ['71','49','22','.690','5'  ] },
-      { rank: 4, abbr: 'MIL', name: 'Bucks',             color: '#00471B', cols: ['71','47','24','.662','7.5'] },
-      { rank: 5, abbr: 'DAL', name: 'Mavericks',         color: '#00538C', cols: ['70','39','31','.557','14.5'] },
-      { rank: 6, abbr: 'GSW', name: 'Warriors',          color: '#1D428A', cols: ['71','40','31','.563','14' ] },
-      { rank: 7, abbr: 'LAL', name: 'Lakers',            color: '#552583', cols: ['71','38','33','.535','16' ] },
-      { rank: 8, abbr: 'PHX', name: 'Suns',              color: '#E56020', cols: ['71','36','35','.507','18' ] },
-    ],
-  },
-  nfl: {
-    headers: ['gp', 'w', 'l', 't', 'pct'],
-    rows: [
-      { rank: 1, abbr: 'KC',  name: 'Chiefs',      color: '#E31837', cols: ['17','14','3','0','.824'] },
-      { rank: 2, abbr: 'BAL', name: 'Ravens',      color: '#241773', cols: ['17','13','4','0','.765'] },
-      { rank: 3, abbr: 'BUF', name: 'Bills',       color: '#00338D', cols: ['17','13','4','0','.765'] },
-      { rank: 4, abbr: 'DET', name: 'Lions',       color: '#0076B6', cols: ['17','13','4','0','.765'] },
-      { rank: 5, abbr: 'WAS', name: 'Commanders',  color: '#5A1414', cols: ['17','12','5','0','.706'] },
-      { rank: 6, abbr: 'SF',  name: '49ers',       color: '#AA0000', cols: ['17','12','5','0','.706'] },
-      { rank: 7, abbr: 'PHI', name: 'Eagles',      color: '#004C54', cols: ['17','11','6','0','.647'] },
-      { rank: 8, abbr: 'HOU', name: 'Texans',      color: '#03202F', cols: ['17','11','6','0','.647'] },
-    ],
-  },
-};
-
 /* ═══════════════════════ ESPN PARSERS ═══════════════════════ */
 
-function parseStatus(espnStatus: any): GameStatus {
-  const name: string = espnStatus?.type?.name ?? '';
-  if (name.startsWith('STATUS_FINAL') || name === 'STATUS_FULL_TIME') return 'final';
-  if (name === 'STATUS_SCHEDULED') return 'upcoming';
-  if (name === 'STATUS_POSTPONED' || name === 'STATUS_CANCELED') return 'postponed';
-  return 'live';
-}
-
-function parseTeam(competitor: any): Team {
-  const team = competitor.team ?? {};
-  const color = team.color ? '#' + team.color : '#445566';
-  return {
-    id: team.id ?? '',
-    abbr: team.abbreviation ?? '?',
-    name: team.displayName ?? team.name ?? '?',
-    color,
-    score: competitor.score != null ? Math.round(parseFloat(competitor.score)) : undefined,
-    record: competitor.records?.[0]?.summary,
-    logo: team.logo,
-  };
-}
-
-function formatScheduledTime(isoDate: string, lang: string): string {
-  const d = new Date(isoDate);
-  return isNaN(d.getTime()) ? '—' : d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
-}
-
-function parseGames(data: any, leagueId: LeagueId): Game[] {
-  const cfg = ESPN_CONFIG[leagueId as keyof typeof ESPN_CONFIG];
-  if (!cfg) return [];
-  return (data.events ?? []).flatMap((event: any): Game[] => {
-    const comp = event.competitions?.[0];
-    if (!comp) return [];
-    const home = comp.competitors?.find((c: any) => c.homeAway === 'home');
-    const away = comp.competitors?.find((c: any) => c.homeAway === 'away');
-    if (!home || !away) return [];
-    const status = parseStatus(comp.status);
-    const period = comp.status?.period ?? 0;
-    return [{
-      id: event.id,
-      home: parseTeam(home),
-      away: parseTeam(away),
-      status,
-      period: status === 'live' && period ? period : undefined,
-      time:   status === 'live' ? comp.status?.displayClock : undefined,
-      scheduledTime: status === 'upcoming' ? event.date : undefined,
-    }];
-  });
-}
-
-function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): GameDetail {
+function parseDetail(data: any, home: GameSide, away: GameSide, leagueId: LeagueId): GameDetail {
   const cfg = ESPN_CONFIG[leagueId as keyof typeof ESPN_CONFIG] ?? ESPN_CONFIG.nhl;
 
   /* Period scores */
@@ -340,67 +146,17 @@ function parseDetail(data: any, home: Team, away: Team, leagueId: LeagueId): Gam
   };
 }
 
-/** Table values in the UI language: "0,761" for ".761", "1,5" for "1.5"; other text unchanged. */
-function localNum(val: string, lang: string): string {
-  const m = /^([+-]?)(\d*)\.(\d+)$/.exec(val);
-  if (!m) return val;
-  const n = Number(`${m[1]}${m[2] || '0'}.${m[3]}`);
-  return new Intl.NumberFormat(lang, { minimumFractionDigits: m[3].length, maximumFractionDigits: m[3].length, signDisplay: m[1] === '+' ? 'always' : 'auto' }).format(n);
-}
-
 /* ═══════════════════════ UI COMPONENTS ═══════════════════════ */
 
-const TeamBadge = memo(function TeamBadge({ team, align = 'left' }: { team: Team; align?: 'left' | 'right' }) {
+/** Badge + team name; the winner of a finished game is bold white, the loser grey. */
+const GameTeam = memo(function GameTeam({ team, end = false, result }: { team: GameSide; end?: boolean; result: 'win' | 'lose' | null }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexDirection: align === 'right' ? 'row-reverse' : 'row', flex: 1, minWidth: 0 }}>
-      <div style={{
-        width: '34px', height: '34px', borderRadius: '8px', flexShrink: 0,
-        background: team.color + '33', border: `1px solid ${team.color}55`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '12px', fontWeight: '700', color: team.color, letterSpacing: '0.5px',
-      }}>
-        {team.abbr}
+    <div className={`sp-gteam${end ? ' sp-gteam-end' : ''}${result ? ` is-${result}` : ''}`}>
+      <TeamBadge abbr={team.abbr} color={team.color} size="lg" />
+      <div className="sp-gteam-text">
+        <div className="sp-gteam-name" title={team.name}>{team.short}</div>
+        {team.record && <div className="sp-gteam-rec">{team.record}</div>}
       </div>
-      <div className="team-badge-text" style={{ textAlign: align === 'right' ? 'right' : 'left', minWidth: 0, overflow: 'hidden' }}>
-        <div style={{ fontSize: '13px', fontWeight: '500', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.abbr}</div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{team.record ?? '—'}</div>
-      </div>
-    </div>
-  );
-});
-
-const StatusBadge = memo(function StatusBadge({ game, leagueId }: { game: Game; leagueId: LeagueId }) {
-  const { t, lang } = useLang();
-  const ss = sportsStrings(lang);
-  if (game.status === 'live') {
-    return (
-      <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '3px', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '6px', padding: '2px 7px' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#EF4444', display: 'inline-block', animation: 'livePulse 1.5s infinite' }} />
-          <span style={{ fontSize: '12px', color: '#EF4444', fontWeight: '600' }}>{ss.live}</span>
-        </div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{game.period ? periodName(game.period, leagueId, ss) : ''} · {game.time}</div>
-      </div>
-    );
-  }
-  if (game.status === 'final') {
-    return (
-      <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>{ss.final}</div>
-      </div>
-    );
-  }
-  if (game.status === 'postponed') {
-    return (
-      <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-        <div style={{ fontSize: '12px', color: 'var(--amber)', background: 'rgba(255,179,0,0.1)', borderRadius: '6px', padding: '2px 8px', display: 'inline-block' }}>{t.sports.postponed}</div>
-      </div>
-    );
-  }
-  return (
-    <div style={{ textAlign: 'center', minWidth: '64px', flexShrink: 0 }}>
-      {game.date && <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '1px' }}>{game.date}</div>}
-      <div style={{ fontSize: '12px', color: 'var(--blue2)', fontWeight: '500' }}>{game.scheduledTime ? formatScheduledTime(game.scheduledTime, lang) : ''}</div>
     </div>
   );
 });
@@ -511,47 +267,42 @@ const GameRow = memo(function GameRow({
   game: Game; leagueId: LeagueId; expanded: boolean;
   onToggle: () => void; detailState: FetchState; detail: GameDetail | null;
 }) {
-  const { t } = useLang();
-  const homeWins = game.status === 'final' && (game.home.score ?? 0) > (game.away.score ?? 0);
-  const awayWins = game.status === 'final' && (game.away.score ?? 0) > (game.home.score ?? 0);
+  const { t, lang } = useLang();
+  const ss = sportsStrings(lang);
+  const done = game.status === 'final';
   const isLive = game.status === 'live';
-  const clickable = game.status === 'live' || game.status === 'final';
+  const clickable = isLive || done;
+  const showScore = isLive || done;
+  const res = (s: GameSide) => (done ? (s.winner ? 'win' : 'lose') : null);
+  const line = statusLine(game, ss, t.sports.postponed, lang);
 
   return (
     <div>
       <div
+        className={`sp-game${expanded ? ' is-open' : ''}${isLive ? ' is-live' : ''}${clickable ? ' is-click' : ''}`}
         onClick={clickable ? onToggle : undefined}
-        style={{
-          background: expanded ? 'rgba(93,76,255,0.08)' : isLive ? 'rgba(239,68,68,0.04)' : 'rgba(255,255,255,0.02)',
-          border: expanded ? '1px solid rgba(93,76,255,0.3)' : isLive ? '1px solid rgba(239,68,68,0.15)' : '1px solid rgba(255,255,255,0.04)',
-          borderRadius: expanded ? '12px 12px 0 0' : '12px',
-          padding: '10px 12px',
-          display: 'flex', alignItems: 'center', gap: '8px',
-          cursor: clickable ? 'pointer' : 'default',
-        }}
+        onKeyDown={clickable ? e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } } : undefined}
+        role={clickable ? 'button' : undefined} tabIndex={clickable ? 0 : undefined} aria-expanded={clickable ? expanded : undefined}
       >
-        <TeamBadge team={game.away} />
-        {(isLive || game.status === 'final') ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-            <div style={{ fontSize: '22px', fontFamily: 'Poppins', fontWeight: '600', color: awayWins ? '#fff' : 'var(--text3)', minWidth: '32px', textAlign: 'center' }}>
-              {game.away.score ?? '–'}
+        <GameTeam team={game.away} result={res(game.away)} />
+        <div className="sp-gcenter">
+          {showScore && (
+            <div className="sp-gscore tabular-nums" dir="ltr">
+              <span className={res(game.away) ? `is-${res(game.away)}` : ''}>{game.away.score ?? 0}</span>
+              <span className="sp-gsep">:</span>
+              <span className={res(game.home) ? `is-${res(game.home)}` : ''}>{game.home.score ?? 0}</span>
             </div>
-            <StatusBadge game={game} leagueId={leagueId} />
-            <div style={{ fontSize: '22px', fontFamily: 'Poppins', fontWeight: '600', color: homeWins ? '#fff' : 'var(--text3)', minWidth: '32px', textAlign: 'center' }}>
-              {game.home.score ?? '–'}
-            </div>
+          )}
+          <div className={`sp-gstatus sp-gstatus-${line.kind}`}>
+            {game.status === 'upcoming' ? <time dateTime={game.date}>{line.text}</time> : line.text}
           </div>
-        ) : (
-          <StatusBadge game={game} leagueId={leagueId} />
-        )}
-        <TeamBadge team={game.home} align="right" />
-        {clickable && (
-          <span style={{ color: 'var(--text3)', fontSize: '12px', flexShrink: 0 }}>{expanded ? '▲' : '▼'}</span>
-        )}
+        </div>
+        <GameTeam team={game.home} end result={res(game.home)} />
+        {clickable && <span className="sp-gchev" aria-hidden="true">{expanded ? '▲' : '▼'}</span>}
       </div>
 
       {expanded && (
-        <div style={{ border: '1px solid rgba(93,76,255,0.3)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '0 8px 8px', background: 'rgba(93,76,255,0.04)' }}>
+        <div className="sp-gdetail">
           {detailState === 'loading' && (
             <div style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text3)', fontSize: '12px' }}>{t.sports.loadingDetail}</div>
           )}
@@ -563,40 +314,6 @@ const GameRow = memo(function GameRow({
           )}
         </div>
       )}
-    </div>
-  );
-});
-
-const StandingsTable = memo(function StandingsTable({ rows, headers }: { rows: StandingRow[]; headers: (keyof SportsStrings)[] }) {
-  const { t, lang } = useLang();
-  const ss = sportsStrings(lang);
-  const colTemplate = `24px 1fr ${headers.map(() => '36px').join(' ')}`;
-  return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: colTemplate, gap: '4px', padding: '4px 8px', marginBottom: '2px' }}>
-        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>#</div>
-        <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.sports.team}</div>
-        {headers.map(h => <div key={h} style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center' }}>{ss[h]}</div>)}
-      </div>
-      {rows.map((row, i) => (
-        <div key={row.abbr} style={{
-          display: 'grid', gridTemplateColumns: colTemplate, gap: '4px', alignItems: 'center',
-          padding: '6px 8px', borderRadius: '8px', marginBottom: '2px',
-          background: i < 3 ? 'rgba(93,76,255,0.06)' : i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent',
-          borderLeft: i < 3 ? '2px solid rgba(93,76,255,0.4)' : '2px solid transparent',
-        }}>
-          <div style={{ fontSize: '12px', color: i < 3 ? 'var(--purple3)' : 'var(--text3)', fontWeight: '600' }}>{row.rank}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: row.color, background: row.color + '22', borderRadius: '4px', padding: '1px 4px', flexShrink: 0 }}>{row.abbr}</span>
-            <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.name}</span>
-          </div>
-          {row.cols.map((val, ci) => (
-            <div key={ci} dir="ltr" style={{ fontSize: '12px', color: ci === 0 ? 'var(--text3)' : '#fff', textAlign: 'center', fontWeight: ci === headers.length - 1 ? '600' : '400' }}>
-              {localNum(val, lang)}
-            </div>
-          ))}
-        </div>
-      ))}
     </div>
   );
 });
@@ -715,12 +432,20 @@ export default function Sports() {
   const [editRequest, setEditRequest] = useState(0);
   const [leagueId, setLeagueId] = useState<LeagueId>('nhl');
   const [view, setView] = useState<'games' | 'standings'>('games');
-  const [nhlView, setNhlView] = useState<NhlView>('league');
+  const [standingsTab, setStandingsTab] = useState<StandingsTab>('league');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [myTeam, setMyTeam] = useState<MyTeam | null>(null);
   const [myTeamMounted, setMyTeamMounted] = useState(false);
 
   useEffect(() => { setMyTeam(loadMyTeam()); setMyTeamMounted(true); }, []);
+
+  // Links from the dashboard panel: /sports?league=nba&view=standings
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const lg = q.get('league');
+    if (lg === 'nhl' || lg === 'nba' || lg === 'nfl' || lg === 'wc2026') setLeagueId(lg);
+    if (q.get('view') === 'standings') setView('standings');
+  }, []);
   const pickMyTeam = useCallback((league: TeamLeague, abbr: string) => {
     const next = { league, abbr };
     saveMyTeam(next);
@@ -744,7 +469,7 @@ export default function Sports() {
       const res = await fetch(`/api/sports/${id}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      const games = parseGames(data, id);
+      const games = parseScoreboard(data, id);
       setLeagueCache(prev => ({ ...prev, [id]: { games, state: 'ok' } }));
     } catch (e: any) {
       setLeagueCache(prev => ({ ...prev, [id]: { ...prev[id], state: 'error', error: e.message } }));
@@ -821,8 +546,8 @@ export default function Sports() {
       {leagueId !== 'wc2026' && view === 'games' && state === 'ok' && heroGame && (
         <ToolHero
           label={heroGame.status === 'live' ? `🔴 ${ss.live} · ${LEAGUE_META[leagueId].label}` : `${LEAGUE_META[leagueId].emoji} ${LEAGUE_META[leagueId].label} · ${heroGame.status === 'final' ? ss.final : t.sports.sectionUpcoming}`}
-          value={<span dir="ltr">{heroGame.status === 'upcoming' ? (heroGame.scheduledTime ? formatScheduledTime(heroGame.scheduledTime, lang) : '—') : `${heroGame.away.score ?? 0} : ${heroGame.home.score ?? 0}`}</span>}
-          sub={<span dir="ltr">{heroGame.away.name} {ss.vs} {heroGame.home.name}{heroGame.status === 'live' && heroGame.period ? ` · ${periodName(heroGame.period, leagueId, ss)} ${heroGame.time ?? ''}` : ''}</span>}
+          value={<span dir="ltr">{heroGame.status === 'upcoming' ? startParts(heroGame.date, lang, ss).time : `${heroGame.away.score ?? 0} : ${heroGame.home.score ?? 0}`}</span>}
+          sub={<span dir="ltr">{heroGame.away.name} {ss.vs} {heroGame.home.name}{heroGame.status === 'live' && heroGame.period ? ` · ${periodLabel(heroGame.period, leagueId, ss)} ${heroGame.clock ?? ''}` : ''}</span>}
         />
       )}
 
@@ -924,93 +649,48 @@ export default function Sports() {
       {/* Standings */}
       {view === 'standings' && leagueId !== 'wc2026' && (
         <>
-          {/* NHL extra tabs */}
-          {leagueId === 'nhl' && (
-            <div style={{ display: 'flex', gap: '4px', marginBottom: '10px', flexWrap: 'wrap' }}>
-              {([
-                { id: 'league' as NhlView,     label: t.sports.nhlLeague },
-                { id: 'conference' as NhlView, label: t.sports.nhlConference },
-                { id: 'scorers' as NhlView,    label: t.sports.nhlScorers },
-                { id: 'playoff' as NhlView,    label: t.sports.nhlPlayoff },
-              ]).map(v => (
-                <button key={v.id} type="button" className={`tf-chip${nhlView === v.id ? ' is-on' : ''}`} aria-pressed={nhlView === v.id} onClick={() => setNhlView(v.id)}>{v.label}</button>
-              ))}
-            </div>
-          )}
-
-          {/* NHL Conference */}
-          {leagueId === 'nhl' && nhlView === 'conference' && (
-            <>
-              {[...NHL_EAST, ...NHL_WEST].map((conf, ci) => (
-                <div key={conf.conf} style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '12px', color: ci < 2 ? '#60a5fa' : '#f59e0b', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px', fontWeight: '700' }}>
-                    {ci < 2 ? `🔵 ${ss.eastern}` : `🟠 ${ss.western}`} — {conf.conf}
-                  </div>
-                  <StandingsTable rows={conf.rows} headers={conf.headers} />
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* NHL Scorers */}
-          {leagueId === 'nhl' && nhlView === 'scorers' && (
-            <div>
-              <div style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '3px 8px', fontSize: '12px', color: 'var(--text3)', marginBottom: '3px' }}>
-                <div>#</div><div>{t.sports.player}</div><div style={{textAlign:'center'}}>{ss.g}</div><div style={{textAlign:'center'}}>{ss.a}</div><div style={{textAlign:'center', fontWeight:'700'}}>{ss.pts}</div>
-              </div>
-              {NHL_SCORERS.map(s => (
-                <div key={s.name} style={{ display: 'grid', gridTemplateColumns: '22px 1fr 28px 28px 30px', gap: '4px', padding: '5px 8px', borderRadius: '7px', background: s.rank <= 3 ? 'rgba(255,179,0,0.05)' : 'rgba(255,255,255,0.02)', alignItems: 'center', marginBottom: '2px' }}>
-                  <div style={{ fontSize: '12px', color: s.rank <= 3 ? '#FFB300' : 'var(--text3)', fontWeight: '600' }}>{s.rank}</div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                    <div style={{ fontSize: '12px', color: s.color, fontWeight: '700' }}>{s.team}</div>
-                  </div>
-                  <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{s.goals}</div>
-                  <div style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{s.assists}</div>
-                  <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: '700', color: '#fff' }}>{s.pts}</div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* NHL Playoff */}
-          {leagueId === 'nhl' && nhlView === 'playoff' && (
-            <div>
-              {NHL_PLAYOFF.map(round => (
-                <div key={round.round} style={{ marginBottom: '12px' }}>
-                  <div style={{ fontSize: '12px', color: 'var(--text3)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '5px' }}>{ss[round.round]}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                    {round.matches.map((m, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '5px 8px', borderRadius: '8px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c1, background: `${m.c1}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t1 === 'TBD' ? ss.tbd : m.t1}</span>
-                        {m.done ? (
-                          <span style={{ fontSize: '12px', fontWeight: '700', color: '#fff', fontFamily: 'Poppins', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{m.s1} – {m.s2}</span>
-                        ) : (
-                          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{ss.vs}</span>
-                        )}
-                        <span style={{ fontSize: '12px', fontWeight: '700', color: m.c2, background: `${m.c2}22`, borderRadius: '3px', padding: '1px 5px', flexShrink: 0 }}>{m.t2 === 'TBD' ? ss.tbd : m.t2}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Regular standings (league view) */}
-          {(leagueId !== 'nhl' || nhlView === 'league') && STANDINGS[leagueId] && (
-            <StandingsTable rows={STANDINGS[leagueId]!.rows} headers={STANDINGS[leagueId]!.headers} />
-          )}
-
-          <div style={{ fontSize: '12px', color: 'var(--text3)', textAlign: 'center', marginTop: '.75rem' }}>
-            {t.sports.standingsNote}
-          </div>
+          <LiveStandings league={leagueId} tab={standingsTab} onTab={setStandingsTab} />
         </>
       )}
 
       </div>
       <style>{`
         @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+        .sp-game {
+          display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
+          padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+        }
+        .sp-game.is-click { cursor: pointer; }
+        .sp-game.is-click:hover { background: rgba(255,255,255,0.04); }
+        .sp-game.is-live { background: rgba(239,68,68,0.05); border-color: rgba(239,68,68,0.2); }
+        .sp-game.is-open { border-radius: 12px 12px 0 0; border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+        .sp-game:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+        .sp-gdetail { border: 1px solid rgba(239,68,68,0.35); border-top: none; border-radius: 0 0 12px 12px; padding: 0 8px 8px; background: rgba(239,68,68,0.03); }
+        .sp-gteam { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .sp-gteam-end { flex-direction: row-reverse; text-align: end; }
+        .sp-gteam-text { min-width: 0; }
+        .sp-gteam-name { font-size: 13px; font-weight: 600; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sp-gteam-rec { font-size: 12px; color: var(--text3); }
+        .sp-gteam.is-win .sp-gteam-name { color: #fff; font-weight: 800; }
+        .sp-gteam.is-lose .sp-gteam-name { color: var(--text3); font-weight: 500; }
+        .sp-gcenter { text-align: center; min-width: 76px; }
+        .sp-gscore { display: inline-flex; gap: 4px; font: 700 22px 'Poppins', sans-serif; color: #fff; line-height: 1.1; }
+        .sp-gscore .is-win { color: #fff; font-weight: 800; }
+        .sp-gscore .is-lose { color: var(--text3); font-weight: 600; }
+        .sp-gsep { color: var(--text3); }
+        .sp-gstatus { margin-top: 3px; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+        .sp-gstatus-live { color: #EF4444; }
+        .sp-gstatus-upcoming { color: var(--text2); font-size: 12px; }
+        .sp-gstatus-postponed { color: var(--amber); }
+        .sp-gchev { color: var(--text3); font-size: 12px; }
+        .sp-updated { font-size: 12px; color: var(--text3); }
+        @media (max-width: 420px) {
+          .sp-game { gap: 6px; padding: 9px 8px; }
+          .sp-gteam { gap: 6px; }
+          .sp-gteam-name { font-size: 12px; }
+          .sp-gcenter { min-width: 64px; }
+          .sp-gscore { font-size: 19px; }
+        }
         .sp-wc.is-on { background: linear-gradient(135deg, #1a7a3c, #0c4a94); border-color: rgba(255,215,0,.6); }
       `}</style>
     </ToolFrame>

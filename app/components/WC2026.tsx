@@ -1,549 +1,310 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useLang } from '../../lib/LanguageContext';
-import { countryNameFromFlag } from '../../lib/flags';
-import { localizedCity } from '../../lib/cityNames';
 import { sportsStrings, type SportsStrings } from '../../lib/sportsI18n';
-import { useState, useEffect, useMemo } from 'react';
-import FlagText from './FlagText';
+import { startParts } from '../../lib/sports/scoreboard';
+import type { WcGroup, WcMatch, WcStage, WcTeam, WorldCupPayload } from '../../lib/sports/types';
+import TeamBadge from './sports/TeamBadge';
+import UpdatedAgo from './sports/UpdatedAgo';
+import { useLive } from './sports/useLive';
+import { LiveStandingsStyles, localStat } from './sports/LiveStandings';
 
-/* ── Types ── */
-interface WCTeam { name: string; flag: string; p: number; w: number; d: number; l: number; gf: number; ga: number; pts: number; }
-interface BracketMatch { t1: string; f1: string; s1?: number; t2: string; f2: string; s2?: number; done?: boolean; }
-interface WCMatch {
-  id: string;
-  group: string;
-  matchday: 1 | 2 | 3;
-  t1: string; f1: string;
-  t2: string; f2: string;
-  utc: string;          // ISO UTC datetime
-  venueName: string;
-  venueCity: string;
-  s1?: number; s2?: number;
-  status: 'upcoming' | 'live' | 'final';
+/* FIFA World Cup 2026 — live from ESPN (/api/sports/wc2026/tournament, cached 10 min on the server):
+   matches with group / round filters, group tables and the knockout bracket. No stored data. */
+
+const KO_STAGES: Exclude<WcStage, 'group'>[] = ['r32', 'r16', 'qf', 'sf', 'third', 'final'];
+const STAGE_KEY: Record<Exclude<WcStage, 'group'>, keyof SportsStrings> = {
+  r32: 'r32', r16: 'r16', qf: 'qf', sf: 'sf', third: 'third', final: 'wcFinal',
+};
+
+const UK_NATIONS: Record<string, keyof SportsStrings> = {
+  'gb-eng': 'england', 'gb-sct': 'scotland', 'gb-wls': 'wales', 'gb-nir': 'northernIreland',
+};
+
+/** Country name in the UI language (ESPN's English name when the country is unknown). */
+function teamName(team: WcTeam, lang: string): string {
+  const uk = team.iso ? UK_NATIONS[team.iso] : undefined;
+  if (uk) return sportsStrings(lang as Parameters<typeof sportsStrings>[0])[uk];
+  if (team.iso && team.iso.length === 2) {
+    try { return new Intl.DisplayNames([lang], { type: 'region' }).of(team.iso.toUpperCase()) ?? team.name; } catch {}
+  }
+  return team.name;
 }
 
-/* ── Group standings ── */
-const GROUPS: Record<string, WCTeam[]> = {
-  A: [
-    { name:'USA',          flag:'🇺🇸', p:3, w:2, d:1, l:0, gf:6, ga:2, pts:7 },
-    { name:'Mexico',       flag:'🇲🇽', p:3, w:2, d:0, l:1, gf:4, ga:3, pts:6 },
-    { name:'Bolivia',      flag:'🇧🇴', p:3, w:1, d:0, l:2, gf:2, ga:5, pts:3 },
-    { name:'Saudi Arabia', flag:'🇸🇦', p:3, w:0, d:1, l:2, gf:1, ga:3, pts:1 },
-  ],
-  B: [
-    { name:'Brazil',       flag:'🇧🇷', p:3, w:3, d:0, l:0, gf:8, ga:1, pts:9 },
-    { name:'Germany',      flag:'🇩🇪', p:3, w:2, d:0, l:1, gf:5, ga:3, pts:6 },
-    { name:'Australia',    flag:'🇦🇺', p:3, w:0, d:1, l:2, gf:2, ga:6, pts:1 },
-    { name:'Honduras',     flag:'🇭🇳', p:3, w:0, d:1, l:2, gf:1, ga:6, pts:1 },
-  ],
-  C: [
-    { name:'France',       flag:'🇫🇷', p:3, w:2, d:1, l:0, gf:7, ga:3, pts:7 },
-    { name:'Argentina',    flag:'🇦🇷', p:3, w:2, d:0, l:1, gf:5, ga:4, pts:6 },
-    { name:'Japan',        flag:'🇯🇵', p:3, w:1, d:1, l:1, gf:3, ga:3, pts:4 },
-    { name:'Cameroon',     flag:'🇨🇲', p:3, w:0, d:0, l:3, gf:0, ga:5, pts:0 },
-  ],
-  D: [
-    { name:'Spain',        flag:'🇪🇸', p:3, w:3, d:0, l:0, gf:9, ga:2, pts:9 },
-    { name:'England',      flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', p:3, w:1, d:1, l:1, gf:4, ga:4, pts:4 },
-    { name:'Ecuador',      flag:'🇪🇨', p:3, w:1, d:1, l:1, gf:3, ga:4, pts:4 },
-    { name:'Tunisia',      flag:'🇹🇳', p:3, w:0, d:0, l:3, gf:0, ga:6, pts:0 },
-  ],
-  E: [
-    { name:'Netherlands',  flag:'🇳🇱', p:3, w:2, d:1, l:0, gf:5, ga:2, pts:7 },
-    { name:'Belgium',      flag:'🇧🇪', p:3, w:2, d:0, l:1, gf:4, ga:3, pts:6 },
-    { name:'Poland',       flag:'🇵🇱', p:3, w:1, d:0, l:2, gf:2, ga:4, pts:3 },
-    { name:'Panama',       flag:'🇵🇦', p:3, w:0, d:1, l:2, gf:1, ga:3, pts:1 },
-  ],
-  F: [
-    { name:'Portugal',     flag:'🇵🇹', p:3, w:2, d:1, l:0, gf:7, ga:3, pts:7 },
-    { name:'South Korea',  flag:'🇰🇷', p:3, w:1, d:1, l:1, gf:3, ga:3, pts:4 },
-    { name:'Nigeria',      flag:'🇳🇬', p:3, w:1, d:0, l:2, gf:2, ga:5, pts:3 },
-    { name:'Costa Rica',   flag:'🇨🇷', p:3, w:1, d:0, l:2, gf:2, ga:4, pts:3 },
-  ],
-  G: [
-    { name:'Canada',       flag:'🇨🇦', p:3, w:2, d:0, l:1, gf:4, ga:2, pts:6 },
-    { name:'Morocco',      flag:'🇲🇦', p:3, w:2, d:0, l:1, gf:3, ga:2, pts:6 },
-    { name:'Croatia',      flag:'🇭🇷', p:3, w:1, d:1, l:1, gf:3, ga:3, pts:4 },
-    { name:'Algeria',      flag:'🇩🇿', p:3, w:0, d:1, l:2, gf:1, ga:4, pts:1 },
-  ],
-  H: [
-    { name:'Ukraine',      flag:'🇺🇦', p:3, w:2, d:1, l:0, gf:5, ga:2, pts:7 },
-    { name:'Colombia',     flag:'🇨🇴', p:3, w:1, d:1, l:1, gf:3, ga:3, pts:4 },
-    { name:'Serbia',       flag:'🇷🇸', p:3, w:1, d:0, l:2, gf:3, ga:4, pts:3 },
-    { name:'Iran',         flag:'🇮🇷', p:3, w:0, d:2, l:1, gf:1, ga:3, pts:2 },
-  ],
-};
-
-/* ── Venues ── */
-const VENUES = [
-  { name:'Estadio Azteca',        city:'Mexico City',   tz:'America/Mexico_City' },
-  { name:'MetLife Stadium',       city:'New York/NJ',   tz:'America/New_York'   },
-  { name:'SoFi Stadium',          city:'Los Angeles',   tz:'America/Los_Angeles' },
-  { name:'AT&T Stadium',          city:'Dallas',        tz:'America/Chicago'    },
-  { name:'NRG Stadium',           city:'Houston',       tz:'America/Chicago'    },
-  { name:'Levi\'s Stadium',       city:'San Francisco', tz:'America/Los_Angeles' },
-  { name:'Hard Rock Stadium',     city:'Miami',         tz:'America/New_York'   },
-  { name:'Lincoln Financial',     city:'Philadelphia',  tz:'America/New_York'   },
-  { name:'Arrowhead Stadium',     city:'Kansas City',   tz:'America/Chicago'    },
-  { name:'Lumen Field',           city:'Seattle',       tz:'America/Los_Angeles' },
-  { name:'Empower Field',         city:'Denver',        tz:'America/Denver'     },
-  { name:'BC Place',              city:'Vancouver',     tz:'America/Vancouver'  },
-  { name:'BMO Field',             city:'Toronto',       tz:'America/Toronto'    },
-  { name:'Estadio BBVA',          city:'Monterrey',     tz:'America/Monterrey'  },
-  { name:'Estadio Akron',         city:'Guadalajara',   tz:'America/Mexico_City' },
-];
-
-/* ── Match generation ── */
-// MD dates per group (Matchday 1, 2, 3)
-const MD_DATES: Record<string, [string, string, string]> = {
-  G: ['2026-06-11','2026-06-18','2026-06-25'],
-  A: ['2026-06-12','2026-06-19','2026-06-26'],
-  H: ['2026-06-12','2026-06-19','2026-06-26'],
-  B: ['2026-06-13','2026-06-20','2026-06-27'],
-  C: ['2026-06-14','2026-06-21','2026-06-28'],
-  D: ['2026-06-15','2026-06-22','2026-06-29'],
-  E: ['2026-06-16','2026-06-23','2026-06-30'],
-  F: ['2026-06-17','2026-06-24','2026-07-01'],
-};
-// Times (UTC) for match A and B per matchday
-const MATCH_TIMES_UTC = [
-  { A: '18:00', B: '22:00' }, // MD1
-  { A: '19:00', B: '23:00' }, // MD2
-  { A: '20:00', B: '20:00' }, // MD3 (simultaneous)
-];
-// Venue index rotation per group
-const VENUE_MAP: Record<string, [number,number,number,number,number,number]> = {
-  A: [0,1,2,3,4,5], B:[5,6,7,8,9,10], C:[10,11,12,13,14,0],
-  D: [1,2,3,4,5,6], E:[6,7,8,9,10,11],F:[11,12,13,14,0,1],
-  G: [2,3,12,4,11,5],H:[0,13,14,7,8,9],
-};
-
-// Results for "played" matches (group stage is done in mock data)
-const RESULTS: Record<string, [number,number]> = {
-  'A-1-1':[2,2], 'A-1-2':[0,1], 'A-2-1':[2,0], 'A-2-2':[3,0], 'A-3-1':[2,0], 'A-3-2':[1,0],
-  'B-1-1':[3,0], 'B-1-2':[1,1], 'B-2-1':[2,1], 'B-2-2':[2,0], 'B-3-1':[3,0], 'B-3-2':[0,0],
-  'C-1-1':[3,1], 'C-1-2':[1,0], 'C-2-1':[2,1], 'C-2-2':[2,2], 'C-3-1':[2,1], 'C-3-2':[0,0],
-  'D-1-1':[4,0], 'D-1-2':[2,2], 'D-2-1':[3,1], 'D-2-2':[1,0], 'D-3-1':[2,0], 'D-3-2':[1,1],
-  'E-1-1':[2,1], 'E-1-2':[1,1], 'E-2-1':[2,0], 'E-2-2':[2,1], 'E-3-1':[2,0], 'E-3-2':[1,0],
-  'F-1-1':[3,1], 'F-1-2':[0,0], 'F-2-1':[2,0], 'F-2-2':[2,0], 'F-3-1':[2,1], 'F-3-2':[0,0],
-  'G-1-1':[1,0], 'G-1-2':[2,2], 'G-2-1':[1,2], 'G-2-2':[1,0], 'G-3-1':[2,1], 'G-3-2':[0,0],
-  'H-1-1':[2,0], 'H-1-2':[2,2], 'H-2-1':[1,0], 'H-2-2':[1,1], 'H-3-1':[2,0], 'H-3-2':[1,0],
-};
-
-function buildMatches(): WCMatch[] {
-  const matches: WCMatch[] = [];
-  const PAIRINGS: [number,number][] = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]]; // MD1×2, MD2×2, MD3×2
-
-  Object.entries(GROUPS).forEach(([grp, teams]) => {
-    const mdDates = MD_DATES[grp];
-    const venueIdxs = VENUE_MAP[grp];
-    let pairIdx = 0;
-    for (let md = 1; md <= 3; md++) {
-      const times = MATCH_TIMES_UTC[md - 1];
-      const [mA, mB] = [times.A, times.B];
-      const date = mdDates[md - 1];
-      // match 1 of matchday
-      const [i1,j1] = PAIRINGS[pairIdx];
-      const id1 = `${grp}-${md}-1`;
-      const res1 = RESULTS[id1];
-      const v1 = VENUES[venueIdxs[pairIdx]];
-      matches.push({
-        id: id1, group: grp, matchday: md as 1|2|3,
-        t1: teams[i1].name, f1: teams[i1].flag,
-        t2: teams[j1].name, f2: teams[j1].flag,
-        utc: `${date}T${mA}:00Z`,
-        venueName: v1.name, venueCity: v1.city,
-        s1: res1?.[0], s2: res1?.[1],
-        status: res1 ? 'final' : 'upcoming',
-      });
-      // match 2 of matchday
-      pairIdx++;
-      const [i2,j2] = PAIRINGS[pairIdx];
-      const id2 = `${grp}-${md}-2`;
-      const res2 = RESULTS[id2];
-      const v2 = VENUES[venueIdxs[pairIdx]];
-      matches.push({
-        id: id2, group: grp, matchday: md as 1|2|3,
-        t1: teams[i2].name, f1: teams[i2].flag,
-        t2: teams[j2].name, f2: teams[j2].flag,
-        utc: `${date}T${mB}:00Z`,
-        venueName: v2.name, venueCity: v2.city,
-        s1: res2?.[0], s2: res2?.[1],
-        status: res2 ? 'final' : 'upcoming',
-      });
-      pairIdx++;
-    }
-  });
-  return matches.sort((a, b) => a.utc.localeCompare(b.utc));
+function userTimeZone(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return 'UTC'; }
 }
 
-const ALL_MATCHES = buildMatches();
-
-/* ── Timezone helpers ── */
-/** "pondělí 15. června", time and zone, in the UI language and the user's time zone. */
-function dayLine(date: Date, userTz: string, lang: string): string {
-  const s = date.toLocaleDateString(lang, { timeZone: userTz, weekday: 'long', day: 'numeric', month: 'long' });
+/** "Pondělí 15. června" in the UI language and the visitor's time zone. */
+function dayLine(iso: string, lang: string): string {
+  const s = new Date(iso).toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
   return s.charAt(0).toLocaleUpperCase(lang) + s.slice(1);
 }
 
-function formatMatchTime(utcStr: string, userTz: string, lang: string): { line1: string; time: string; tzAbbr: string } {
-  const date = new Date(utcStr);
-  const time = new Intl.DateTimeFormat(lang, { timeZone: userTz, hour: '2-digit', minute: '2-digit' }).format(date);
-  const tzAbbr = new Intl.DateTimeFormat(lang, { timeZone: userTz, timeZoneName: 'short' })
-    .formatToParts(date).find(p => p.type === 'timeZoneName')?.value ?? '';
-  return { line1: dayLine(date, userTz, lang), time, tzAbbr };
+function stageLabel(m: WcMatch, ss: SportsStrings): string {
+  if (m.stage === 'group') return m.group ? ss.group.replace('{g}', m.group) : '';
+  return ss[STAGE_KEY[m.stage]];
 }
 
-/** Team name in the UI language (from its flag); England etc. keep their name. */
-function teamName(name: string, flag: string, lang: string, ss: SportsStrings): string {
-  if (name === 'TBD') return ss.tbd;
-  return countryNameFromFlag(flag, name, lang);
+/** "Konec", "Konec · pen. 4:3", "● 67'", "19:00 Dnes". */
+function wcStatus(m: WcMatch, ss: SportsStrings, lang: string): { text: string; kind: WcMatch['status'] } {
+  if (m.status === 'final') {
+    const pens = m.homePens != null && m.awayPens != null ? ` · ${ss.pens} ${m.homePens}:${m.awayPens}` : '';
+    return { kind: 'final', text: ss.final + pens };
+  }
+  if (m.status === 'live') return { kind: 'live', text: `● ${m.clock ?? ss.live}` };
+  const { time, day } = startParts(m.date, lang, ss);
+  return { kind: 'upcoming', text: `${time} ${day}` };
 }
 
-function isToday(utcStr: string, userTz: string): boolean {
-  const match = new Date(utcStr).toLocaleDateString('en-US', { timeZone: userTz });
-  const today = new Date().toLocaleDateString('en-US', { timeZone: userTz });
-  return match === today;
-}
-
-/* ── Match card ── */
-function MatchCard({ m, userTz, onClick }: { m: WCMatch; userTz: string; onClick: () => void }) {
+function MatchRow({ m, onOpen }: { m: WcMatch; onOpen: () => void }) {
   const { lang } = useLang();
   const ss = sportsStrings(lang);
-  const fmt = formatMatchTime(m.utc, userTz, lang);
-  const today = isToday(m.utc, userTz);
-  const isDone = m.status === 'final';
-
+  const done = m.status === 'final';
+  const res = (side: 'home' | 'away') => (!done || !m.winner ? '' : m.winner === side ? ' is-win' : ' is-lose');
+  const st = wcStatus(m, ss, lang);
   return (
-    <div onClick={onClick} style={{
-      padding: '8px 10px', borderRadius: '10px', cursor: 'pointer',
-      background: today ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.02)',
-      border: today ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(255,255,255,0.05)',
-      transition: 'background 0.15s, border-color 0.15s',
-    }}
-    onMouseEnter={e => { const d = e.currentTarget; d.style.background = 'rgba(93,76,255,0.08)'; d.style.borderColor = 'rgba(93,76,255,0.2)'; }}
-    onMouseLeave={e => { const d = e.currentTarget; d.style.background = today ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.02)'; d.style.borderColor = today ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.05)'; }}>
-      {/* Date/time row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
-        <span style={{ fontSize: '12px', color: today ? 'var(--green2)' : 'var(--text3)', fontWeight: today ? '700' : '400' }}>
-          {fmt.line1} · {fmt.time} {fmt.tzAbbr}
-        </span>
-        <span style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '1px 5px' }}>
-          {m.venueName}, {localizedCity(m.venueCity, lang)}
-        </span>
-      </div>
-      {/* Teams + score */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ display: 'inline-flex' }}><FlagText text={m.f1} size={20} /></span>
-        <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s1! > m.s2!) ? '#fff' : 'var(--text2)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(m.t1, m.f1, lang, ss)}</span>
-        {isDone ? (
-          <span dir="ltr" style={{ fontSize: '14px', fontWeight: '800', fontFamily: 'Poppins', color: '#fff', flexShrink: 0 }}>
-            {m.s1} – {m.s2}
+    <button type="button" className={`sp-game wc-game is-click${m.status === 'live' ? ' is-live' : ''}`} onClick={onOpen}>
+      <span className={`sp-gteam${res('home')}`}>
+        <TeamBadge abbr={m.home.abbr} color={m.home.color} size="md" />
+        <span className="sp-gteam-name">{teamName(m.home, lang)}</span>
+      </span>
+      <span className="sp-gcenter">
+        {m.status !== 'upcoming' && (
+          <span className="sp-gscore tabular-nums" dir="ltr">
+            <span className={res('home').trim()}>{m.homeScore ?? 0}</span>
+            <span className="sp-gsep">:</span>
+            <span className={res('away').trim()}>{m.awayScore ?? 0}</span>
           </span>
-        ) : (
-          <span style={{ fontSize: '12px', color: 'var(--text3)', flexShrink: 0 }}>{ss.vs}</span>
         )}
-        <span style={{ fontSize: '12px', fontWeight: '600', color: isDone && (m.s2! > m.s1!) ? '#fff' : 'var(--text2)', flex: 1, textAlign: 'end', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(m.t2, m.f2, lang, ss)}</span>
-        <span style={{ display: 'inline-flex' }}><FlagText text={m.f2} size={20} /></span>
-      </div>
-    </div>
+        <span className={`sp-gstatus sp-gstatus-${st.kind}`}>{st.kind === 'upcoming' ? <time dateTime={m.date}>{st.text}</time> : st.text}</span>
+      </span>
+      <span className={`sp-gteam sp-gteam-end${res('away')}`}>
+        <TeamBadge abbr={m.away.abbr} color={m.away.color} size="md" />
+        <span className="sp-gteam-name">{teamName(m.away, lang)}</span>
+      </span>
+    </button>
   );
 }
 
-/* ── Match detail popup ── */
-function MatchDetail({ m, userTz, onClose }: { m: WCMatch; userTz: string; onClose: () => void }) {
+function MatchDetail({ m, onClose }: { m: WcMatch; onClose: () => void }) {
   const { t, lang } = useLang();
   const ss = sportsStrings(lang);
-  const fmt = formatMatchTime(m.utc, userTz, lang);
-  const isDone = m.status === 'final';
-  const groupTeams = GROUPS[m.group];
-  const t1data = groupTeams.find(t => t.name === m.t1);
-  const t2data = groupTeams.find(t => t.name === m.t2);
-
+  const st = wcStatus(m, ss, lang);
+  const time = new Date(m.date).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+  const side = (team: WcTeam, score: number | undefined, won: boolean) => (
+    <div className="wc-d-team">
+      <TeamBadge abbr={team.abbr} color={team.color} size="lg" />
+      <div className={`wc-d-name${m.status === 'final' ? (won ? ' is-win' : ' is-lose') : ''}`}>{teamName(team, lang)}</div>
+      {m.status !== 'upcoming' && <div className="wc-d-score tabular-nums">{score ?? 0}</div>}
+    </div>
+  );
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-box" style={{ background: 'rgba(12,16,36,0.98)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '24px 20px', width: '100%', maxWidth: '380px', boxShadow: '0 24px 64px rgba(0,0,0,0.7)', animation: 'wDetailIn 0.2s ease', position: 'relative' }}>
-        <button onClick={onClose} aria-label={t.games.close} className="modal-close" style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: 'var(--text3)', fontSize: '13px' }}>✕</button>
-
-        {/* Group badge */}
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', alignItems: 'center' }}>
-          <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--green2)', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '2px 8px', letterSpacing: '1px' }}>
-            {ss.group.replace('{g}', m.group)}
-          </span>
-          <span style={{ fontSize: '12px', color: 'var(--text3)', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px 8px' }}>
-            {ss.matchday.replace('{n}', String(m.matchday))}
-          </span>
-          {isDone && (
-            <span style={{ fontSize: '12px', color: '#fff', background: 'rgba(255,255,255,0.1)', borderRadius: '6px', padding: '2px 8px' }}>{ss.final}</span>
-          )}
+    <div className="wc-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="wc-modal" role="dialog" aria-modal="true" aria-label={`${teamName(m.home, lang)} ${ss.vs} ${teamName(m.away, lang)}`}>
+        <button type="button" onClick={onClose} aria-label={t.games.close} className="wc-close">✕</button>
+        <div className="wc-d-tags">
+          <span className="wc-tag">{stageLabel(m, ss)}</span>
+          {m.matchday && <span className="wc-tag wc-tag-dim">{ss.matchday.replace('{n}', String(m.matchday))}</span>}
         </div>
-
-        {/* Teams + score */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          {/* Team 1 */}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ lineHeight: 0 }}><FlagText text={m.f1} size={52} /></div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{teamName(m.t1, m.f1, lang, ss)}</div>
-            {t1data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t1data.pts} {ss.pts}</div>}
-          </div>
-          {/* Score / VS */}
-          <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            {isDone ? (
-              <div style={{ fontFamily: 'Poppins', fontSize: '32px', fontWeight: '900', color: '#fff', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-                {m.s1} – {m.s2}
-              </div>
-            ) : (
-              <>
-                <div style={{ fontFamily: 'Poppins', fontSize: '22px', fontWeight: '700', color: 'var(--text3)' }}>{ss.vs}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '2px' }}>⚽ WC 2026</div>
-              </>
-            )}
-          </div>
-          {/* Team 2 */}
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ lineHeight: 0 }}><FlagText text={m.f2} size={52} /></div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: '#fff', marginTop: '4px' }}>{teamName(m.t2, m.f2, lang, ss)}</div>
-            {t2data && <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>{t2data.pts} {ss.pts}</div>}
-          </div>
+        <div className="wc-d-teams">
+          {side(m.home, m.homeScore, m.winner === 'home')}
+          <div className={`sp-gstatus sp-gstatus-${st.kind}`}>{st.text}</div>
+          {side(m.away, m.awayScore, m.winner === 'away')}
         </div>
-
-        {/* Date, time, venue */}
-        <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '12px 14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px' }}>📅</span>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{fmt.line1}</div>
-              <div style={{ fontSize: '12px', color: 'var(--purple3)', fontWeight: '700' }}>
-                {fmt.time} {fmt.tzAbbr}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <span style={{ fontSize: '14px' }}>🏟️</span>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#fff' }}>{m.venueName}</div>
-              <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{localizedCity(m.venueCity, lang)}</div>
-            </div>
-          </div>
+        <div className="wc-d-info">
+          <div>📅 {dayLine(m.date, lang)} · {time}</div>
+          {m.venue && <div>🏟️ {m.venue}{m.city ? `, ${m.city}` : ''}</div>}
         </div>
-
-        <style>{`@keyframes wDetailIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}`}</style>
       </div>
     </div>
   );
 }
 
-/* ── Group table ── */
-function GroupTable({ letter, teams }: { letter: string; teams: WCTeam[] }) {
+function GroupTable({ group }: { group: WcGroup }) {
   const { t, lang } = useLang();
   const ss = sportsStrings(lang);
-  const sorted = [...teams].sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga));
+  const cols = ['gp', 'w', 'd', 'l', 'gd', 'pts'] as const;
+  const template = `var(--sp-rank) minmax(0, 1fr) ${cols.map(() => 'var(--sp-col)').join(' ')}`;
+  let line = 0;
+  while (line < group.rows.length && group.rows[line].qualified) line++;
+  if (line === group.rows.length) line = 0;
   return (
-    <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '10px', overflow: 'hidden' }}>
-      <div style={{ background: 'rgba(255,255,255,0.04)', padding: '5px 10px', fontSize: '12px', fontWeight: '700', color: 'var(--green2)', letterSpacing: '1px' }}>{ss.group.replace('{g}', letter)}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '3px 8px', fontSize: '12px', color: 'var(--text3)' }}>
-        <div>{t.sports.team}</div><div style={{textAlign:'center'}}>{ss.gp}</div><div style={{textAlign:'center'}}>{ss.w}</div><div style={{textAlign:'center'}}>{ss.d}</div><div style={{textAlign:'center'}}>{ss.l}</div><div style={{textAlign:'center'}}>{ss.gd}</div><div style={{textAlign:'center'}}>{ss.pts}</div>
-      </div>
-      {sorted.map((tm, i) => (
-        <div key={tm.name} style={{ display: 'grid', gridTemplateColumns: '1fr 22px 22px 22px 22px 22px 28px', gap: '2px', padding: '5px 8px', borderTop: '1px solid rgba(255,255,255,0.04)', background: i < 2 ? 'rgba(34,197,94,0.05)' : 'transparent', borderLeft: i < 2 ? '2px solid rgba(34,197,94,0.4)' : '2px solid transparent' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0 }}>
-            <span style={{ display: 'inline-flex' }}><FlagText text={tm.flag} size={16} /></span>
-            <span style={{ fontSize: '12px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamName(tm.name, tm.flag, lang, ss)}</span>
-          </div>
-          {[tm.p, tm.w, tm.d, tm.l].map((v, vi) => (
-            <div key={vi} style={{ textAlign: 'center', fontSize: '12px', color: 'var(--text2)' }}>{v}</div>
-          ))}
-          <div style={{ textAlign: 'center', fontSize: '12px', color: tm.gf-tm.ga > 0 ? 'var(--green2)' : 'var(--text2)' }}>{tm.gf-tm.ga > 0 ? `+${tm.gf-tm.ga}` : tm.gf-tm.ga}</div>
-          <div style={{ textAlign: 'center', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{tm.pts}</div>
+    <div className="sp-group">
+      <div className="sp-group-title">{ss.group.replace('{g}', group.letter)}</div>
+      <div className="sp-table" role="table">
+        <div className="sp-row sp-head" role="row" style={{ gridTemplateColumns: template }}>
+          <span role="columnheader">#</span>
+          <span role="columnheader">{t.sports.team}</span>
+          {cols.map(c => <span key={c} role="columnheader" className="sp-num">{ss[c]}</span>)}
         </div>
-      ))}
+        {group.rows.map((r, i) => (
+          <div key={r.team.id} role="row" style={{ gridTemplateColumns: template }}
+            className={`sp-row${r.qualified ? ' is-q' : ''}${line === i + 1 ? ' sp-cut' : ''}`}>
+            <span className="sp-rank" role="cell">{i + 1}</span>
+            <span className="sp-team" role="cell">
+              <TeamBadge abbr={r.team.abbr} color={r.team.color} size="sm" />
+              <span className="sp-team-name">{teamName(r.team, lang)}</span>
+            </span>
+            {cols.map(c => (
+              <span key={c} role="cell" dir="ltr" className={`sp-num${c === 'pts' ? ' sp-strong' : ''}`}>{localStat(r.values[c], lang)}</span>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-/* ── Bracket ── */
-const R16: BracketMatch[] = [
-  { t1:'USA',f1:'🇺🇸',s1:2,t2:'Germany',f2:'🇩🇪',s2:1,done:true },
-  { t1:'Brazil',f1:'🇧🇷',s1:3,t2:'Mexico',f2:'🇲🇽',s2:0,done:true },
-  { t1:'France',f1:'🇫🇷',s1:2,t2:'England',f2:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',s2:1,done:true },
-  { t1:'Spain',f1:'🇪🇸',s1:2,t2:'Argentina',f2:'🇦🇷',s2:2,done:false },
-  { t1:'Netherlands',f1:'🇳🇱',s1:1,t2:'South Korea',f2:'🇰🇷',s2:0,done:true },
-  { t1:'Portugal',f1:'🇵🇹',s1:2,t2:'Belgium',f2:'🇧🇪',s2:1,done:true },
-  { t1:'Canada',f1:'🇨🇦',s1:1,t2:'Ukraine',f2:'🇺🇦',s2:0,done:true },
-  { t1:'Morocco',f1:'🇲🇦',s1:1,t2:'Colombia',f2:'🇨🇴',s2:0,done:true },
-];
-const QF: BracketMatch[] = [
-  { t1:'USA',f1:'🇺🇸',t2:'Brazil',f2:'🇧🇷' },
-  { t1:'France',f1:'🇫🇷',t2:'Spain',f2:'🇪🇸' },
-  { t1:'Netherlands',f1:'🇳🇱',t2:'Portugal',f2:'🇵🇹' },
-  { t1:'Canada',f1:'🇨🇦',t2:'Morocco',f2:'🇲🇦' },
-];
-const SF: BracketMatch[]  = [{ t1:'TBD',f1:'?',t2:'TBD',f2:'?' },{ t1:'TBD',f1:'?',t2:'TBD',f2:'?' }];
-const FINAL: BracketMatch = { t1:'TBD',f1:'?',t2:'TBD',f2:'?' };
+type Filter = 'all' | `g:${string}` | Exclude<WcStage, 'group'>;
 
-function BracketRow({ m }: { m: BracketMatch }) {
-  const { lang } = useLang();
-  const ss = sportsStrings(lang);
-  return (
-    <div style={{ background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.06)',borderRadius:'8px',padding:'6px 10px',display:'flex',alignItems:'center',gap:'4px' }}>
-      <span style={{ display: 'inline-flex' }}><FlagText text={m.f1} size={18} /></span>
-      <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s1!>m.s2!?'#fff':'var(--text3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{teamName(m.t1, m.f1, lang, ss)}</span>
-      {m.done ? <span style={{ fontSize:'13px',fontWeight:'700',color:'#fff',fontFamily:'Poppins',fontVariantNumeric:'tabular-nums',flexShrink:0 }}>{m.s1}–{m.s2}</span>
-              : <span style={{ fontSize:'12px',color:'var(--text3)',flexShrink:0 }}>{ss.vs}</span>}
-      <span style={{ fontSize:'12px',fontWeight:'600',color:m.done&&m.s2!>m.s1!?'#fff':'var(--text3)',flex:1,textAlign:'end',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{teamName(m.t2, m.f2, lang, ss)}</span>
-      <span style={{ display: 'inline-flex' }}><FlagText text={m.f2} size={18} /></span>
-    </div>
-  );
-}
-
-/* ── Main component ── */
 export default function WC2026() {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
   const ss = sportsStrings(lang);
-  const [view, setView]   = useState<'matches' | 'groups' | 'bracket'>('matches');
-  const [filterGroup, setFilterGroup] = useState<string>('All');
-  const [filterMD, setFilterMD]       = useState<number>(0); // 0 = all
-  const [selected, setSelected]       = useState<WCMatch | null>(null);
-  const [userTz, setUserTz]           = useState('Europe/Prague');
+  const live = useLive<WorldCupPayload>('/api/sports/wc2026/tournament');
+  const [view, setView] = useState<'matches' | 'groups' | 'bracket'>('matches');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [matchday, setMatchday] = useState(0);
+  const [selected, setSelected] = useState<WcMatch | null>(null);
+  const data = live.data;
 
-  useEffect(() => {
-    try {
-      setUserTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    } catch {}
-  }, []);
+  const filtered = useMemo(() => (data?.matches ?? []).filter(m => {
+    if (filter === 'all') return matchday === 0 || m.matchday === matchday;
+    if (filter.startsWith('g:')) return m.group === filter.slice(2) && (matchday === 0 || m.matchday === matchday);
+    return m.stage === filter;
+  }), [data, filter, matchday]);
 
-  const filtered = useMemo(() => {
-    return ALL_MATCHES.filter(m =>
-      (filterGroup === 'All' || m.group === filterGroup) &&
-      (filterMD === 0 || m.matchday === filterMD)
-    );
-  }, [filterGroup, filterMD]);
+  // Matches by day (visitor's time zone)
+  const byDay = useMemo(() => {
+    const map = new Map<string, WcMatch[]>();
+    for (const m of filtered) {
+      const k = new Date(m.date).toLocaleDateString('en-CA');
+      map.set(k, [...(map.get(k) ?? []), m]);
+    }
+    return [...map.entries()];
+  }, [filtered]);
 
-  // Group matches by date for display
-  const byDate = useMemo(() => {
-    const map = new Map<string, WCMatch[]>();
-    filtered.forEach(m => {
-      const date = new Date(m.utc).toLocaleDateString('en-US', { timeZone: userTz, year: 'numeric', month: '2-digit', day: '2-digit' });
-      if (!map.has(date)) map.set(date, []);
-      map.get(date)!.push(m);
-    });
-    return map;
-  }, [filtered, userTz]);
+  const todayKey = new Date().toLocaleDateString('en-CA');
+  const stagesPresent = KO_STAGES.filter(s => data?.matches.some(m => m.stage === s));
+  const groupStage = filter === 'all' || filter.startsWith('g:');
 
-  const viewBtn = (v: typeof view): React.CSSProperties => ({
-    flex: 1, padding: '6px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-    fontSize: '12px', fontWeight: '600',
-    background: view === v ? 'linear-gradient(135deg, #16a34a, #15803d)' : 'rgba(255,255,255,0.06)',
-    color: view === v ? '#fff' : 'var(--text2)',
-  });
-
-  const filterBtn = (active: boolean): React.CSSProperties => ({
-    padding: '3px 8px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-    fontSize: '12px', fontWeight: active ? '700' : '400',
-    background: active ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.04)',
-    color: active ? 'var(--green2)' : 'var(--text3)',
-    outline: active ? '1px solid rgba(34,197,94,0.35)' : 'none',
-  });
-
-  return (
-    <div>
-      {/* View toggle */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-        <button style={viewBtn('matches')} onClick={() => setView('matches')}>{ss.matches}</button>
-        <button style={viewBtn('groups')}  onClick={() => setView('groups')}>{ss.groups}</button>
-        <button style={viewBtn('bracket')} onClick={() => setView('bracket')}>{ss.bracket}</button>
+  let body: React.ReactNode;
+  if (live.loading) body = <div className="sp-state">{ss.loadingData}</div>;
+  else if (live.error || !data) {
+    body = (
+      <div className="sp-state sp-state-error" role="alert">
+        <div>⚠️ {ss.dataError}</div>
+        <button type="button" className="sp-retry" onClick={live.reload}>{t.sports.retry}</button>
       </div>
-
-      {/* MATCHES view */}
-      {view === 'matches' && (
-        <>
-          {/* Filters */}
-          <div style={{ marginBottom: '8px' }}>
-            {/* Group filter */}
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '5px' }}>
-              {['All','A','B','C','D','E','F','G','H'].map(g => (
-                <button key={g} style={filterBtn(filterGroup === g)} onClick={() => setFilterGroup(g)}>
-                  {g === 'All' ? ss.all : ss.group.replace('{g}', g)}
-                </button>
-              ))}
-            </div>
-            {/* Matchday filter */}
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {[0,1,2,3].map(md => (
-                <button key={md} style={filterBtn(filterMD === md)} onClick={() => setFilterMD(md)}>
-                  {md === 0 ? ss.all : ss.round.replace('{n}', String(md))}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Timezone info */}
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '8px' }}>
-            🕐 {ss.yourTz}: <span style={{ color: 'var(--purple3)' }}>{userTz.replace(/_/g, ' ')}</span>
-          </div>
-
-          {/* Match list grouped by date */}
-          <div style={{ maxHeight: '440px', overflowY: 'auto', paddingRight: '2px' }}>
-            {Array.from(byDate.entries()).map(([dateKey, dayMatches]) => {
-              const firstDate = new Date(dayMatches[0].utc);
-              const todayStr = new Date().toLocaleDateString('en-US', { timeZone: userTz });
-              const isToday_ = dateKey === todayStr;
-              return (
-                <div key={dateKey} style={{ marginBottom: '10px' }}>
-                  <div style={{ fontSize: '12px', fontWeight: '700', color: isToday_ ? 'var(--green2)' : 'var(--text3)', marginBottom: '5px', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isToday_ && <span style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '4px', padding: '1px 5px', fontSize: '12px' }}>{ss.today}</span>}
-                    {dayLine(firstDate, userTz, lang)}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {dayMatches.map(m => (
-                      <MatchCard key={m.id} m={m} userTz={userTz} onClick={() => setSelected(m)} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-            {filtered.length === 0 && (
-              <div style={{ textAlign:'center',padding:'2rem',color:'var(--text3)',fontSize:'13px' }}>
-                {ss.noMatches}
-              </div>
-            )}
-          </div>
-          <div style={{ fontSize:'12px',color:'var(--text3)',textAlign:'center',marginTop:'6px' }}>
-            {ss.stage.replace('{n}', String(ALL_MATCHES.length)).replace('{m}', String(ALL_MATCHES.filter(m => m.status === 'final').length))}
-          </div>
-        </>
-      )}
-
-      {/* GROUPS view */}
-      {view === 'groups' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          {Object.entries(GROUPS).map(([letter, teams]) => <GroupTable key={letter} letter={letter} teams={teams} />)}
+    );
+  } else if (view === 'matches') {
+    body = (
+      <>
+        <div className="sp-tabs">
+          <button type="button" className={`sp-tab${filter === 'all' ? ' is-on' : ''}`} onClick={() => setFilter('all')}>{ss.all}</button>
+          {data.groups.map(g => (
+            <button key={g.letter} type="button" className={`sp-tab${filter === `g:${g.letter}` ? ' is-on' : ''}`} onClick={() => setFilter(`g:${g.letter}`)}>
+              {ss.group.replace('{g}', g.letter)}
+            </button>
+          ))}
+          {stagesPresent.map(s => (
+            <button key={s} type="button" className={`sp-tab${filter === s ? ' is-on' : ''}`} onClick={() => { setFilter(s); setMatchday(0); }}>
+              {ss[STAGE_KEY[s]]}
+            </button>
+          ))}
         </div>
-      )}
-
-      {/* BRACKET view */}
-      {view === 'bracket' && (
-        <div>
-          <div style={{ fontSize:'12px',color:'rgba(34,197,94,0.8)',background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.15)',borderRadius:'8px',padding:'5px 10px',marginBottom:'10px',textAlign:'center' }}>
-            {ss.r16Note}
+        {groupStage && (
+          <div className="sp-tabs">
+            {[0, 1, 2, 3].map(md => (
+              <button key={md} type="button" className={`sp-tab sp-tab-sm${matchday === md ? ' is-on' : ''}`} onClick={() => setMatchday(md)}>
+                {md === 0 ? ss.all : ss.round.replace('{n}', String(md))}
+              </button>
+            ))}
           </div>
-          {[{ label:ss.r16,matches:R16 },{ label:ss.qf,matches:QF },{ label:ss.sf,matches:SF }].map(r => (
-            <div key={r.label} style={{ marginBottom:'10px' }}>
-              <div style={{ fontSize:'12px',color:'var(--text3)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>{r.label}</div>
-              <div style={{ display:'flex',flexDirection:'column',gap:'3px' }}>{r.matches.map((m,i) => <BracketRow key={i} m={m} />)}</div>
+        )}
+        <div className="wc-tz">🕐 {ss.yourTz}: <b>{userTimeZone().replace(/_/g, ' ')}</b></div>
+        <div className="wc-list">
+          {byDay.map(([key, ms]) => (
+            <div key={key} className="wc-day">
+              <div className={`wc-day-title${key === todayKey ? ' is-today' : ''}`}>
+                {key === todayKey && <span className="wc-today">{ss.today}</span>}
+                {dayLine(ms[0].date, lang)}
+              </div>
+              {ms.map(m => (
+                <div key={m.id}>
+                  <div className="wc-stage">{stageLabel(m, ss)}</div>
+                  <MatchRow m={m} onOpen={() => setSelected(m)} />
+                </div>
+              ))}
             </div>
           ))}
-          <div style={{ marginBottom:'10px' }}>
-            <div style={{ fontSize:'12px',color:'var(--amber)',letterSpacing:'1px',textTransform:'uppercase',marginBottom:'4px' }}>🏆 {ss.wcFinal}</div>
-            <BracketRow m={FINAL} />
-          </div>
+          {filtered.length === 0 && <div className="sp-state">{ss.noMatches}</div>}
         </div>
-      )}
+      </>
+    );
+  } else if (view === 'groups') {
+    body = (
+      <>
+        <div className="wc-groups">{data.groups.map(g => <GroupTable key={g.letter} group={g} />)}</div>
+        <div className="sp-legend"><span className="sp-legend-bar" aria-hidden="true">▍</span> {ss.legendWc}</div>
+      </>
+    );
+  } else {
+    body = (
+      <div className="sp-bracket">
+        {stagesPresent.map(s => (
+          <section key={s} className="sp-round">
+            <div className={`sp-group-title${s === 'final' ? ' sp-final-title' : ''}`}>{s === 'final' ? '🏆 ' : ''}{ss[STAGE_KEY[s]]}</div>
+            <div className="sp-round-list">
+              {data.matches.filter(m => m.stage === s).map(m => <MatchRow key={m.id} m={m} onOpen={() => setSelected(m)} />)}
+            </div>
+          </section>
+        ))}
+        {stagesPresent.length === 0 && <div className="sp-state">{ss.noMatches}</div>}
+      </div>
+    );
+  }
 
-      {/* Match detail popup */}
-      {selected && <MatchDetail m={selected} userTz={userTz} onClose={() => setSelected(null)} />}
+  return (
+    <div className="sp-standings">
+      <div className="sp-tabs" role="tablist">
+        {(['matches', 'groups', 'bracket'] as const).map(v => (
+          <button key={v} type="button" role="tab" aria-selected={view === v} className={`sp-tab${view === v ? ' is-on' : ''}`} onClick={() => setView(v)}>
+            {ss[v]}
+          </button>
+        ))}
+      </div>
+      {body}
+      {data && !live.loading && !live.error && <div className="sp-meta"><span>{ss.wc}</span><UpdatedAgo at={data.updatedAt} /></div>}
+      {selected && <MatchDetail m={selected} onClose={() => setSelected(null)} />}
+      <LiveStandingsStyles />
+      <style>{`
+        .wc-game { width: 100%; font: inherit; color: inherit; text-align: start; }
+        .sp-tab-sm { min-height: 30px; padding: 0 12px; }
+        .wc-tz { font-size: 12px; color: var(--text3); }
+        .wc-tz b { color: var(--text2); font-weight: 600; }
+        .wc-list { display: flex; flex-direction: column; gap: 12px; max-height: 560px; overflow-y: auto; padding-inline-end: 2px; }
+        .wc-day { display: flex; flex-direction: column; gap: 4px; }
+        .wc-day-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text3); }
+        .wc-day-title.is-today { color: #FCA5A5; }
+        .wc-today { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.35); border-radius: 5px; padding: 1px 6px; }
+        .wc-stage { font-size: 11px; color: var(--text3); margin: 2px 0 2px 4px; }
+        .wc-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; }
+        @media (max-width: 420px) { .wc-groups { grid-template-columns: 1fr; } }
+        .wc-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .wc-modal { position: relative; width: 100%; max-width: 400px; background: rgba(12,16,36,.98); border: 1px solid rgba(255,255,255,.1); border-radius: 20px; padding: 22px 18px; box-shadow: 0 24px 64px rgba(0,0,0,.7); }
+        .wc-close { position: absolute; top: 12px; inset-inline-end: 12px; width: 32px; height: 32px; border-radius: 50%; border: 0; cursor: pointer; background: rgba(255,255,255,.08); color: var(--text2); }
+        .wc-d-tags { display: flex; gap: 6px; margin-bottom: 16px; }
+        .wc-tag { font-size: 12px; font-weight: 700; color: #FCA5A5; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); border-radius: 6px; padding: 2px 8px; }
+        .wc-tag-dim { color: var(--text2); background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.08); }
+        .wc-d-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .wc-d-team { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+        .wc-d-name { font-size: 13px; font-weight: 700; color: #fff; }
+        .wc-d-name.is-lose { color: var(--text3); font-weight: 500; }
+        .wc-d-score { font: 800 30px 'Poppins', sans-serif; color: #fff; }
+        .wc-d-info { display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,.03); border-radius: 12px; padding: 12px 14px; font-size: 13px; color: var(--text2); }
+      `}</style>
     </div>
   );
 }

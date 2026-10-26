@@ -1135,14 +1135,16 @@ a:focus-visible {
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .rp-league-tab-active {
-  background: linear-gradient(135deg, var(--purple), #7A3FFF);
+  background: linear-gradient(135deg, #EF4444, #B91C1C);
   border-color: transparent;
   color: #fff;
+  box-shadow: 0 4px 14px rgba(239,68,68,0.3);
 }
+/* One game: badge, name, score + status, name, badge */
 .rp-game {
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto minmax(0, 1fr) 24px;
   align-items: center;
-  justify-content: space-between;
   gap: 6px;
   padding: 0.6rem 0;
   border-top: 1px solid rgba(255,255,255,0.05);
@@ -1150,38 +1152,56 @@ a:focus-visible {
 .rp-game:first-of-type {
   border-top: none;
 }
-.rp-team-badge {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.rp-team-name {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  color: var(--text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rp-team-home {
+  text-align: end;
+}
+.rp-team-name.is-win,
+.rp-game-score .is-win {
   color: #fff;
-  flex-shrink: 0;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  font-weight: 800;
+}
+.rp-team-name.is-lose,
+.rp-game-score .is-lose {
+  color: var(--text3);
+  font-weight: 500;
 }
 .rp-game-center {
-  flex: 1;
   text-align: center;
+  min-width: 52px;
 }
 .rp-game-score {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: #fff;
+  font-family: 'Poppins', sans-serif;
+  display: inline-flex;
+  gap: 3px;
+}
+.rp-score-sep {
+  color: var(--text3);
 }
 .rp-game-status {
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 700;
   color: var(--text3);
   margin-top: 2px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 .rp-status-live {
-  color: var(--green2);
-  font-weight: 600;
+  color: #EF4444;
+}
+.rp-status-upcoming {
+  color: var(--text2);
 }
 .rp-actions {
   display: flex;
@@ -1206,7 +1226,7 @@ a:focus-visible {
   color: #fff;
 }
 .rp-action-btn-primary {
-  background: linear-gradient(135deg, var(--purple), #7A3FFF);
+  background: linear-gradient(135deg, #EF4444, #B91C1C);
   border-color: transparent;
   color: #fff;
 }

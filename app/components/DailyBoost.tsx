@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { useLang } from '../../lib/LanguageContext';
 import type { Translations } from '../../lib/i18n';
 import { recordDailyBoostActivity } from '../../lib/streak';
@@ -10,6 +11,9 @@ import { formatDays } from '../../lib/homeI18n';
 import { useIsClient } from '../../lib/games/useIsClient';
 import { boostStrings, type ActivityId } from '../../lib/dailyBoostI18n';
 import ToolFrame, { ToolHero } from './tools/ToolFrame';
+import {
+  DAILY_BOOST_ACTIVITY_COUNT, DAILY_BOOST_DONE_PREFIX, boostDayKey, dateSeed, todaysBoostIndexes,
+} from '../../lib/dailyBoostDay';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -22,6 +26,7 @@ type Activity = {
   durationLabel?: string;
 };
 
+/** Same order as BOOST_ACTIVITY_IDS in lib/dailyBoostDay.ts — the daily pick depends on it. */
 const BANK: Activity[] = [
   { id: 'walk',      icon: '🚶', name: 'Family walk',          desc: 'Step outside for fresh air. Your body and mind will thank you.', duration: 1200, durationLabel: '20 min' },
   { id: 'squats',    icon: '🏋️', name: '30 squats',            desc: 'Slow and controlled. Back straight, knees over toes.' },
@@ -57,28 +62,8 @@ const QUOTES = [
 
 /* ═══════════════════════ HELPERS ═══════════════════════ */
 
-function seededShuffle<T>(arr: T[], seed: number): T[] {
-  const out = [...arr];
-  let s = seed;
-  for (let i = out.length - 1; i > 0; i--) {
-    s = Math.imul(s, 1664525) + 1013904223 | 0;
-    const j = Math.abs(s) % (i + 1);
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
-function dateSeed(d = new Date()) {
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-}
-
-export function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-export const DAILY_BOOST_DONE_PREFIX = 'db_done_';
-export const DAILY_BOOST_ACTIVITY_COUNT = 4;
+export { DAILY_BOOST_DONE_PREFIX, DAILY_BOOST_ACTIVITY_COUNT };
+export const todayKey = () => boostDayKey();
 
 function fmtTime(s: number) {
   const m = Math.floor(s / 60);
@@ -220,6 +205,12 @@ function ActivityCard({
               ⏱ {dur}
             </div>
           )}
+          {/* The full guided exercise ticks this card off when it is finished */}
+          {activity.id === 'breathing' && !done && (
+            <Link href="/relax/breathing" style={{ display: 'inline-block', fontSize: '12px', fontWeight: 600, color: '#5EEAD4', marginTop: '4px', textDecoration: 'none' }}>
+              🫁 {t.gamesHub.name_breathing} →
+            </Link>
+          )}
         </div>
       </div>
 
@@ -327,8 +318,8 @@ function DailyBoostBody() {
   const today = todayKey();
   const seed  = dateSeed();
 
-  // Pick 4 activities seeded by today's date
-  const activities = seededShuffle(BANK, seed).slice(0, 4);
+  // Pick 4 activities seeded by today's date (lib/dailyBoostDay.ts; the breathing page uses the same pick)
+  const activities = todaysBoostIndexes().map(i => BANK[i]);
 
   // Pick daily quote
   const quote = QUOTES[seed % QUOTES.length];

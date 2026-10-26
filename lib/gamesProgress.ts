@@ -1,7 +1,9 @@
 import { formatTimeMs, utcDayKey, type CatalogGame } from './gamesCatalog';
 import { readBlocks, readHigherLower, readPuzzle, HL_BEST_KEY } from './dailyTrio';
 import { readBest } from './personalBest';
+import { breathingDoneToday, getBreathingState } from './streak';
 import { formatDays } from './homeI18n';
+import { CUBE_LEVELS, cubeBestKey, cubeStateKey } from './games/sudokuCube';
 import { fmtNumber } from './formatNumber';
 import type { Lang, Translations } from './i18n';
 
@@ -55,6 +57,16 @@ export function readRecord(game: CatalogGame): GameRecord | null {
         .filter(k => k.endsWith(`_${todayCompact()}`))
         .map(k => read<{ timeMs: number }>(k)?.timeMs ?? 0)
         .filter(t => t > 0);
+      return times.length ? { kind: 'time', ms: Math.min(...times) } : null;
+    }
+    case 'breathing': {
+      // Days with a finished exercise
+      const n = getBreathingState().totalDays;
+      return n > 0 ? { kind: 'streak', value: n } : null;
+    }
+    case 'sudoku-cube': {
+      // Fastest solve of any difficulty
+      const times = CUBE_LEVELS.map(l => read<{ timeMs: number }>(cubeBestKey(l))?.timeMs ?? 0).filter(t => t > 0);
       return times.length ? { kind: 'time', ms: Math.min(...times) } : null;
     }
     case 'memory': {
@@ -118,6 +130,9 @@ export function isDoneToday(game: CatalogGame): boolean {
       return keysWith('cf-state-')
         .filter(k => k.endsWith(`-${utcDayKey()}`))
         .some(k => read<{ over?: boolean }>(k)?.over === true);
+    case 'breathing': return breathingDoneToday();
+    case 'sudoku-cube':
+      return CUBE_LEVELS.some(l => read<{ over?: boolean }>(cubeStateKey(l, utcDayKey()))?.over === true);
   }
   return false;
 }
