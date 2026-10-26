@@ -1,5 +1,9 @@
-import { utcDayKey, type CatalogGame } from './gamesCatalog';
+import { formatTimeMs, utcDayKey, type CatalogGame } from './gamesCatalog';
 import { readBlocks, readHigherLower, readPuzzle, HL_BEST_KEY } from './dailyTrio';
+import { readBest } from './personalBest';
+import { formatDays } from './homeI18n';
+import { fmtNumber } from './formatNumber';
+import type { Lang, Translations } from './i18n';
 
 /* The player's own progress for the games page, read from what each game already saves in
    localStorage (browser only): personal records, daily games finished today, best rank today. */
@@ -9,7 +13,9 @@ export type GameRecord =
   | { kind: 'time'; ms: number }
   | { kind: 'ms'; ms: number }
   | { kind: 'moves'; value: number }
-  | { kind: 'wpm'; value: number };
+  | { kind: 'wpm'; value: number }
+  /** Longest run of days (Wordle) */
+  | { kind: 'streak'; value: number };
 
 function read<T>(key: string): T | null {
   try {
@@ -72,6 +78,23 @@ export function readRecord(game: CatalogGame): GameRecord | null {
       const n = Number(read<number>('typing_best_wpm') ?? 0);
       return n > 0 ? { kind: 'wpm', value: n } : null;
     }
+    case 'reflex':
+    case 'reaction': {
+      // Reaction games: the record is an average in milliseconds
+      const b = game.leaderboard ? readBest(game.leaderboard) : null;
+      return b ? { kind: 'ms', ms: b.timeMs } : null;
+    }
+    case 'wordle': {
+      // Longest streak of any Wordle variant (WordleGames keeps { cur, best } per variant)
+      let best = 0;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && /^wordle_v2_[a-z]+$/.test(k)) best = Math.max(best, read<{ best?: number }>(k)?.best ?? 0);
+        }
+      } catch {}
+      return best > 0 ? { kind: 'streak', value: best } : null;
+    }
     case 'human-benchmark': {
       const ms = read<number>('hb_best_reaction');
       return ms ? { kind: 'ms', ms } : null;
@@ -79,7 +102,7 @@ export function readRecord(game: CatalogGame): GameRecord | null {
   }
   // Games inside GameShell keep { timeMs, score } under everyday-best-<leaderboard>
   if (game.leaderboard) {
-    const b = read<{ timeMs: number; score?: number }>(`everyday-best-${game.leaderboard}`);
+    const b = readBest(game.leaderboard);
     if (b) return b.score != null ? { kind: 'points', value: b.score } : { kind: 'time', ms: b.timeMs };
   }
   return null;
@@ -106,4 +129,19 @@ export function bestRankToday(): number | null {
     .map(k => Number(read<number>(k)))
     .filter(n => Number.isFinite(n) && n > 0);
   return ranks.length ? Math.min(...ranks) : null;
+}
+
+/** Record in the language's format: points, a time (s / m:ss), milliseconds, moves, WPM or a day streak. */
+export function formatRecord(r: GameRecord, t: Translations, lang: Lang): string {
+  switch (r.kind) {
+    case 'points': return fmtNumber(r.value, lang);
+    case 'moves': return `${t.games.moves}: ${fmtNumber(r.value, lang)}`;
+    case 'wpm': return `${fmtNumber(r.value, lang)} WPM`;
+    case 'streak': return formatDays(r.value, lang);
+    case 'ms': return new Intl.NumberFormat(lang, { style: 'unit', unit: 'millisecond', unitDisplay: 'short' }).format(Math.round(r.ms));
+    case 'time':
+      return r.ms < 60_000
+        ? new Intl.NumberFormat(lang, { style: 'unit', unit: 'second', unitDisplay: 'short', maximumFractionDigits: 2 }).format(r.ms / 1000)
+        : formatTimeMs(r.ms).replace(/\.\d+$/, '');
+  }
 }

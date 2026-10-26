@@ -10,6 +10,8 @@ import { TypingSpeedTest } from './TypingSpeedTest';
 import WordleGames from './WordleGames';
 import { recordGameCompleted } from '../../lib/streak';
 import { gameText, getCatalogGame } from '../../lib/gamesCatalog';
+import { saveBest } from '../../lib/personalBest';
+import { formatRecord, readRecord } from '../../lib/gamesProgress';
 import { useIsClient } from '../../lib/games/useIsClient';
 import type { Translations } from '../../lib/i18n';
 import { getCountryName } from '../../lib/games/countries';
@@ -2426,7 +2428,7 @@ export default function DailyGames() {
 }
 
 function DailyGamesView() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
 
   const CATEGORIES: CategoryDef[] = [
     {
@@ -2508,6 +2510,8 @@ function DailyGamesView() {
   function openModal(game: GameId, timeMs: number, extra?: { score?: number; moves?: number; diff?: string; seed?: number }) {
     setModal({ game, timeMs, ...extra });
     recordGameCompleted();
+    // Personal record, the same way as the GameShell games (everyday-best-<leaderboard id>)
+    saveBest(game, timeMs, extra?.score);
   }
 
   function handleShowLeaderboard() { /* leaderboard always visible */ }
@@ -2651,6 +2655,14 @@ function DailyGamesView() {
   return (
     <GameFrame color={tabGame?.color ?? catDef!.color}>
       <GameTopBar>
+        {tabGame && (() => {
+          const rec = readRecord(tabGame);
+          return (
+            <span className="gx-pill" title={t.games.record}>
+              <span aria-hidden="true">🏅</span> {t.games.record} <b>{rec ? <span dir="ltr">{formatRecord(rec, t, lang)}</span> : '—'}</b>
+            </span>
+          );
+        })()}
         <a className="gx-pill gx-gold" href="#dg-lb"><span aria-hidden="true">🏆</span> {t.games.leaderboard}</a>
       </GameTopBar>
       <GameBanner

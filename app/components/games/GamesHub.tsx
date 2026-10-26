@@ -3,13 +3,13 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
 import { useLang } from '../../../lib/LanguageContext';
-import type { Translations } from '../../../lib/i18n';
+import type { Lang, Translations } from '../../../lib/i18n';
 import {
-  GAMES_CATALOG, GAME_DURATIONS, GAME_SECTIONS, formatTimeMs, gameText, isNewGame,
+  GAMES_CATALOG, GAME_DURATIONS, GAME_SECTIONS, gameText, isNewGame,
   type CatalogGame, type GameDuration, type GameSection,
 } from '../../../lib/gamesCatalog';
 import { getDisplayState, STREAK_UPDATED_EVENT } from '../../../lib/streak';
-import { bestRankToday, isDoneToday, readRecord, type GameRecord } from '../../../lib/gamesProgress';
+import { bestRankToday, formatRecord, isDoneToday, readRecord } from '../../../lib/gamesProgress';
 import { formatDays, homeStrings } from '../../../lib/homeI18n';
 import { fmtNumber } from '../../../lib/formatNumber';
 import { toolStrings } from '../../../lib/toolsI18n';
@@ -26,20 +26,6 @@ const SECTION_META: Record<GameSection, { icon: string; label: (t: Translations)
 
 function durationLabel(t: Translations, d: GameDuration) {
   return t.gamesHub.minutes.replace('{n}', d);
-}
-
-/** Record in the language's format: points, a time (s / m:ss), milliseconds, moves or WPM. */
-function formatRecord(r: GameRecord, t: Translations, lang: string): string {
-  switch (r.kind) {
-    case 'points': return fmtNumber(r.value, lang);
-    case 'moves': return `${t.games.moves}: ${fmtNumber(r.value, lang)}`;
-    case 'wpm': return `${fmtNumber(r.value, lang)} WPM`;
-    case 'ms': return new Intl.NumberFormat(lang, { style: 'unit', unit: 'millisecond', unitDisplay: 'short' }).format(Math.round(r.ms));
-    case 'time':
-      return r.ms < 60_000
-        ? new Intl.NumberFormat(lang, { style: 'unit', unit: 'second', unitDisplay: 'short', maximumFractionDigits: 2 }).format(r.ms / 1000)
-        : formatTimeMs(r.ms).replace(/\.\d+$/, '');
-  }
 }
 
 /** Re-render when a game saves progress in this or another tab. */
@@ -140,7 +126,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 }
 
 function GameCard({ game, t, lang, isClient, newLabel, doneLabel }: {
-  game: CatalogGame; t: Translations; lang: string; isClient: boolean; newLabel: string; doneLabel: string;
+  game: CatalogGame; t: Translations; lang: Lang; isClient: boolean; newLabel: string; doneLabel: string;
 }) {
   // Personal bits read localStorage / today's date, so they appear after hydration
   const record = isClient && !game.soon ? readRecord(game) : null;

@@ -7,9 +7,10 @@ import { createPortal } from 'react-dom';
 import { useLang } from '../../../lib/LanguageContext';
 import { getDisplayState, recordGameCompleted, STREAK_UPDATED_EVENT } from '../../../lib/streak';
 import {
-  formatLeaderboardValue, gameText, getCatalogGame, getLeaderboardConfig, toSortValue,
+  formatLeaderboardValue, gameText, getCatalogGame, getLeaderboardConfig,
 } from '../../../lib/gamesCatalog';
 import { LeaderboardPanel, type LBEntry } from '../Leaderboard';
+import { BEST_EVENT, parseBest, readBestRaw, saveBest, type StoredBest } from '../../../lib/personalBest';
 import BossKey, { BossKeyModePicker, BossKeyPills } from './BossKey';
 import { GameBanner, GameFrame, GameTopBar } from './GameFrame';
 import ScoreSubmitModal from './ScoreSubmitModal';
@@ -41,7 +42,6 @@ export interface GameShellApi {
   openLeaderboard: () => void;
 }
 
-type StoredBest = { timeMs: number; score?: number };
 
 const GameShellContext = createContext<GameShellApi | null>(null);
 
@@ -52,13 +52,10 @@ export function useGameShell(): GameShellApi {
   return api;
 }
 
-const BEST_EVENT = 'everyday-best-change';
-
 /** Milliseconds since a performance.now() timestamp (only called from game-over handlers). */
 function elapsedSince(start: number): number {
   return Math.round(performance.now() - start);
 }
-const bestKey = (lbId: string) => `everyday-best-${lbId}`;
 
 function subscribeBest(onChange: () => void) {
   window.addEventListener(BEST_EVENT, onChange);
@@ -67,19 +64,6 @@ function subscribeBest(onChange: () => void) {
     window.removeEventListener(BEST_EVENT, onChange);
     window.removeEventListener('storage', onChange);
   };
-}
-
-function readBestRaw(lbId: string | undefined): string | null {
-  if (!lbId) return null;
-  try { return localStorage.getItem(bestKey(lbId)); } catch { return null; }
-}
-
-function parseBest(raw: string | null): StoredBest | null {
-  if (!raw) return null;
-  try {
-    const v = JSON.parse(raw) as StoredBest;
-    return typeof v?.timeMs === 'number' ? v : null;
-  } catch { return null; }
 }
 
 function subscribeStreak(onChange: () => void) {
@@ -155,12 +139,7 @@ export default function GameShell({
 
     let newRecord = false;
     if (lbId && lbConfig) {
-      const prev = parseBest(readBestRaw(lbId));
-      newRecord = !prev || toSortValue(lbConfig, timeMs, final.score) < toSortValue(lbConfig, prev.timeMs, prev.score);
-      if (newRecord) {
-        try { localStorage.setItem(bestKey(lbId), JSON.stringify({ timeMs, score: final.score })); } catch {}
-        window.dispatchEvent(new Event(BEST_EVENT));
-      }
+      newRecord = saveBest(lbId, timeMs, final.score);
       setSubmit(final);
     }
     return { newRecord };
