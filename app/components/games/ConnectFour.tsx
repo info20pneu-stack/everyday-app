@@ -8,7 +8,7 @@ import { useIsClient } from '../../../lib/games/useIsClient';
 import { recordGameCompleted } from '../../../lib/streak';
 import { dailyVariantLeaderboardId, formatTimeMs, utcDayKey } from '../../../lib/gamesCatalog';
 import {
-  REGIONS, REGION_LANG, dailySetIndex, regionFlag, regionFlagEmoji, getSet, isRegion, regionFromLang, seededRandom, setCount, type Region,
+  REGIONS, REGION_LANG, dailySetIndex, regionFlag, regionFlagEmoji, getSet, isRegion, regionFromCountry, regionFromLang, seededRandom, setCount, type Region,
 } from '../../../lib/games/connectSets';
 import GameShell, { useGameShell } from './GameShell';
 import FlagSelect from '../FlagSelect';
@@ -146,6 +146,25 @@ function useFitTiles(gridRef: React.RefObject<HTMLDivElement | null>, key: strin
   }, [gridRef, key]);
 }
 
+/* Czech needs the accusative after "pro celé…" — the countries a set can belong to. */
+const CS_WHOLE_COUNTRY: Record<string, string> = {
+  cz: 'celé Česko', sk: 'celé Slovensko', de: 'celé Německo', at: 'celé Rakousko', ch: 'celé Švýcarsko',
+  pl: 'celé Polsko', gb: 'celou Velkou Británii', us: 'celé USA', ie: 'celé Irsko', ca: 'celou Kanadu',
+  au: 'celou Austrálii', nz: 'celý Nový Zéland', fr: 'celou Francii', be: 'celou Belgii', it: 'celou Itálii',
+  es: 'celé Španělsko', mx: 'celé Mexiko', ar: 'celou Argentinu', pt: 'celé Portugalsko', br: 'celou Brazílii',
+  ru: 'celé Rusko', cn: 'celou Čínu', jp: 'celé Japonsko', kr: 'celou Koreu', sa: 'celou Saúdskou Arábii',
+  in: 'celou Indii',
+};
+
+/** "Same set for all of <country>" in the UI language. */
+function sameSetLine(tr: { sameSet: string; sameSetWorld: string }, country: string | null, uiLang: Lang): string {
+  if (!country) return tr.sameSetWorld;
+  if (uiLang === 'cs' && CS_WHOLE_COUNTRY[country]) return `Stejná sada pro ${CS_WHOLE_COUNTRY[country]}`;
+  let name = country.toUpperCase();
+  try { name = new Intl.DisplayNames([uiLang], { type: 'region' }).of(name) ?? name; } catch {}
+  return tr.sameSet.replace('{country}', name);
+}
+
 /* ═════════════════════════════ shell ═════════════════════════════ */
 
 interface TimerControl { pause: () => void; resume: () => void }
@@ -175,17 +194,18 @@ export default function ConnectFour({ geoRegion, country }: { geoRegion: Region 
     window.dispatchEvent(new Event(STORE_EVENT));
   }
 
-  // Many regions → a dropdown with SVG flags
+  // Many regions → a dropdown with SVG flags (one flag per option: the label is the language name only)
   const picker = (
-    <div className="cf-regionbar">
-      <span aria-hidden="true">{tr.region}</span>
-      <FlagSelect
-        id="cf-region-select" className="cf-region-btn" value={region} label={tr.region} flagSize={22}
-        onChange={v => { if (isRegion(v)) chooseRegion(v); }}
-        options={REGIONS.map(r => ({ value: r, flag: regionFlag(r, visitorCountry), label: regionLabel(r, lang, tr.regionWorld) }))}
-      />
-    </div>
+    <FlagSelect
+      id="cf-region-select" className="cf-region-btn" value={region} label={tr.region} flagSize={20}
+      onChange={v => { if (isRegion(v)) chooseRegion(v); }}
+      options={REGIONS.map(r => ({ value: r, flag: regionFlag(r, visitorCountry), label: regionLabel(r, lang, tr.regionWorld) }))}
+    />
   );
+  // Whose set it is: the visitor's own country when it plays this region, else the region's flag country
+  const setCountry = region === 'world'
+    ? null
+    : (visitorCountry && regionFromCountry(visitorCountry) === region ? visitorCountry : regionFlag(region, visitorCountry)).toLowerCase();
 
   return (
     <GameShell
@@ -195,7 +215,7 @@ export default function ConnectFour({ geoRegion, country }: { geoRegion: Region 
       onShow={() => timerCtlRef.current?.resume()}
     >
       {isClient
-        ? <ConnectFourGame key={`${region}-${day}`} region={region} picker={picker} shareFlag={regionFlagEmoji(region, visitorCountry)} day={day} onDayChange={setDay} timerCtlRef={timerCtlRef} />
+        ? <ConnectFourGame key={`${region}-${day}`} region={region} picker={picker} setCountry={setCountry} shareFlag={regionFlagEmoji(region, visitorCountry)} day={day} onDayChange={setDay} timerCtlRef={timerCtlRef} />
         : <div className="cf-placeholder" />}
       <ConnectFourStyles />
     </GameShell>
@@ -264,14 +284,16 @@ interface GameProps {
   region: Region;
   /** Region flag emoji for the share text. */
   shareFlag: string;
-  /** Region flags, shown above the board. */
+  /** Region picker, shown above the board. */
   picker: React.ReactNode;
+  /** Lower-case ISO code of the country the set is for (null = the whole world). */
+  setCountry: string | null;
   day: string;
   onDayChange: (d: string) => void;
   timerCtlRef: React.RefObject<TimerControl | null>;
 }
 
-function ConnectFourGame({ region, picker, shareFlag, day, onDayChange, timerCtlRef }: GameProps) {
+function ConnectFourGame({ region, picker, setCountry, shareFlag, day, onDayChange, timerCtlRef }: GameProps) {
   const { t, lang, rtl } = useLang();
   const tr = t.connectFour;
   const name = t.gamesHub.name_connectFour;
@@ -491,19 +513,21 @@ function ConnectFourGame({ region, picker, shareFlag, day, onDayChange, timerCtl
   const wLang = wordsLang(region, lang);
   useFitTiles(gridRef, `${set.region}:${set.index}:${lang}:${rest.join(',')}`);
 
+  const livesLeft = MAX_MISTAKES - p.mistakes;
+
   return (
     <div className="cf-app">
-      {picker}
-      <div className="cf-top">
-        <div className="cf-meta">
-          <span className="cf-date">{dateLabel}</span>
-          {isPractice && <span className="cf-badge">{tr.practiceBadge}</span>}
-        </div>
+      <div className="cf-bar">
+        <div className="cf-bar-pick">{picker}</div>
+        <span className="cf-hearts" role="img" aria-label={`${tr.mistakesLeft} ${livesLeft}/${MAX_MISTAKES}`} title={tr.mistakesLeft}>
+          {Array.from({ length: MAX_MISTAKES }, (_, k) => (
+            <span key={k} aria-hidden="true" className={k < livesLeft ? 'on' : 'off'}>{k < livesLeft ? '💜' : '🤍'}</span>
+          ))}
+        </span>
         <div className="cf-timer tabular-nums" role="timer" aria-label={tr.timeAria}>
           <span ref={attachTimer} />
         </div>
       </div>
-      <p className="cf-intro">{tr.intro}</p>
 
       <div className="cf-board" lang={wLang} dir={wLang === 'ar' ? 'rtl' : rtl ? 'rtl' : 'ltr'}>
         {p.solved.map(g => (
@@ -520,7 +544,7 @@ function ConnectFourGame({ region, picker, shareFlag, day, onDayChange, timerCtl
               return (
                 <button
                   key={id} type="button"
-                  className={`cf-tile${on ? ' sel' : ''}${shake.includes(id) ? ' shake' : ''}`}
+                  className={`gx-tile cf-tile${on ? ' is-on' : ''}${shake.includes(id) ? ' shake' : ''}`}
                   aria-pressed={on} disabled={p.over} onClick={() => toggle(id)}
                 >
                   <span className="cf-word">{w}</span>
@@ -533,17 +557,11 @@ function ConnectFourGame({ region, picker, shareFlag, day, onDayChange, timerCtl
 
       {!p.over && (
         <>
-          <div className="cf-lives">
-            <span>{tr.mistakesLeft}</span>
-            <span className="cf-dots" aria-label={`${MAX_MISTAKES - p.mistakes}/${MAX_MISTAKES}`}>
-              {Array.from({ length: MAX_MISTAKES }, (_, k) => <i key={k} className={k < MAX_MISTAKES - p.mistakes ? '' : 'off'} />)}
-            </span>
-          </div>
           <div className="cf-msg" role="status">{msg}</div>
           <div className="cf-actions">
-            <button type="button" className="cf-btn" onClick={shuffleTiles}>{tr.shuffle}</button>
-            <button type="button" className="cf-btn" onClick={() => { setSel([]); setMsg(''); }} disabled={sel.length === 0}>{tr.deselect}</button>
-            <button type="button" className="cf-btn primary" onClick={submit} disabled={sel.length !== 4}>{tr.submit}</button>
+            <button type="button" className="gx-btn gx-ghost" onClick={shuffleTiles}>{tr.shuffle}</button>
+            <button type="button" className="gx-btn gx-ghost" onClick={() => { setSel([]); setMsg(''); }} disabled={sel.length === 0}>{tr.deselect}</button>
+            <button type="button" className="gx-btn gx-primary" onClick={submit} disabled={sel.length !== 4}>{tr.submit}</button>
           </div>
         </>
       )}
@@ -560,19 +578,24 @@ function ConnectFourGame({ region, picker, shareFlag, day, onDayChange, timerCtl
           <div className="cf-end-actions">
             {!isPractice && (
               <>
-                <button type="button" className="cf-btn primary" onClick={share}>{tr.share}</button>
+                <button type="button" className="gx-btn gx-primary" onClick={share}>{tr.share}</button>
                 <div className="cf-toast" aria-live="polite">{shareNote}</div>
-                <button type="button" className="cf-btn gold" onClick={openLeaderboard}>{t.games.showLeaderboard}</button>
+                <button type="button" className="gx-btn gx-gold-btn" onClick={openLeaderboard}>{t.games.showLeaderboard}</button>
               </>
             )}
-            <button type="button" className="cf-btn" onClick={practice}>{tr.practice}</button>
-            {isPractice && <button type="button" className="cf-btn" onClick={backToToday}>{tr.backToToday}</button>}
+            <button type="button" className="gx-btn gx-ghost" onClick={practice}>{tr.practice}</button>
+            {isPractice && <button type="button" className="gx-btn gx-ghost" onClick={backToToday}>{tr.backToToday}</button>}
           </div>
           {!isPractice && <div className="cf-next tabular-nums">{tr.nextIn.replace('{time}', countdown)}</div>}
         </div>
       )}
 
-      <div className="cf-note">{tr.note}</div>
+      <div className="cf-note" title={tr.note}>
+        {isPractice && <span className="cf-badge">{tr.practiceBadge}</span>}
+        <span className="cf-date">{dateLabel}</span>
+        <span aria-hidden="true"> · </span>
+        <span>{sameSetLine(tr, setCountry, lang)}</span>
+      </div>
     </div>
   );
 }
@@ -581,49 +604,39 @@ function ConnectFourStyles() {
   return (
     <style>{`
       .cf-placeholder { min-height: 520px; }
-      .cf-regionbar {
-        display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-        padding-bottom: 10px; border-bottom: 1px solid var(--cf-line);
-      }
-      .cf-regionbar > span { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--cf-dim); }
-      .cf-region-btn.fsel-btn {
-        min-height: 40px; padding: 0 12px; border-radius: 12px; font: 600 14px 'Poppins', system-ui, sans-serif;
-        background: rgba(93,76,255,0.14); border: 1px solid rgba(93,76,255,0.45); color: var(--cf-ink);
-      }
-
       .cf-app {
-        --cf-card: #0B0F2A; --cf-tile: #151A42; --cf-line: #1E2350; --cf-ink: #F2F3FF; --cf-dim: #9AA0D0;
-        --cf-accent: #5D4CFF; --cf-accent2: #9B8CFF;
+        --cf-ink: #F2F3FF; --cf-dim: #9AA0D0; --cf-line: #1E2350;
         --cf-g1: #FFC94D; --cf-g2: #2FE39A; --cf-g3: #4DA3FF; --cf-g4: #B9A8FF;
-        max-width: 560px; margin: 0 auto;
         display: flex; flex-direction: column; gap: 12px;
         color: var(--cf-ink); font-family: 'Poppins', system-ui, sans-serif;
         -webkit-tap-highlight-color: transparent;
       }
-      .cf-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-      .cf-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-      .cf-date { font-size: 12px; color: var(--cf-dim); text-transform: capitalize; }
-      .cf-badge {
-        align-self: flex-start; font-size: 11px; font-weight: 600; color: var(--cf-g1); padding: 2px 10px; border-radius: 999px;
-        border: 1px solid rgba(255,201,77,.4); background: rgba(255,201,77,.1);
+
+      /* one row: set picker · hearts · timer */
+      .cf-bar { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+      .cf-bar-pick { flex: 0 1 auto; min-width: 0; display: flex; }
+      .cf-region-btn.fsel-btn {
+        min-height: 40px; padding: 0 10px; gap: 7px; border-radius: 999px; font: 700 13px 'Poppins', system-ui, sans-serif;
+        background: linear-gradient(160deg, #1C2258, #121640); border: 1px solid rgba(255,255,255,0.1); color: var(--cf-ink);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
       }
+      .cf-hearts { display: inline-flex; gap: 2px; font-size: 18px; line-height: 1; margin-inline: auto; flex-shrink: 0; }
+      .cf-hearts .on { filter: drop-shadow(0 0 6px rgba(167,139,250,.75)); }
+      .cf-hearts .off { opacity: .45; }
       .cf-timer {
-        flex-shrink: 0; font-weight: 800; font-size: 18px; background: var(--cf-card);
-        border: 1px solid var(--cf-line); border-radius: 12px; padding: 6px 12px; direction: ltr;
+        flex-shrink: 0; direction: ltr; font-weight: 800; font-size: 26px; line-height: 1; letter-spacing: .01em;
+        color: #fff; text-shadow: 0 0 14px rgba(155,123,255,.9), 0 0 28px rgba(139,92,246,.55);
       }
-      .cf-intro { margin: 0; color: var(--cf-dim); font-size: 14px; }
 
       .cf-board { display: flex; flex-direction: column; gap: 8px; }
       .cf-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
       .cf-tile {
-        font: inherit; font-weight: 800; font-size: clamp(11px, 3.3vw, 15px); line-height: 1.15;
+        font-weight: 800; font-size: 14px; line-height: 1.15;
         text-transform: uppercase; letter-spacing: .02em;
-        aspect-ratio: 1 / 0.8; min-width: 0; border: 0; border-radius: 12px; padding: 5px 3px;
+        height: 64px; min-width: 0; padding: 5px 4px;
         display: flex; align-items: center; justify-content: center; text-align: center;
-        background: var(--cf-tile); color: var(--cf-ink); cursor: pointer;
         /* words never break inside; useFitTiles shrinks the font instead */
         overflow-wrap: normal; word-break: keep-all; hyphens: manual;
-        transition: transform .12s, background .15s, box-shadow .15s;
       }
       .cf-word { display: block; width: 100%; }
       .cf-tile.cf-split .cf-word { hyphens: auto; -webkit-hyphens: auto; word-break: normal; overflow-wrap: anywhere; }
@@ -634,62 +647,58 @@ function ConnectFourStyles() {
       .cf-board:lang(ar) .cf-band b, .cf-board:lang(hi) .cf-band b,
       .cf-board:lang(zh) .cf-band b, .cf-board:lang(ja) .cf-band b, .cf-board:lang(ko) .cf-band b { letter-spacing: 0; }
       .cf-band span { overflow-wrap: anywhere; }
-      .cf-tile:hover:not(:disabled) { background: #1C2257; }
-      .cf-tile:active:not(:disabled) { transform: scale(.95); }
-      .cf-tile.sel { background: var(--cf-accent); box-shadow: 0 0 18px rgba(93,76,255,.6); }
-      .cf-tile:disabled { cursor: default; }
-      .cf-tile:focus-visible, .cf-btn:focus-visible { outline: 3px solid var(--cf-ink); outline-offset: 2px; }
       .cf-tile.shake { animation: cfShake .35s; }
       @keyframes cfShake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
+      /* solved groups: glowing colour bars */
       .cf-band {
-        border-radius: 12px; padding: 12px 10px; text-align: center; color: #0A0C1E;
+        --c: var(--cf-g1);
+        border-radius: 14px; padding: 11px 12px; text-align: center; color: #0A0C1E;
+        background: linear-gradient(160deg, color-mix(in srgb, var(--c) 82%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 78%, #000));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 3px 0 color-mix(in srgb, var(--c) 55%, #000), 0 0 22px color-mix(in srgb, var(--c) 55%, transparent);
         animation: cfIn .35s ease-out;
       }
       .cf-band b { display: block; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
       .cf-band span { font-size: 13px; font-weight: 600; text-transform: uppercase; }
-      .cf-g1 { background: var(--cf-g1); } .cf-g2 { background: var(--cf-g2); }
-      .cf-g3 { background: var(--cf-g3); } .cf-g4 { background: var(--cf-g4); }
+      .cf-g1 { --c: var(--cf-g1); } .cf-g2 { --c: var(--cf-g2); }
+      .cf-g3 { --c: var(--cf-g3); } .cf-g4 { --c: var(--cf-g4); }
       @keyframes cfIn { from { transform: scale(.9); opacity: .3; } to { transform: none; opacity: 1; } }
 
-      .cf-lives { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--cf-dim); }
-      .cf-dots { display: inline-flex; gap: 8px; }
-      .cf-dots i { width: 12px; height: 12px; border-radius: 50%; background: var(--cf-accent2); display: inline-block; }
-      .cf-dots i.off { background: var(--cf-line); }
-      .cf-msg { min-height: 22px; text-align: center; font-weight: 600; font-size: 14px; color: var(--cf-g1); }
+      .cf-msg { min-height: 20px; text-align: center; font-weight: 600; font-size: 14px; color: var(--cf-g1); }
       .cf-actions { display: flex; gap: 8px; }
-      .cf-btn {
-        flex: 1; min-height: 48px; font: inherit; font-weight: 800; font-size: 15px; border-radius: 999px;
-        padding: 12px 10px; cursor: pointer; border: 2px solid var(--cf-line); background: transparent; color: var(--cf-ink);
-      }
-      .cf-btn.primary { background: var(--cf-accent); border-color: var(--cf-accent); }
-      .cf-btn.gold { background: rgba(255,179,0,.12); border-color: rgba(255,179,0,.35); color: #FFB300; }
-      .cf-btn:disabled { opacity: .4; cursor: default; }
+      .cf-actions .gx-btn { flex: 1; min-width: 0; padding: 0 10px; }
 
       .cf-end {
         display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center;
-        padding: 20px; border-radius: 20px; background: var(--cf-card); border: 1px solid var(--cf-line);
+        padding: 20px; border-radius: 18px; border: 1px solid rgba(255,255,255,.08);
+        background: linear-gradient(160deg, #1C2258, #121640); box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
       }
       .cf-end h2 { margin: 0; font-size: 24px; font-weight: 800; text-wrap: balance; }
-      .cf-time { font-size: 40px; font-weight: 800; color: var(--cf-accent2); line-height: 1; direction: ltr; }
+      .cf-time { font-size: 40px; font-weight: 800; color: #C4B5FD; line-height: 1; direction: ltr; text-shadow: 0 0 22px rgba(139,92,246,.7); }
       .cf-end p { margin: 0; color: var(--cf-dim); font-size: 14px; max-width: 36ch; }
       .cf-squares { font-size: 20px; line-height: 1.25; letter-spacing: 2px; }
       .cf-end-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-      .cf-end-actions .cf-btn { width: 100%; flex: none; }
+      .cf-end-actions .gx-btn { width: 100%; }
       .cf-toast { font-size: 13px; color: var(--cf-g2); min-height: 18px; word-break: break-word; }
       .cf-next { font-size: 12px; color: var(--cf-dim); }
-      .cf-note { font-size: 11px; color: var(--cf-dim); text-align: center; }
 
-      @media (min-width: 720px) {
-        .cf-tile { font-size: 15px; }
+      .cf-note { font-size: 11px; color: var(--cf-dim); text-align: center; line-height: 1.5; }
+      .cf-date { display: inline-block; }
+      .cf-date::first-letter { text-transform: uppercase; }
+      .cf-badge {
+        display: inline-block; margin-inline-end: 6px; font-size: 11px; font-weight: 600; color: var(--cf-g1); padding: 1px 8px; border-radius: 999px;
+        border: 1px solid rgba(255,201,77,.4); background: rgba(255,201,77,.1);
+      }
+
+      @media (max-width: 400px) {
+        .cf-grid, .cf-board { gap: 6px; }
+        .cf-tile { letter-spacing: 0; font-size: 12px; }
+        .cf-timer { font-size: 22px; }
+        .cf-hearts { font-size: 15px; gap: 1px; }
+        .cf-region-btn.fsel-btn { padding: 0 8px; gap: 5px; max-width: 120px; }
       }
       @media (max-width: 480px) {
-        .cf-grid, .cf-board { gap: 6px; }
-        .cf-tile { letter-spacing: 0; }
-        .cf-btn { font-size: 14px; padding: 10px 6px; }
-        /* keep the buttons clear of the floating boss-key buttons */
-        .cf-actions, .cf-end-actions { padding-right: 52px; box-sizing: border-box; }
-        [dir="rtl"] .cf-actions, [dir="rtl"] .cf-end-actions { padding-right: 0; padding-left: 52px; }
+        .cf-actions .gx-btn { font-size: 13px; padding: 0 6px; }
       }
       @media (prefers-reduced-motion: reduce) {
         .cf-tile.shake, .cf-band { animation: none; }

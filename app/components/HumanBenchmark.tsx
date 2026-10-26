@@ -142,8 +142,8 @@ function HBLeaderboard({ gameId, color, lowerBetter, unit }: {
   return <LeaderboardPanel game={gameId} accentColor={color} renderValue={renderValue} />;
 }
 
-function HBSubmit({ result, color, onDismiss }: {
-  result: TestResult; color: string; onDismiss: () => void;
+function HBSubmit({ result, onDismiss }: {
+  result: TestResult; onDismiss: () => void;
 }) {
   const { lang } = useLang();
   const [phase, setPhase] = useState<SubmitPhase>('idle');
@@ -194,16 +194,8 @@ function HBSubmit({ result, color, onDismiss }: {
   if (phase === 'idle') {
     return (
       <div style={{ marginTop: '14px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <button onClick={() => setPhase('form')} style={{
-          flex: 2, minWidth: '120px', padding: '10px', borderRadius: '9px', border: 'none',
-          background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000',
-          fontSize: '13px', fontWeight: '700', cursor: 'pointer',
-          boxShadow: `0 0 16px ${color}55`,
-        }}>🏅 Submit to leaderboard</button>
-        <button onClick={onDismiss} style={{
-          flex: 1, padding: '10px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.1)',
-          background: 'rgba(255,255,255,0.04)', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer',
-        }}>✕</button>
+        <button type="button" className="gx-btn gx-gold-btn gx-sm" onClick={() => setPhase('form')} style={{ flex: 2, minWidth: '120px' }}>🏅 Submit to leaderboard</button>
+        <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onDismiss} style={{ flex: 1 }}>✕</button>
       </div>
     );
   }
@@ -217,12 +209,8 @@ function HBSubmit({ result, color, onDismiss }: {
       </div>
       {err && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{err}</div>}
       <div style={{ display: 'flex', gap: '8px' }}>
-        <button onClick={submit} disabled={!nick.trim() || phase === 'submitting'} style={{
-          flex: 2, padding: '10px', borderRadius: '8px', border: 'none',
-          background: nick.trim() ? `linear-gradient(135deg,${color},${color}bb)` : 'rgba(255,255,255,0.1)',
-          color: nick.trim() ? '#000' : 'var(--text3)', fontSize: '13px', fontWeight: '700', cursor: nick.trim() ? 'pointer' : 'not-allowed',
-        }}>{phase === 'submitting' ? '…' : 'Save score'}</button>
-        <button onClick={() => setPhase('idle')} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>Cancel</button>
+        <button type="button" className="gx-btn gx-primary gx-sm" onClick={submit} disabled={!nick.trim() || phase === 'submitting'} style={{ flex: 2, minWidth: 0 }}>{phase === 'submitting' ? '…' : 'Save score'}</button>
+        <button type="button" className="gx-btn gx-ghost gx-sm" onClick={() => setPhase('idle')} style={{ flex: 1, minWidth: 0 }}>Cancel</button>
       </div>
     </div>
   );
@@ -289,16 +277,16 @@ function ResultScreen({ result, meta, testId, onRetry, onBack }: {
       )}
 
       <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '4px' }}>
-        <button onClick={onRetry} style={{ padding: '10px 22px', borderRadius: '9px', border: 'none', background: `linear-gradient(135deg,${meta.color},${meta.color}bb)`, color: '#000', fontSize: '13px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 16px ${meta.glow}` }}>
+        <button type="button" className="gx-btn gx-primary" onClick={onRetry}>
           ↺ Try again
         </button>
-        <button onClick={onBack} style={{ padding: '10px 18px', borderRadius: '9px', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'var(--text2)', fontSize: '12px', cursor: 'pointer' }}>
+        <button type="button" className="gx-btn gx-ghost" onClick={onBack}>
           ← Menu
         </button>
       </div>
 
       {!submitted && (
-        <HBSubmit result={result} color={meta.color} onDismiss={() => setSubmitted(true)} />
+        <HBSubmit result={result} onDismiss={() => setSubmitted(true)} />
       )}
 
       {/* Leaderboard — always visible below the test, auto-switches with the active test */}
@@ -401,7 +389,7 @@ function ReactionTimeTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
       </div>
 
       {state === 'result' && results.length < RT_ROUNDS && (
-        <button onClick={() => { setRound(r => r + 1); startWait(); }} style={{ width: '100%', marginTop: '10px', padding: '11px', borderRadius: '9px', border: '1px solid rgba(74,222,128,0.3)', background: 'rgba(74,222,128,0.15)', color: '#4ade80', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>
+        <button type="button" className="gx-btn gx-primary" onClick={() => { setRound(r => r + 1); startWait(); }} style={{ width: '100%', marginTop: '10px' }}>
           Next round ({round}/{RT_ROUNDS}) →
         </button>
       )}
@@ -411,7 +399,7 @@ function ReactionTimeTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         {avg !== null && results.length > 1 && <span style={{ fontFamily: 'monospace', fontSize: '12px', color: color, fontWeight: '700', background: `${color}22`, borderRadius: '5px', padding: '2px 7px' }}>avg {avg}ms</span>}
       </div>
 
-      <button onClick={onBack} style={{ marginTop: '12px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '12px' }}>‹ Back</button>
     </div>
   );
 }
@@ -482,7 +470,7 @@ function NumberMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
           <div style={{ fontSize: '44px', marginBottom: '10px' }}>🔢</div>
           <div style={{ fontFamily: 'Poppins', fontSize: '16px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>Number Memory</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>Memorize the number, then type it back</div>
-          <button onClick={() => { totalMs.current = Date.now(); startLevel(3); setLevel(3); }} style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 20px ${color}55` }}>Start</button>
+          <button type="button" className="gx-btn gx-primary" onClick={() => { totalMs.current = Date.now(); startLevel(3); setLevel(3); }}>Start</button>
         </div>
       )}
 
@@ -508,7 +496,7 @@ function NumberMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
             placeholder={'0'.repeat(level)}
             style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: `1px solid ${color}55`, borderRadius: '10px', color: '#fff', fontSize: `${Math.max(20, 36 - level * 1.5)}px`, fontFamily: 'Poppins', fontWeight: '700', letterSpacing: '4px', padding: '16px 12px', textAlign: 'center', outline: 'none', boxSizing: 'border-box', marginBottom: '12px' }}
           />
-          <button onClick={checkInput} disabled={input.length === 0} style={{ width: '100%', padding: '12px', borderRadius: '9px', border: 'none', background: input.length > 0 ? `linear-gradient(135deg,${color},${color}bb)` : 'rgba(255,255,255,0.1)', color: input.length > 0 ? '#000' : 'var(--text3)', fontSize: '14px', fontWeight: '700', cursor: input.length > 0 ? 'pointer' : 'not-allowed' }}>Submit</button>
+          <button type="button" className="gx-btn gx-primary" onClick={checkInput} disabled={input.length === 0} style={{ width: '100%' }}>Submit</button>
         </div>
       )}
 
@@ -527,7 +515,7 @@ function NumberMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         </div>
       )}
 
-      <button onClick={onBack} style={{ marginTop: '14px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '14px' }}>‹ Back</button>
     </div>
   );
 }
@@ -598,7 +586,7 @@ function VisualMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <div style={{ fontSize: '44px', marginBottom: '10px' }}>👁</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>Memorize the blue squares, then click them</div>
-          <button onClick={() => { startMs.current = Date.now(); startLevel(1, 3); }} style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 20px ${color}55` }}>Start</button>
+          <button type="button" className="gx-btn gx-primary" onClick={() => { startMs.current = Date.now(); startLevel(1, 3); }}>Start</button>
         </div>
       )}
 
@@ -636,7 +624,7 @@ function VisualMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         </div>
       )}
 
-      <button onClick={onBack} style={{ marginTop: '14px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '14px' }}>‹ Back</button>
     </div>
   );
 }
@@ -714,7 +702,7 @@ function VerbalMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
           <div style={{ fontSize: '44px', marginBottom: '10px' }}>📖</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>Click <strong style={{ color }}>SEEN</strong> if shown before, <strong style={{ color: '#60a5fa' }}>NEW</strong> if not</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>3 lives</div>
-          <button onClick={start} style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 20px ${color}55` }}>Start</button>
+          <button type="button" className="gx-btn gx-primary" onClick={start}>Start</button>
         </div>
       ) : (
         <div>
@@ -733,7 +721,7 @@ function VerbalMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => void;
         </div>
       )}
 
-      <button onClick={onBack} style={{ marginTop: '14px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '14px' }}>‹ Back</button>
     </div>
   );
 }
@@ -804,7 +792,7 @@ function SequenceMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => voi
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <div style={{ fontSize: '44px', marginBottom: '10px' }}>🎵</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>Watch the sequence and repeat it</div>
-          <button onClick={() => { startMs.current = Date.now(); setSeq([]); startLevel(1); }} style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 20px ${color}55` }}>Start</button>
+          <button type="button" className="gx-btn gx-primary" onClick={() => { startMs.current = Date.now(); setSeq([]); startLevel(1); }}>Start</button>
         </div>
       ) : state === 'done' ? (
         <div style={{ textAlign: 'center', padding: '20px' }}>
@@ -825,7 +813,7 @@ function SequenceMemoryTest({ onDone, onBack }: { onDone: (r: TestResult) => voi
         </div>
       )}
 
-      <button onClick={onBack} style={{ marginTop: '14px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '14px' }}>‹ Back</button>
     </div>
   );
 }
@@ -906,8 +894,8 @@ function AimTrainerTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
       </div>
       </FitWidth>
 
-      {done && <button onClick={reset} style={{ marginTop: '10px', width: '100%', padding: '10px', borderRadius: '9px', border: '1px solid rgba(248,113,113,0.3)', background: 'rgba(248,113,113,0.15)', color, fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}>↺ Try again</button>}
-      <button onClick={onBack} style={{ marginTop: '10px', display: 'block', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      {done && <button type="button" className="gx-btn gx-ghost" onClick={reset} style={{ marginTop: '10px', width: '100%' }}>↺ Try again</button>}
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '10px' }}>‹ Back</button>
     </div>
   );
 }
@@ -977,7 +965,7 @@ function MentalMathTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <div style={{ fontSize: '44px', marginBottom: '10px' }}>🧮</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>Solve as many equations as possible in 60s</div>
-          <button onClick={start} style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '700', cursor: 'pointer', boxShadow: `0 0 20px ${color}55` }}>Start</button>
+          <button type="button" className="gx-btn gx-primary" onClick={start}>Start</button>
         </div>
       ) : phase === 'playing' ? (
         <div>
@@ -1006,7 +994,7 @@ function MentalMathTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
               placeholder="?"
               style={{ flex: 1, background: 'rgba(255,255,255,0.07)', border: `1px solid ${color}44`, borderRadius: '9px', color: '#fff', fontSize: '24px', fontFamily: 'Poppins', fontWeight: '700', padding: '12px 14px', textAlign: 'center', outline: 'none' }}
             />
-            <button onClick={submit} style={{ padding: '12px 18px', borderRadius: '9px', border: 'none', background: `linear-gradient(135deg,${color},${color}bb)`, color: '#000', fontSize: '14px', fontWeight: '800', cursor: 'pointer' }}>→</button>
+            <button type="button" className="gx-btn gx-primary" onClick={submit}>→</button>
           </div>
         </div>
       ) : (
@@ -1016,7 +1004,7 @@ function MentalMathTest({ onDone, onBack }: { onDone: (r: TestResult) => void; o
         </div>
       )}
 
-      <button onClick={onBack} style={{ marginTop: '14px', background: 'none', border: 'none', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>← Back</button>
+      <button type="button" className="gx-btn gx-ghost gx-sm" onClick={onBack} style={{ marginTop: '14px' }}>‹ Back</button>
     </div>
   );
 }
@@ -1203,20 +1191,19 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
 
   return (
     <div className={cardClassName} style={CARD_BG_STYLE}>
-      <div style={{ marginBottom: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ fontSize: '26px' }}>🧠</div>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ margin: 0, fontFamily: 'Poppins', fontSize: '16px', fontWeight: '800', color: '#fff' }}>Human Benchmark</h2>
-            <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>Measure your cognitive abilities</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+        {!embedded && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '26px' }}>🧠</div>
+            <div style={{ flex: 1 }}>
+              <h2 style={{ margin: 0, fontFamily: 'Poppins', fontSize: '16px', fontWeight: '800', color: '#fff' }}>Human Benchmark</h2>
+              <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '1px' }}>Measure your cognitive abilities</div>
+            </div>
           </div>
-          <button onClick={() => setActive('mybrain')} style={{
-            background: 'linear-gradient(135deg, rgba(167,139,250,0.2), rgba(167,139,250,0.08))',
-            border: '1px solid rgba(167,139,250,0.4)', borderRadius: '9px',
-            color: '#a78bfa', fontSize: '12px', fontWeight: '700', padding: '6px 10px', cursor: 'pointer',
-            whiteSpace: 'nowrap',
-          }}>{t.humanBenchmark.myBrainTitle}</button>
-        </div>
+        )}
+        <button type="button" className="gx-btn gx-ghost gx-sm" style={{ marginInlineStart: 'auto' }} onClick={() => setActive('mybrain')}>
+          {t.humanBenchmark.myBrainTitle}
+        </button>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
@@ -1224,15 +1211,7 @@ export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
           const m = TEST_META[id];
           const best = bests[id];
           return (
-            <button key={id} onClick={() => setActive(id)} style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: `1px solid rgba(255,255,255,0.07)`,
-              borderRadius: '12px', padding: '14px 12px', cursor: 'pointer',
-              textAlign: 'left', transition: 'all 0.18s',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.border = `1px solid ${m.color}66`; (e.currentTarget as HTMLButtonElement).style.background = `${m.color}0d`; (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 0 16px ${m.glow}`; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.border = '1px solid rgba(255,255,255,0.07)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'; }}
-            >
+            <button key={id} type="button" className="gx-tile" onClick={() => setActive(id)} style={{ padding: '14px 12px', textAlign: 'start' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
                 <span style={{ fontSize: '22px' }}>{m.icon}</span>
                 <span style={{ fontFamily: 'Poppins', fontSize: '12px', fontWeight: '700', color: '#fff' }}>{TEST_NAMES[id]}</span>

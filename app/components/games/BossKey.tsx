@@ -85,6 +85,28 @@ function exitFullscreen() {
   } catch {}
 }
 
+/** Header buttons (phones / tablets) open the cover screens through this event. */
+const BOSS_EVENT = 'everyday-boss-key';
+type BossEventDetail = 'lock' | 'office';
+
+/** Lock and quick-escape as small icon pills for the game header; shown below 768 px only,
+ *  where they replace the floating buttons. */
+export function BossKeyPills() {
+  const { t } = useLang();
+  const fire = (kind: BossEventDetail) => window.dispatchEvent(new CustomEvent<BossEventDetail>(BOSS_EVENT, { detail: kind }));
+  return (
+    <span className="bk-pills">
+      <button type="button" className="gx-pill gx-icon bk-pill-lock" aria-label={t.gamesHub.bossLock} title={t.gamesHub.bossLock} onClick={() => fire('lock')}>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+          <rect x="5" y="11" width="14" height="10" rx="2" />
+          <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+        </svg>
+      </button>
+      <button type="button" className="gx-pill gx-icon bk-pill-escape" aria-label={t.gamesHub.bossEscape} title={t.gamesHub.bossEscape} onClick={() => fire('office')}>!</button>
+    </span>
+  );
+}
+
 interface BossKeyProps {
   /** Called when a cover screen opens — pause the game here. */
   onHide?: () => void;
@@ -136,6 +158,16 @@ export default function BossKey({ onHide, onShow }: BossKeyProps) {
   const toggle = useCallback((kind: Exclude<Screen, 'none'>) => {
     if (screenRef.current === kind) close(); else open(kind);
   }, [open, close]);
+
+  // Header pills (BossKeyPills)
+  useEffect(() => {
+    const onPill = (e: Event) => {
+      const kind = (e as CustomEvent<BossEventDetail>).detail;
+      if (kind === 'lock' || kind === 'office') toggle(kind);
+    };
+    window.addEventListener(BOSS_EVENT, onPill);
+    return () => window.removeEventListener(BOSS_EVENT, onPill);
+  }, [toggle]);
 
   // F2 / F4 in the capture phase so games never see them; while covered, keys don't reach the game
   useEffect(() => {
@@ -399,11 +431,14 @@ function BossKeyStyles() {
         box-shadow: 0 0 18px rgba(93,76,255,.35);
       }
       [dir="rtl"] .bk-fab { right: auto; left: max(14px, env(safe-area-inset-left, 0px)); }
-      @media (max-width: 480px) {
-        /* clear the mobile bottom nav */
-        .bk-fab-escape { bottom: calc(env(safe-area-inset-bottom, 0px) + 86px); }
-        .bk-fab-lock { bottom: calc(env(safe-area-inset-bottom, 0px) + 142px); }
+      /* Phones and tablets: no floating buttons, the same two actions sit in the game header */
+      .bk-pills { display: none; }
+      @media (max-width: 767px) {
+        .bk-fab { display: none; }
+        .bk-pills { display: inline-flex; gap: inherit; }
       }
+      .bk-pill-lock { color: #C4BAFF; border-color: rgba(155,140,255,.55); background: rgba(93,76,255,.16); }
+      .bk-pill-escape { color: #FF6B83; border-color: rgba(255,84,112,.6); background: rgba(255,84,112,.14); font-size: 15px; font-weight: 800; }
 
       .bk-picker { font-size: 12px; color: #8E8E9E; }
       .bk-picker-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }

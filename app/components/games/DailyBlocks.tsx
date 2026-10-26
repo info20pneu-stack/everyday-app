@@ -526,9 +526,8 @@ function DailyBlocksGame({ day, onDayChange, engineRef }: {
         {phase === 'menu' && (
           <div className="db-overlay">
             <span className="db-date tabular-nums">{dateLabel}</span>
-            <h2>{t.gamesHub.name_dailyBlocks}</h2>
             <p>{tb.intro}</p>
-            <button type="button" className="db-cta" onClick={play}>{tb.play}</button>
+            <button type="button" className="gx-btn gx-primary db-cta" onClick={play}>{tb.play}</button>
             <div className="db-keys">{tb.gestures}<br />{tb.keys}</div>
           </div>
         )}
@@ -537,7 +536,7 @@ function DailyBlocksGame({ day, onDayChange, engineRef }: {
           <div className="db-overlay">
             <h2>{tb.paused}</h2>
             <p>{tb.score}: {stats.score.toLocaleString(lang)}</p>
-            <button type="button" className="db-cta" onClick={() => engineRef.current?.togglePause()}>{tb.resume}</button>
+            <button type="button" className="gx-btn gx-primary db-cta" onClick={() => engineRef.current?.togglePause()}>{tb.resume}</button>
           </div>
         )}
 
@@ -550,9 +549,9 @@ function DailyBlocksGame({ day, onDayChange, engineRef }: {
               <br />
               {tb.todayBest.replace('{n}', Math.max(bestScore, result.score).toLocaleString(lang))}
             </p>
-            <button type="button" className="db-cta" onClick={share}>{tb.share}</button>
+            <button type="button" className="gx-btn gx-primary db-cta" onClick={share}>{tb.share}</button>
             <div className="db-toast" aria-live="polite">{shareNote}</div>
-            <button type="button" className="db-cta db-ghost" onClick={play}>{tb.again}</button>
+            <button type="button" className="gx-btn gx-ghost db-cta" onClick={play}>{tb.again}</button>
           </div>
         )}
       </div>
@@ -592,7 +591,7 @@ function RepeatButton({ action, label, engineRef, accent, children }: {
   return (
     <button
       type="button"
-      className={`${accent ? 'db-accent' : ''}${on ? ' db-on' : ''}`}
+      className={`gx-tile${accent || on ? ' is-on' : ''}`}
       aria-label={label}
       onPointerDown={e => {
         e.preventDefault();
@@ -633,7 +632,8 @@ function DailyBlocksStyles() {
       }
       .db-top { display: grid; grid-template-columns: 64px minmax(0,1fr) 64px; gap: 8px; }
       .db-box {
-        background: var(--db-card); border: 1px solid var(--db-line); border-radius: 14px;
+        background: linear-gradient(160deg, #1C2258, #121640); border: 1px solid rgba(255,255,255,.07); border-radius: 14px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         padding: 6px 4px; gap: 2px; min-width: 0; color: inherit; font: inherit;
       }
@@ -678,27 +678,17 @@ function DailyBlocksStyles() {
         font-size: 48px; font-weight: 800; line-height: 1; color: var(--db-accent2);
         text-shadow: 0 0 24px rgba(93,76,255,.6);
       }
-      .db-cta {
-        font: inherit; font-weight: 800; font-size: 16px; border: 0; border-radius: 999px; cursor: pointer;
-        padding: 13px 28px; min-width: 180px; background: var(--db-accent); color: var(--db-ink);
-      }
-      .db-cta.db-ghost { background: transparent; border: 2px solid var(--db-line); }
+      .db-cta { min-width: 180px; }
       .db-keys { font-size: 11px; color: var(--db-dim); max-width: 34ch; }
       .db-toast { font-size: 12px; color: var(--db-good); min-height: 16px; max-width: 32ch; word-break: break-word; user-select: text; -webkit-user-select: text; }
       .db-controls { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
-      .db-controls button {
-        font: inherit; font-size: 22px; font-weight: 800; height: 56px; border-radius: 14px; cursor: pointer;
-        border: 1px solid var(--db-line); background: var(--db-card); color: var(--db-ink); touch-action: none;
-      }
-      .db-controls button.db-accent, .db-controls button.db-on { background: var(--db-accent); border-color: var(--db-accent); }
+      .db-controls button { font-size: 22px; font-weight: 800; height: 56px; touch-action: none; }
       .db-app button:focus-visible { outline: 3px solid var(--db-ink); outline-offset: 2px; }
       @media (max-width: 768px) {
         .db-app { height: clamp(460px, calc(100dvh - 150px), 760px); }
       }
       @media (max-width: 480px) {
-        /* keep the right button clear of the floating boss-key buttons */
-        .db-controls { padding-right: 36px; gap: 6px; }
-        [dir="rtl"] .db-controls { padding-right: 0; padding-left: 36px; }
+        .db-controls { gap: 6px; }
       }
       @media (min-width: 900px) and (pointer: fine) {
         .db-controls button { height: 48px; font-size: 18px; }

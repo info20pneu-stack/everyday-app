@@ -334,16 +334,14 @@ function SkyTowerGame({ controlsRef }: { controlsRef: React.RefObject<GameContro
 
       <div className="st-hud" aria-live="polite">
         <div className="st-score tabular-nums">{phase === 'menu' ? '' : score}</div>
-        <div className="st-best">{t.games.record}<b className="tabular-nums">{bestScore.toLocaleString(lang)}</b></div>
       </div>
 
       {combo && <div key={combo.key} className="st-combo">{combo.text}</div>}
 
       {phase === 'menu' && (
         <div className="st-overlay">
-          <h2>{t.gamesHub.name_skyTower}</h2>
           <p>{t.skyTower.intro}</p>
-          <button type="button" className="st-btn" onClick={() => engine.current?.start()}>{t.skyTower.play}</button>
+          <button type="button" className="gx-btn gx-primary st-btn" onClick={() => engine.current?.start()}>{t.skyTower.play}</button>
           <p className="st-tip">{t.skyTower.tip}</p>
         </div>
       )}
@@ -351,7 +349,7 @@ function SkyTowerGame({ controlsRef }: { controlsRef: React.RefObject<GameContro
       {phase === 'pause' && (
         <div className="st-overlay">
           <h2>{t.skyTower.paused}</h2>
-          <button type="button" className="st-btn" onClick={() => engine.current?.resume()}>{t.skyTower.resume}</button>
+          <button type="button" className="gx-btn gx-primary st-btn" onClick={() => engine.current?.resume()}>{t.skyTower.resume}</button>
         </div>
       )}
 
@@ -360,7 +358,7 @@ function SkyTowerGame({ controlsRef }: { controlsRef: React.RefObject<GameContro
           <p>{t.skyTower.fellAt}</p>
           <div className="st-big tabular-nums">{result.score.toLocaleString(lang)}</div>
           <p>{result.message}</p>
-          <button type="button" className="st-btn" onClick={() => engine.current?.start()}>{t.skyTower.again}</button>
+          <button type="button" className="gx-btn gx-primary st-btn" onClick={() => engine.current?.start()}>{t.skyTower.again}</button>
         </div>
       )}
 
@@ -395,11 +393,6 @@ function SkyTowerStyles() {
         font: 800 clamp(40px, 11vw, 64px)/1 'Poppins', sans-serif;
         text-shadow: 0 4px 0 rgba(0,0,0,.25);
       }
-      .st-best {
-        text-align: right; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
-        color: rgba(255,247,236,.62);
-      }
-      .st-best b { display: block; font: 800 22px 'Poppins', sans-serif; letter-spacing: 0; color: #ffd166; }
       .st-combo {
         position: absolute; left: 50%; top: 30%; transform: translate(-50%, -50%);
         font: 800 clamp(20px, 5.5vw, 30px) 'Poppins', sans-serif; color: #ffd166; white-space: nowrap;
@@ -424,14 +417,7 @@ function SkyTowerStyles() {
       .st-overlay p { margin: 0; max-width: 32ch; font-size: 16px; font-weight: 600; color: rgba(255,247,236,.85); text-shadow: 0 2px 8px rgba(0,0,0,.6); }
       .st-overlay .st-tip { font-size: 13px; opacity: .85; }
       .st-big { font: 800 64px/1 'Poppins', sans-serif; color: #ffd166; }
-      .st-btn {
-        margin-top: 8px; min-height: 48px; padding: 0 34px; border: 0; border-radius: 999px; cursor: pointer;
-        font: 800 18px 'Poppins', sans-serif; color: #fff;
-        background: linear-gradient(135deg, #5D4CFF, #7A3FFF);
-        box-shadow: 0 6px 0 #3a2bb8, 0 0 24px rgba(93,76,255,.45);
-      }
-      .st-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #3a2bb8; }
-      .st-btn:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+      .st-btn { margin-top: 8px; min-width: 160px; font-size: 18px; }
       @media (prefers-reduced-motion: reduce) { .st-combo { animation: none; opacity: 1; } }
     `}</style>
   );

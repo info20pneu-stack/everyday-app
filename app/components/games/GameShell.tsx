@@ -3,15 +3,15 @@
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode,
 } from 'react';
-import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import { useLang } from '../../../lib/LanguageContext';
-import { recordGameCompleted } from '../../../lib/streak';
+import { getDisplayState, recordGameCompleted, STREAK_UPDATED_EVENT } from '../../../lib/streak';
 import {
   formatLeaderboardValue, gameText, getCatalogGame, getLeaderboardConfig, toSortValue,
 } from '../../../lib/gamesCatalog';
 import { LeaderboardPanel, type LBEntry } from '../Leaderboard';
-import BossKey, { BossKeyModePicker } from './BossKey';
+import BossKey, { BossKeyModePicker, BossKeyPills } from './BossKey';
+import { GameBanner, GameFrame, GameTopBar } from './GameFrame';
 import ScoreSubmitModal from './ScoreSubmitModal';
 
 /* ─────────────────────────── game-over API ───────────────────────────
@@ -82,6 +82,20 @@ function parseBest(raw: string | null): StoredBest | null {
   } catch { return null; }
 }
 
+function subscribeStreak(onChange: () => void) {
+  window.addEventListener(STREAK_UPDATED_EVENT, onChange);
+  window.addEventListener('storage', onChange);
+  return () => {
+    window.removeEventListener(STREAK_UPDATED_EVENT, onChange);
+    window.removeEventListener('storage', onChange);
+  };
+}
+
+/** Current day streak (all games together); null on the server. */
+function useDayStreak(): number | null {
+  return useSyncExternalStore(subscribeStreak, () => getDisplayState().currentStreak, () => null);
+}
+
 interface GameShellProps {
   /** Catalog id from lib/gamesCatalog.ts (e.g. 'sky-tower'). */
   gameId: string;
@@ -89,8 +103,15 @@ interface GameShellProps {
   leaderboardId?: string;
   /** Personal best shown in the header. When omitted, GameShell keeps its own record from onGameOver. */
   best?: StoredBest | null;
-  /** Extra controls on the right side of the header (difficulty, region…). */
+  /** Extra pills on the right side of the header. */
   headerExtra?: ReactNode;
+  /** Banner title / description / icon / colour when they differ from the catalog. */
+  title?: ReactNode;
+  desc?: ReactNode;
+  icon?: ReactNode;
+  color?: string;
+  /** Show the boss key: floating buttons on PC, header pills below 768 px, plus "Quick escape". */
+  bossKey?: boolean;
   /** Pause the game — called when the boss key covers the screen. */
   onHide?: () => void;
   /** Called when the player returns from the boss key screen. */
@@ -100,8 +121,11 @@ interface GameShellProps {
 
 const ACCENT = '#8475FF';
 
-/** Common frame for every new game: header, back link, record, leaderboard and boss key. */
-export default function GameShell({ gameId, leaderboardId, best, headerExtra, onHide, onShow, children }: GameShellProps) {
+/** Common frame for every game: back link, record / streak / leaderboard pills, banner, boss key
+ *  and the shared "save to leaderboard" flow. The look itself lives in GameFrame. */
+export default function GameShell({
+  gameId, leaderboardId, best, headerExtra, title, desc, icon, color, bossKey = true, onHide, onShow, children,
+}: GameShellProps) {
   const { t, lang, rtl } = useLang();
   const game = getCatalogGame(gameId);
   const lbId = leaderboardId ?? game?.leaderboard;
@@ -113,6 +137,7 @@ export default function GameShell({ gameId, leaderboardId, best, headerExtra, on
   const storedRaw = useSyncExternalStore(subscribeBest, () => readBestRaw(lbId), () => null);
   const storedBest = useMemo(() => parseBest(storedRaw), [storedRaw]);
   const shownBest = best !== undefined ? best : storedBest;
+  const streak = useDayStreak();
 
   const roundStart = useRef(0);
   const startRound = useCallback(() => { roundStart.current = performance.now(); }, []);
@@ -154,42 +179,48 @@ export default function GameShell({ gameId, leaderboardId, best, headerExtra, on
   const bestText = shownBest && lbConfig ? formatLeaderboardValue(lbConfig, shownBest, lang) : null;
 
   return (
-    <div className="gs-card">
-      <header className="gs-head">
-        <Link href="/games" className="gs-back">
-          <span aria-hidden="true" className="gs-back-arrow">‹</span> {t.gamesHub.backToGames}
-        </Link>
-        <div className="gs-title">
-          {game && <span className="gs-icon" aria-hidden="true">{game.icon}</span>}
-          <h1>{name}</h1>
-        </div>
-        <div className="gs-actions">
-          {headerExtra}
-          {lbConfig && (
-            <span className="gs-best" title={t.games.record}>
+    <GameFrame color={color ?? game?.color}>
+      <GameTopBar>
+        {headerExtra}
+        {lbConfig
+          ? (
+            <span className="gx-pill" title={t.games.record}>
               <span aria-hidden="true">🏅</span>
-              <span className="gs-best-label">{t.games.record}</span>
-              <b className="tabular-nums">{bestText ?? '—'}</b>
+              <span className="gs-pill-label">{t.games.record}</span>
+              <b>{bestText ?? '—'}</b>
+            </span>
+          )
+          : (
+            <span className="gx-pill" title={t.wordle.streak}>
+              <span aria-hidden="true">🔥</span>
+              <span className="gs-pill-label">{t.wordle.streak}</span>
+              <b>{streak ?? '—'}</b>
             </span>
           )}
-          {lbId && lbConfig && (
-            <button type="button" className="gs-lb-btn" onClick={() => setLbOpen(true)}>
-              <span aria-hidden="true">🏆</span> {t.games.leaderboard}
-            </button>
-          )}
-        </div>
-      </header>
+        {lbId && lbConfig && (
+          <button type="button" className="gx-pill gx-gold" onClick={() => setLbOpen(true)}>
+            <span aria-hidden="true">🏆</span> {t.games.leaderboard}
+          </button>
+        )}
+        {bossKey && <BossKeyPills />}
+      </GameTopBar>
+
+      <GameBanner
+        title={title ?? name}
+        desc={desc ?? (game ? gameText(t, game.descKey) : undefined)}
+        icon={icon ?? game?.icon}
+      />
 
       <GameShellContext.Provider value={api}>
         <div className="gs-body">{children}</div>
       </GameShellContext.Provider>
 
-      <details className="gs-boss">
+      {bossKey && <details className="gs-boss">
         <summary><span aria-hidden="true" className="gs-boss-mark">!</span> {t.gamesHub.bossEscape}</summary>
         <BossKeyModePicker />
-      </details>
+      </details>}
 
-      <BossKey onHide={onHide} onShow={onShow} />
+      {bossKey && <BossKey onHide={onHide} onShow={onShow} />}
 
       {submit && lbId && (
         <ScoreSubmitModal
@@ -220,61 +251,15 @@ export default function GameShell({ gameId, leaderboardId, best, headerExtra, on
       )}
 
       <GameShellStyles />
-    </div>
+    </GameFrame>
   );
 }
 
 function GameShellStyles() {
   return (
     <style>{`
-      .gs-card {
-        background: rgba(15,20,40,0.92);
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: var(--card-radius);
-        box-shadow: var(--card-shadow);
-        padding: 1rem;
-        color: #fff;
-      }
-      .gs-head {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-      }
-      .gs-back {
-        display: inline-flex; align-items: center; gap: 4px; min-height: 36px;
-        padding: 0 12px; border-radius: 10px; text-decoration: none;
-        background: rgba(93,76,255,0.14); border: 1px solid rgba(93,76,255,0.35);
-        color: #C4BAFF; font: 600 12px 'Inter', 'Poppins', sans-serif; white-space: nowrap;
-      }
-      .gs-back-arrow { font-size: 16px; line-height: 1; }
-      [dir="rtl"] .gs-back-arrow { transform: scaleX(-1); }
-      .gs-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
-      .gs-title h1 {
-        margin: 0; font: 800 16px 'Poppins', sans-serif; color: #fff;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      }
-      .gs-icon {
-        width: 32px; height: 32px; flex-shrink: 0; border-radius: 9px; display: grid; place-items: center; font-size: 17px;
-        background: linear-gradient(135deg, rgba(93,76,255,0.35), rgba(93,76,255,0.12));
-        border: 1px solid rgba(93,76,255,0.4);
-      }
-      .gs-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-      .gs-best {
-        display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 10px;
-        border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-        font-size: 12px; color: #AAAAB8; white-space: nowrap;
-      }
-      .gs-best b { color: #FFB300; font-family: 'Poppins', sans-serif; }
-      .gs-lb-btn {
-        display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 0 12px;
-        border-radius: 10px; cursor: pointer; white-space: nowrap;
-        background: rgba(255,179,0,0.12); border: 1px solid rgba(255,179,0,0.3); color: #FFB300;
-        font: 600 12px 'Inter', 'Poppins', sans-serif;
-      }
       .gs-body { min-height: 120px; }
-      .gs-boss { margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+      .gs-boss { margin-top: 4px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.06); }
       .gs-boss summary {
         cursor: pointer; font-size: 12px; font-weight: 600; color: #8E8E9E;
         list-style: none; display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
@@ -304,10 +289,8 @@ function GameShellStyles() {
         background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #AAAAB8; font-size: 14px;
       }
 
-      @media (max-width: 560px) {
-        .gs-head { grid-template-columns: auto 1fr; }
-        .gs-actions { grid-column: 1 / -1; justify-content: flex-start; }
-        .gs-best-label { display: none; }
+      @media (max-width: 400px) {
+        .gs-pill-label { display: none; }
       }
     `}</style>
   );

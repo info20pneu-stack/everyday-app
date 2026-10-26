@@ -196,23 +196,12 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
         <>
           <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
             {DURATIONS.map(d => (
-              <button key={d} onClick={() => { setDuration(d); setTimeLeft(d); }} style={{
-                flex: 1, padding: '7px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-                fontSize: '12px', fontWeight: '700',
-                background: d === duration ? 'linear-gradient(135deg,var(--purple),#7A3FFF)' : 'rgba(255,255,255,0.06)',
-                color: d === duration ? '#fff' : 'var(--text3)',
-              }}>{durationLabel(t, d)}</button>
+              <button type="button" className={`gx-tile dg-chip${d === duration ? ' is-on' : ''}`} key={d} onClick={() => { setDuration(d); setTimeLeft(d); }} style={{ flex: 1 }}>{durationLabel(t, d)}</button>
             ))}
           </div>
           <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', marginBottom: '12px' }}>
             {LANG_OPTIONS.map(lo => (
-              <button key={lo.code} onClick={() => setLang(lo.code)} style={{
-                padding: '3px 7px', borderRadius: '6px', border: 'none', cursor: 'pointer',
-                fontSize: '12px', fontWeight: lo.code === lang ? '700' : '400',
-                background: lo.code === lang ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.04)',
-                color: lo.code === lang ? 'var(--purple3)' : 'var(--text3)',
-                outline: lo.code === lang ? '1px solid rgba(93,76,255,0.5)' : 'none',
-              }}><FlagText text={lo.label} size={16} /></button>
+              <button type="button" className={`gx-tile dg-chip${lo.code === lang ? ' is-on' : ''}`} key={lo.code} onClick={() => setLang(lo.code)}><FlagText text={lo.label} size={16} /></button>
             ))}
           </div>
         </>
@@ -306,11 +295,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
             </div>
           )}
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '10px' }}>{t.typingTest.clickToStart}</div>
-          <button onClick={startGame} style={{
-            background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px',
-            color: '#fff', fontSize: '14px', fontWeight: '700', padding: '10px 28px', cursor: 'pointer',
-            boxShadow: '0 0 20px rgba(93,76,255,0.4)',
-          }}>{t.typingTest.startButton.replace('{duration}', String(duration))}</button>
+          <button type="button" className="gx-btn gx-primary" onClick={startGame}>{t.typingTest.startButton.replace('{duration}', String(duration))}</button>
         </div>
       )}
 
@@ -348,11 +333,7 @@ export function TypingSpeedTest({ onComplete, challengeSeed, challenge }: {
           <WpmGraph history={wpmHistory} t={t} />
 
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
-            <button onClick={reset} style={{
-              background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none',
-              borderRadius: '10px', color: '#fff', fontSize: '13px', fontWeight: '600',
-              padding: '9px 22px', cursor: 'pointer',
-            }}>{t.typingTest.playAgain}</button>
+            <button type="button" className="gx-btn gx-primary" onClick={reset}>{t.typingTest.playAgain}</button>
           </div>
 
           {challenge && (() => {

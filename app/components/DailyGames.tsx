@@ -5,9 +5,12 @@ import { useSearchParams } from 'next/navigation';
 import FitWidth from './FitWidth';
 import { useLang } from '../../lib/LanguageContext';
 import HumanBenchmark from './HumanBenchmark';
+import { GameBanner, GameFrame, GameTopBar } from './games/GameFrame';
 import { TypingSpeedTest } from './TypingSpeedTest';
 import WordleGames from './WordleGames';
 import { recordGameCompleted } from '../../lib/streak';
+import { gameText, getCatalogGame } from '../../lib/gamesCatalog';
+import { useIsClient } from '../../lib/games/useIsClient';
 import type { Translations } from '../../lib/i18n';
 import { getCountryName } from '../../lib/games/countries';
 import Flag from './Flag';
@@ -267,14 +270,6 @@ function lsSet(key: string, val: unknown) {
 
 /* ═══════════════════════ SHARED UI ═══════════════════════ */
 
-const CARD_BG: React.CSSProperties = {
-  background: 'rgba(15,20,40,0.92)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 'var(--card-radius)',
-  padding: '1.25rem',
-  boxShadow: 'var(--card-shadow)',
-};
-
 function StatChip({ label, value }: { label: string; value: string | number }) {
   return (
     <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '5px 12px', textAlign: 'center' }}>
@@ -523,25 +518,14 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
       {/* Game selector */}
       <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
         {(['sliding','memory','flagquiz','wordchain','mathrush','reflex','reaction','felixjump','typing'] as GameId[]).map(g => (
-          <button key={g} onClick={() => setGame(g)} style={{
-            padding: '5px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '12px', fontWeight: '600', whiteSpace: 'nowrap',
-            background: g === game ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
-            color: g === game ? '#fff' : 'var(--text3)',
-          }}>{glGameLabel[g]}</button>
+          <button type="button" className={`gx-tile dg-chip${g === game ? ' is-on' : ''}`} key={g} onClick={() => setGame(g)}>{glGameLabel[g]}</button>
         ))}
       </div>
 
       {/* Season selector */}
       <div style={{ display: 'flex', gap: '5px', marginBottom: '8px' }}>
         {seasonOpts.map(p => (
-          <button key={p.v} onClick={() => setSeason(p.v)} style={{
-            flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '12px', fontWeight: '600',
-            background: p.v === season ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
-            color: p.v === season ? 'var(--purple3)' : 'var(--text3)',
-            outline: p.v === season ? '1px solid rgba(93,76,255,0.4)' : 'none',
-          }}>{p.label}</button>
+          <button type="button" className={`gx-tile dg-chip${p.v === season ? ' is-on' : ''}`} key={p.v} onClick={() => setSeason(p.v)} style={{ flex: 1 }}>{p.label}</button>
         ))}
       </div>
 
@@ -553,13 +537,7 @@ function GlobalLeaderboard({ initialGame }: { initialGame: GameId }) {
             { v: 'desktop' as const, label: '🖥️ Desktop' },
             { v: 'mobile'  as const, label: '📱 Mobile' },
           ]).map(({ v, label }) => (
-            <button key={v} onClick={() => setDeviceFilter(v)} style={{
-              flex: 1, padding: '5px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-              fontSize: '12px', fontWeight: '600',
-              background: v === deviceFilter ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.05)',
-              color: v === deviceFilter ? 'var(--purple3)' : 'var(--text3)',
-              outline: v === deviceFilter ? '1px solid rgba(93,76,255,0.4)' : 'none',
-            }}>{label}</button>
+            <button type="button" className={`gx-tile dg-chip${v === deviceFilter ? ' is-on' : ''}`} key={v} onClick={() => setDeviceFilter(v)} style={{ flex: 1 }}>{label}</button>
           ))}
         </div>
       )}
@@ -777,11 +755,7 @@ function MemoryGame({ onComplete, challengeSeed, challenge }: {
     <div>
       <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
         {(Object.keys(DIFFS) as DiffKey[]).map(d => (
-          <button key={d} onClick={() => setDiff(d)} style={{
-            flex: 1, padding: '6px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '600',
-            background: d === diff ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
-            color: d === diff ? '#fff' : 'var(--text3)',
-          }}>{d}</button>
+          <button type="button" className={`gx-tile dg-chip${d === diff ? ' is-on' : ''}`} key={d} onClick={() => setDiff(d)} style={{ flex: 1 }}>{d}</button>
         ))}
       </div>
 
@@ -843,7 +817,7 @@ function MemoryGame({ onComplete, challengeSeed, challenge }: {
           <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
           <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff' }}>{t.games.completed}</div>
           <div style={{ fontSize: '13px', color: 'var(--text2)', marginTop: '4px' }}>{moves} {t.games.moves} · {fmtTimePrecise4(finalMs)}</div>
-          <button onClick={() => initGame(diff)} style={{ marginTop: '12px', background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
+          <button type="button" className="gx-btn gx-primary" onClick={() => initGame(diff)} style={{ marginTop: '12px' }}>
             {t.games.playAgain}
           </button>
 
@@ -1081,7 +1055,7 @@ function WordChain({ onComplete }: { onComplete: (timeMs: number, score: number)
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '14px' }}>
             {t.games.correctOrder} {sequence.join(' → ')}
           </div>
-          <button onClick={restart} style={{ background: 'linear-gradient(135deg, var(--purple), #7A3FFF)', border: 'none', borderRadius: '9px', color: '#fff', fontSize: '13px', padding: '9px 24px', cursor: 'pointer', fontWeight: '600' }}>
+          <button type="button" className="gx-btn gx-primary" onClick={restart}>
             {t.games.playAgain}
           </button>
         </div>
@@ -1280,25 +1254,14 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
           { v: 'A' as FQVariant, label: t.games.flagToName },
           { v: 'B' as FQVariant, label: t.games.nameToFlag },
         ]).map(({ v, label }) => (
-          <button key={v} onClick={() => handleVariant(v)} style={{
-            flex: 1, padding: '7px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '12px', fontWeight: '600',
-            background: v === variant ? 'rgba(93,76,255,0.25)' : 'rgba(255,255,255,0.04)',
-            color: v === variant ? 'var(--purple3)' : 'var(--text3)',
-            outline: v === variant ? '1px solid rgba(93,76,255,0.5)' : '1px solid rgba(255,255,255,0.06)',
-          }}>{label}</button>
+          <button type="button" className={`gx-tile dg-chip${v === variant ? ' is-on' : ''}`} key={v} onClick={() => handleVariant(v)} style={{ flex: 1 }}>{label}</button>
         ))}
       </div>
 
       {/* ── Difficulty selector ── */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '14px' }}>
         {fqDiffs.map(d => (
-          <button key={d.key} onClick={() => handleDiff(d.key)} style={{
-            flex: 1, padding: '6px 4px', borderRadius: '8px', border: 'none', cursor: 'pointer',
-            fontSize: '12px', fontWeight: '600',
-            background: d.key === diff ? 'linear-gradient(135deg, var(--purple), #7A3FFF)' : 'rgba(255,255,255,0.06)',
-            color: d.key === diff ? '#fff' : 'var(--text3)',
-          }}>{d.label}</button>
+          <button type="button" className={`gx-tile dg-chip${d.key === diff ? ' is-on' : ''}`} key={d.key} onClick={() => handleDiff(d.key)} style={{ flex: 1 }}>{d.label}</button>
         ))}
       </div>
 
@@ -1455,20 +1418,10 @@ function FlagQuiz({ onComplete, challengeSeed, challenge }: {
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '18px', flexWrap: 'wrap' }}>
-            <button onClick={() => init()} style={{
-              background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-              border: 'none', borderRadius: '10px', color: '#fff',
-              fontSize: '13px', fontWeight: '600', padding: '10px 22px', cursor: 'pointer',
-            }}>
+            <button type="button" className="gx-btn gx-primary" onClick={() => init()}>
               ↺ {t.games.playAgain}
             </button>
-            <button onClick={handleShare} style={{
-              background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.07)',
-              border: copied ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.12)',
-              borderRadius: '10px', color: copied ? 'var(--green2)' : 'var(--text2)',
-              fontSize: '13px', fontWeight: '600', padding: '10px 22px', cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}>
+            <button type="button" className="gx-btn gx-ghost" onClick={handleShare}>
               {copied ? t.games.copied : t.games.shareResult}
             </button>
           </div>
@@ -1711,11 +1664,7 @@ function SlidingPuzzle({ onComplete, challengeSeed, challenge }: {
             </div>
           )}
 
-          <button onClick={reset} style={{
-            background: 'linear-gradient(135deg, var(--purple), #7A3FFF)',
-            border: 'none', borderRadius: '9px', color: '#fff',
-            fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer',
-          }}>
+          <button type="button" className="gx-btn gx-primary" onClick={reset}>
             ↺ {t.games.playAgain}
           </button>
 
@@ -1864,18 +1813,10 @@ function MathRush({ onComplete, challengeSeed, challenge }: {
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '20px' }}>60s · {t.games.score}: max</div>
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
             {diffs.map(d => (
-              <button key={d} onClick={() => setDiff(d)} style={{
-                padding: '8px 16px', borderRadius: '9px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: '700',
-                background: d === diff ? 'linear-gradient(135deg,var(--purple),#7A3FFF)' : 'rgba(255,255,255,0.07)',
-                color: d === diff ? '#fff' : 'var(--text3)',
-              }}>{diffLabels[d]}</button>
+              <button type="button" className={`gx-tile dg-chip${d === diff ? ' is-on' : ''}`} key={d} onClick={() => setDiff(d)}>{diffLabels[d]}</button>
             ))}
           </div>
-          <button onClick={() => startGame(diff)} style={{
-            background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '12px',
-            color: '#fff', fontSize: '16px', fontWeight: '700', padding: '14px 36px', cursor: 'pointer',
-            boxShadow: '0 0 28px rgba(93,76,255,0.5)',
-          }}>▶ Start</button>
+          <button type="button" className="gx-btn gx-primary" onClick={() => startGame(diff)}>▶ Start</button>
         </div>
       )}
 
@@ -1928,7 +1869,7 @@ function MathRush({ onComplete, challengeSeed, challenge }: {
           <div style={{ fontFamily: 'Poppins', fontSize: '72px', fontWeight: '900', background: 'linear-gradient(135deg,var(--purple3),#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>{finalScore}</div>
           <div style={{ fontSize: '14px', color: 'var(--text2)', marginBottom: '6px' }}>{t.games.correct} · 60s</div>
           <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '16px' }}>Leaderboard modal loading…</div>
-          <button onClick={() => setPhase('idle')} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600', padding: '9px 22px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+          <button type="button" className="gx-btn gx-ghost" onClick={() => setPhase('idle')}>↺ {t.games.playAgain}</button>
 
           <ChallengeVs challenge={challenge} myValue={finalScore} lowerBetter={false} formatValue={v => `${v} ✓`} t={t} />
         </div>
@@ -2041,7 +1982,7 @@ function ReflexTimer({ onComplete }: { onComplete: (timeMs: number) => void }) {
         </button>
       )}
       {phase === 'stopped' && results.length < RT_ROUNDS && (
-        <button onClick={advance} style={{ background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.4)', borderRadius: '12px', color: 'var(--purple3)', fontSize: '14px', fontWeight: '700', padding: '12px 28px', cursor: 'pointer' }}>
+        <button type="button" className="gx-btn gx-ghost" onClick={advance}>
           Next →
         </button>
       )}
@@ -2051,7 +1992,7 @@ function ReflexTimer({ onComplete }: { onComplete: (timeMs: number) => void }) {
           <div style={{ fontFamily: 'Poppins', fontSize: '48px', fontWeight: '900', color: 'var(--green2)', marginBottom: '16px' }}>
             ±{(results.reduce((a, b) => a + b, 0) / results.length).toFixed(0)}ms
           </div>
-          <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+          <button type="button" className="gx-btn gx-primary" onClick={reset}>↺ {t.games.playAgain}</button>
         </div>
       )}
     </div>
@@ -2184,13 +2125,13 @@ function ReactionClick({ onComplete, challengeSeed, challenge }: {
       </div>
 
       <div style={{ marginTop: '14px', textAlign: 'center' }}>
-        {phase === 'idle' && <button onClick={() => { setRound(1); setResults([]); startWait(); }} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>▶ Start</button>}
-        {phase === 'result' && results.length < RC_ROUNDS && <button onClick={advance} style={{ background: 'rgba(93,76,255,0.15)', border: '1px solid rgba(93,76,255,0.4)', borderRadius: '10px', color: 'var(--purple3)', fontSize: '14px', fontWeight: '700', padding: '10px 24px', cursor: 'pointer' }}>Next →</button>}
+        {phase === 'idle' && <button type="button" className="gx-btn gx-primary" onClick={() => { setRound(1); setResults([]); startWait(); }}>▶ Start</button>}
+        {phase === 'result' && results.length < RC_ROUNDS && <button type="button" className="gx-btn gx-ghost" onClick={advance}>Next →</button>}
         {phase === 'done' && (
           <div>
             <div style={{ fontFamily: 'Poppins', fontSize: '13px', color: 'var(--text2)', marginBottom: '4px' }}>{t.games.avgReact}</div>
             <div style={{ fontFamily: 'Poppins', fontSize: '42px', fontWeight: '900', color: 'var(--green2)', marginBottom: '14px' }}>{avgMs}ms</div>
-            <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '11px 28px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+            <button type="button" className="gx-btn gx-primary" onClick={reset}>↺ {t.games.playAgain}</button>
 
             <ChallengeVs challenge={challenge} myValue={avgMs ?? 0} lowerBetter formatValue={v => `${v}ms`} t={t} />
           </div>
@@ -2360,7 +2301,7 @@ function FelixJump({ onComplete }: { onComplete: (timeMs: number, score: number)
 
       {phase === 'dead' && (
         <div style={{ textAlign: 'center', marginTop: '12px' }}>
-          <button onClick={reset} style={{ background: 'linear-gradient(135deg,var(--purple),#7A3FFF)', border: 'none', borderRadius: '10px', color: '#fff', fontSize: '14px', fontWeight: '700', padding: '10px 26px', cursor: 'pointer' }}>↺ {t.games.playAgain}</button>
+          <button type="button" className="gx-btn gx-primary" onClick={reset}>↺ {t.games.playAgain}</button>
         </div>
       )}
     </div>
@@ -2452,6 +2393,21 @@ function DGStyles() {
           70%  { transform: scale(1.15); }
           100% { transform: scale(1);   opacity: 1; }
         }
+        .dg-chip {
+          min-height: 36px; padding: 0 12px; border-radius: 10px; white-space: nowrap;
+          font: 700 12px 'Poppins', system-ui, sans-serif;
+        }
+        .dg-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 10px 8px 14px; margin: -10px -8px -6px; scrollbar-width: none; }
+        .dg-tabs::-webkit-scrollbar { display: none; }
+        .dg-tab {
+          flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px;
+          border-radius: 12px; white-space: nowrap; font: 700 12px 'Poppins', system-ui, sans-serif; letter-spacing: .02em;
+        }
+        .dg-cat-chip {
+          display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 3px 10px; border-radius: 999px;
+          font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap;
+          background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+        }
         @keyframes dgCatIn {
           from { opacity: 0; transform: translateY(16px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -2460,7 +2416,16 @@ function DGStyles() {
   );
 }
 
+/* Rendered only in the browser: the game list depends on the stored UI language and on the URL
+   (useSearchParams), and the production page already renders this as a client-only Suspense
+   fallback. Rendering it on the server in dev produced English HTML that the Czech client then
+   failed to hydrate. */
 export default function DailyGames() {
+  const isClient = useIsClient();
+  return isClient ? <DailyGamesView /> : null;
+}
+
+function DailyGamesView() {
   const { t } = useLang();
 
   const CATEGORIES: CategoryDef[] = [
@@ -2554,12 +2519,9 @@ export default function DailyGames() {
   /* ── CATEGORY SELECTION ── */
   if (!category) {
     return (
-      <div className="card" style={CARD_BG}>
-        <div style={{ marginBottom: '22px' }}>
-          <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', margin: 0 }}>🎮 {t.games.title}</h2>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '4px' }}>Choose a category to start playing</div>
-        </div>
-
+      <GameFrame color="#8B5CF6">
+        <GameTopBar />
+        <GameBanner title={t.games.title} desc="Choose a category to start playing" icon="🎮" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {CATEGORIES.map((cat, idx) => (
             <button
@@ -2572,13 +2534,13 @@ export default function DailyGames() {
                 padding: '0', borderRadius: '18px', border: 'none', cursor: 'pointer',
                 background: catHover === cat.id
                   ? `linear-gradient(145deg,${cat.color}22 0%,${cat.color}0c 60%,rgba(255,255,255,0.02) 100%)`
-                  : 'rgba(255,255,255,0.035)',
+                  : 'linear-gradient(160deg, #1C2258, #121640)',
                 outline: catHover === cat.id
                   ? `1.5px solid ${cat.color}80`
                   : '1px solid rgba(255,255,255,0.08)',
                 boxShadow: catHover === cat.id
                   ? `0 10px 36px ${cat.glow}, inset 0 1px 0 ${cat.color}30`
-                  : '0 2px 10px rgba(0,0,0,0.25)',
+                  : 'inset 0 1px 0 rgba(255,255,255,0.12), 0 3px 0 rgba(4,6,24,0.7), 0 8px 18px rgba(0,0,0,0.28)',
                 transform: catHover === cat.id ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
                 transition: 'all 0.22s cubic-bezier(.34,1.4,.64,1)',
                 textAlign: 'left',
@@ -2658,85 +2620,52 @@ export default function DailyGames() {
           ))}
         </div>
         <DGStyles />
-      </div>
+      </GameFrame>
     );
   }
 
   /* ── WORDLE GAMES ── */
   if (category === 'wordle') {
-    return (
-      <div className="card" style={CARD_BG}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <button onClick={() => setCategory(null)} style={{
-            background: 'rgba(83,141,78,0.12)', border: '1px solid rgba(83,141,78,0.3)',
-            borderRadius: '9px', color: '#538d4e', fontSize: '12px', fontWeight: '600',
-            padding: '6px 12px', cursor: 'pointer',
-          }}>‹ Back</button>
-          <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'rgba(83,141,78,0.2)', border: '1px solid rgba(83,141,78,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px' }}>🟩</div>
-          <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#538d4e' }}>Wordle Games</span>
-        </div>
-        <WordleGames embedded />
-        <DGStyles />
-      </div>
-    );
+    return <><WordleGames /><DGStyles /></>;
   }
 
   /* ── HUMAN BENCHMARK ── */
   if (category === 'hb') {
+    const hb = getCatalogGame('human-benchmark');
     return (
-      <div className="card" style={CARD_BG}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-          <button onClick={() => setCategory(null)} style={{
-            background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(37,99,235,0.3)',
-            borderRadius: '9px', color: '#60a5fa', fontSize: '12px', fontWeight: '600',
-            padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
-            transition: 'background 0.15s',
-          }}>‹ Back</button>
-          <div style={{
-            width: '32px', height: '32px', borderRadius: '9px',
-            background: 'linear-gradient(135deg,#2563EB33,#2563EB18)',
-            border: '1px solid #2563EB44',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px',
-          }}>🧠</div>
-          <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#60a5fa' }}>Human Benchmark</span>
-        </div>
+      <GameFrame color={hb?.color}>
+        <GameTopBar />
+        <GameBanner
+          title={hb ? gameText(t, hb.nameKey) : 'Human Benchmark'}
+          desc={hb ? gameText(t, hb.descKey) : undefined}
+          icon={hb?.icon ?? '🧠'}
+        />
         <HumanBenchmark embedded />
         <DGStyles />
-      </div>
+      </GameFrame>
     );
   }
 
   /* ── DAILY CHALLENGE / SPEED GAMES ── */
+  const tabGame = getCatalogGame(tab);
   return (
-    <div className="card" style={CARD_BG}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <button onClick={() => setCategory(null)} style={{
-          background: `${catDef!.color}18`, border: `1px solid ${catDef!.color}44`,
-          borderRadius: '9px', color: catDef!.color, fontSize: '12px', fontWeight: '600',
-          padding: '6px 12px', cursor: 'pointer', flexShrink: 0, transition: 'background 0.15s',
-        }}>‹ Back</button>
-        <div style={{
-          width: '28px', height: '28px', borderRadius: '8px',
-          background: `linear-gradient(135deg,${catDef!.color}33,${catDef!.color}18)`,
-          border: `1px solid ${catDef!.color}44`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0,
-        }}>{catDef!.icon}</div>
-        <span style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '800', color: catDef!.color, flex: 1 }}>{catDef!.name}</span>
-      </div>
+    <GameFrame color={tabGame?.color ?? catDef!.color}>
+      <GameTopBar>
+        <a className="gx-pill gx-gold" href="#dg-lb"><span aria-hidden="true">🏆</span> {t.games.leaderboard}</a>
+      </GameTopBar>
+      <GameBanner
+        title={tabGame ? gameText(t, tabGame.nameKey) : catDef!.name}
+        desc={tabGame ? gameText(t, tabGame.descKey) : catDef!.desc}
+        icon={tabGame?.icon ?? catDef!.icon}
+        extra={<span className="dg-cat-chip">{catDef!.icon} {catDef!.name}</span>}
+      />
 
-      {/* Tab bar */}
-      <div style={{ display: 'flex', gap: '5px', marginBottom: '1rem', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
+      {/* Game picker */}
+      <div className="dg-tabs" role="tablist" aria-label={catDef!.name}>
         {activeTabDefs.map(tb => (
-          <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-            flexShrink: 0, padding: '7px 11px', borderRadius: '9px', border: 'none', cursor: 'pointer',
-            fontWeight: '600', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px',
-            background: tb.id === tab ? `linear-gradient(135deg,${catDef!.color},${catDef!.color}aa)` : 'rgba(255,255,255,0.05)',
-            color: tb.id === tab ? '#fff' : 'var(--text2)',
-            whiteSpace: 'nowrap',
-            boxShadow: tb.id === tab ? `0 0 14px ${catDef!.color}44` : 'none',
-          }}>
-            <span>{tb.emoji}</span><span>{tb.label}</span>
+          <button key={tb.id} type="button" role="tab" aria-selected={tb.id === tab}
+            className={`gx-tile dg-tab${tb.id === tab ? ' is-on' : ''}`} onClick={() => setTab(tb.id)}>
+            <span aria-hidden="true">{tb.emoji}</span><span>{tb.label}</span>
           </button>
         ))}
       </div>
@@ -2765,7 +2694,7 @@ export default function DailyGames() {
         challenge={urlChallenge?.game === 'typing' ? urlChallenge : undefined} />}
 
       {/* Leaderboard — always visible below active game */}
-      <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div id="dg-lb" style={{ marginTop: '6px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)', scrollMarginTop: '80px' }}>
         <div style={{ fontSize: '12px', color: 'var(--amber)', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '4px' }}>
           🏆 {t.games.leaderboard}
         </div>
@@ -2781,6 +2710,6 @@ export default function DailyGames() {
       )}
 
       <DGStyles />
-    </div>
+    </GameFrame>
   );
 }

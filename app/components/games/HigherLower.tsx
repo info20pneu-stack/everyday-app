@@ -318,8 +318,8 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
                   : <>{unit[pair.cat]}{lastOk !== undefined && <span className="hl-sr"> · {lastOk ? tr.correct : tr.wrong}</span>}</>}
               </div>
               <div className="hl-choices">
-                <button type="button" className="hl-up" onClick={() => guess(true)} disabled={round.phase !== 'ask'}>{tr.higher}</button>
-                <button type="button" className="hl-down" onClick={() => guess(false)} disabled={round.phase !== 'ask'}>{tr.lower}</button>
+                <button type="button" className="gx-btn gx-primary hl-up" onClick={() => guess(true)} disabled={round.phase !== 'ask'}>{tr.higher}</button>
+                <button type="button" className="gx-btn gx-ghost hl-down" onClick={() => guess(false)} disabled={round.phase !== 'ask'}>{tr.lower}</button>
               </div>
             </div>
           </div>
@@ -333,13 +333,13 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
           <div className="hl-actions">
           {!isPractice && (
             <>
-              <button type="button" className="hl-btn" onClick={share}>{tr.share}</button>
+              <button type="button" className="gx-btn gx-primary hl-btn" onClick={share}>{tr.share}</button>
               <div className="hl-toast" aria-live="polite">{shareNote}</div>
-              <button type="button" className="hl-btn hl-gold" onClick={openLeaderboard}>{t.games.showLeaderboard}</button>
+              <button type="button" className="gx-btn gx-gold-btn hl-btn" onClick={openLeaderboard}>{t.games.showLeaderboard}</button>
             </>
           )}
-          <button type="button" className="hl-btn hl-ghost" onClick={practice}>{tr.practice}</button>
-          {isPractice && <button type="button" className="hl-btn hl-ghost" onClick={backToToday}>{tr.backToToday}</button>}
+          <button type="button" className="gx-btn gx-ghost hl-btn" onClick={practice}>{tr.practice}</button>
+          {isPractice && <button type="button" className="gx-btn gx-ghost hl-btn" onClick={backToToday}>{tr.backToToday}</button>}
           </div>
           <div className="hl-next tabular-nums">{tr.nextIn.replace('{time}', countdown)}</div>
         </div>
@@ -364,7 +364,7 @@ function HigherLowerStyles() {
       .hl-app {
         --hl-card: #0B0F2A; --hl-line: #1E2350; --hl-ink: #F2F3FF; --hl-dim: #9AA0D0;
         --hl-accent: #5D4CFF; --hl-accent2: #9B8CFF; --hl-good: #2FE39A; --hl-bad: #FF5470; --hl-gold: #FFC94D;
-        max-width: 760px; margin: 0 auto;
+        width: 100%;
         display: flex; flex-direction: column; gap: 12px;
         color: var(--hl-ink); font-family: 'Poppins', system-ui, sans-serif;
         -webkit-tap-highlight-color: transparent;
@@ -377,7 +377,8 @@ function HigherLowerStyles() {
       }
       .hl-hud { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
       .hl-pill {
-        background: var(--hl-card); border: 1px solid var(--hl-line); border-radius: 14px; padding: 10px 12px;
+        background: linear-gradient(160deg, #1C2258, #121640); border: 1px solid rgba(255,255,255,.07); border-radius: 14px; padding: 10px 12px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
         display: flex; flex-direction: column; gap: 2px; min-width: 0;
       }
       .hl-pill span {
@@ -398,7 +399,8 @@ function HigherLowerStyles() {
       .hl-card {
         position: relative; flex: 1; min-height: 190px; border-radius: 22px; padding: 20px;
         display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 6px;
-        background: linear-gradient(160deg, #121747, #0B0F2A); border: 1px solid var(--hl-line); overflow: hidden;
+        background: linear-gradient(160deg, #1C2258, #121640); border: 1px solid rgba(255,255,255,.07); overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 4px 0 rgba(4,6,24,.7), 0 10px 24px rgba(0,0,0,.3);
         transition: transform .35s, border-color .3s, box-shadow .3s;
       }
       .hl-emoji { font-size: 38px; line-height: 1; }
@@ -413,14 +415,7 @@ function HigherLowerStyles() {
       .hl-card.no { border-color: var(--hl-bad); box-shadow: 0 0 0 2px var(--hl-bad), 0 0 40px rgba(255,84,112,.35); animation: hlShake .4s; }
       @keyframes hlShake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
       .hl-choices { display: flex; gap: 10px; width: 100%; margin-top: 8px; }
-      .hl-choices button {
-        flex: 1; min-height: 52px; font: inherit; font-weight: 800; font-size: 17px; border-radius: 14px; padding: 12px 8px;
-        cursor: pointer; border: 0; color: var(--hl-ink); transition: transform .1s, opacity .2s;
-      }
-      .hl-choices button:active:not(:disabled) { transform: scale(.96); }
-      .hl-choices button:disabled { opacity: .45; cursor: default; }
-      .hl-up { background: var(--hl-accent); box-shadow: 0 6px 24px rgba(93,76,255,.45); }
-      .hl-choices .hl-down { background: transparent; border: 2px solid var(--hl-accent); color: var(--hl-accent2); }
+      .hl-choices .gx-btn { flex: 1; min-width: 0; min-height: 52px; padding: 0 10px; font-size: 16px; }
       .hl-app button:focus-visible { outline: 3px solid var(--hl-ink); outline-offset: 3px; }
       /* In the flow between the cards, pulled onto the seam by negative margins */
       .hl-vs {
@@ -442,12 +437,7 @@ function HigherLowerStyles() {
       .hl-grid { font-size: 22px; letter-spacing: 2px; white-space: nowrap; }
       .hl-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
       .hl-end p { margin: 0; color: var(--hl-dim); font-size: 14px; max-width: 34ch; }
-      .hl-btn {
-        font: inherit; font-weight: 800; font-size: 16px; border: 0; border-radius: 14px; padding: 14px 22px;
-        cursor: pointer; background: var(--hl-accent); color: var(--hl-ink); width: 100%;
-      }
-      .hl-btn.hl-gold { background: rgba(255,179,0,.12); border: 1px solid rgba(255,179,0,.35); color: #FFB300; }
-      .hl-btn.hl-ghost { background: transparent; border: 2px solid var(--hl-line); }
+      .hl-btn { width: 100%; }
       .hl-toast { font-size: 13px; color: var(--hl-good); min-height: 18px; max-width: 34ch; word-break: break-word; }
       .hl-next { font-size: 12px; color: var(--hl-dim); }
       .hl-note { font-size: 11px; color: var(--hl-dim); text-align: center; }
@@ -470,9 +460,6 @@ function HigherLowerStyles() {
         .hl-pill b { font-size: 20px; }
         .hl-card { min-height: 160px; padding-left: 16px; padding-right: 16px; }
         .hl-grid { font-size: 18px; letter-spacing: 1px; }
-        /* keep the lower button clear of the floating boss-key buttons */
-        .hl-choices, .hl-actions { padding-right: 30px; box-sizing: border-box; }
-        [dir="rtl"] .hl-choices, [dir="rtl"] .hl-actions { padding-right: 0; padding-left: 30px; }
       }
       @media (prefers-reduced-motion: reduce) {
         .hl-card, .hl-card.no { animation: none; transition: none; }

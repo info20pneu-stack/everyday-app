@@ -6,6 +6,9 @@ import type { Translations } from '../../lib/i18n';
 import { recordGameCompleted } from '../../lib/streak';
 import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
 import CountrySelect from './CountrySelect';
+import { KB_ROWS, WordleBoard, WordleKeyboard, type TileState } from './games/WordleBoard';
+import { GameBanner, GameFrame, GameTopBar } from './games/GameFrame';
+import { getCatalogGame, gameText } from '../../lib/gamesCatalog';
 
 function lsGetStr(key: string, fb: string): string {
   if (typeof window === 'undefined') return fb;
@@ -26,22 +29,34 @@ const WORDS: Record<string, string[]> = {
 
 function getModes(t: Translations) {
   return [
-    { id: 'classic',  label: t.wordle.var_classic,  emoji: '🔤', color: '#538d4e', desc: 'Common 5-letter words' },
-    { id: 'football', label: t.wordle.var_football, emoji: '⚽', color: '#2d6a4f', desc: 'Football terms & clubs' },
-    { id: 'hockey',   label: t.wordle.var_hockey,   emoji: '🏒', color: '#1d3557', desc: 'Ice hockey vocabulary' },
-    { id: 'car',      label: t.wordle.var_car,      emoji: '🚗', color: '#c1121f', desc: 'Automotive world' },
-    { id: 'crypto',   label: t.wordle.var_crypto,   emoji: '₿',  color: '#d97706', desc: 'Blockchain & finance' },
-    { id: 'animal',   label: t.wordle.var_animal,   emoji: '🦁', color: '#92400e', desc: 'Animals & wildlife' },
-    { id: 'plant',    label: t.wordle.var_plant,    emoji: '🌿', color: '#166534', desc: 'Flora & botany' },
-    { id: 'city',     label: t.wordle.var_city,     emoji: '🌆', color: '#1e40af', desc: 'Cities of the world' },
+    { id: 'classic',  label: t.wordle.var_classic,  emoji: '🔤', color: '#22C55E', desc: 'Common 5-letter words' },
+    { id: 'football', label: t.wordle.var_football, emoji: '⚽', color: '#10B981', desc: 'Football terms & clubs' },
+    { id: 'hockey',   label: t.wordle.var_hockey,   emoji: '🏒', color: '#38BDF8', desc: 'Ice hockey vocabulary' },
+    { id: 'car',      label: t.wordle.var_car,      emoji: '🚗', color: '#F43F5E', desc: 'Automotive world' },
+    { id: 'crypto',   label: t.wordle.var_crypto,   emoji: '₿',  color: '#F59E0B', desc: 'Blockchain & finance' },
+    { id: 'animal',   label: t.wordle.var_animal,   emoji: '🦁', color: '#F97316', desc: 'Animals & wildlife' },
+    { id: 'plant',    label: t.wordle.var_plant,    emoji: '🌿', color: '#84CC16', desc: 'Flora & botany' },
+    { id: 'city',     label: t.wordle.var_city,     emoji: '🌆', color: '#6366F1', desc: 'Cities of the world' },
   ];
 }
 
-export type TileState = 'correct' | 'present' | 'absent' | 'empty' | 'typed';
+export type { TileState };
+export { KB_ROWS };
 
 function dateSeed(): number {
   const d = new Date();
   return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+/** Today's result of one variant, shown on the variant picker. */
+type DayResult = { date: number; won: boolean; guesses: number };
+const dayKey = (modeId: string) => `wordle_v2_${modeId}_day`;
+
+function readDayResult(modeId: string): DayResult | null {
+  try {
+    const r = JSON.parse(localStorage.getItem(dayKey(modeId)) ?? 'null') as DayResult | null;
+    return r && r.date === dateSeed() ? r : null;
+  } catch { return null; }
 }
 
 function getTarget(modeId: string): string {
@@ -63,25 +78,6 @@ export function evaluate(guess: string, target: string): TileState[] {
   }
   return result;
 }
-
-export function tileBg(state: TileState, modeColor: string): string {
-  if (state === 'correct') return modeColor;
-  if (state === 'present') return '#b59f3b';
-  if (state === 'absent')  return '#3a3a3c';
-  return 'transparent';
-}
-
-export function tileBorder(state: TileState, modeColor: string): string {
-  if (state === 'correct' || state === 'present' || state === 'absent') return 'none';
-  if (state === 'typed') return '2px solid rgba(255,255,255,0.5)';
-  return '2px solid rgba(255,255,255,0.12)';
-}
-
-export const KB_ROWS = [
-  ['Q','W','E','R','T','Y','U','I','O','P'],
-  ['A','S','D','F','G','H','J','K','L'],
-  ['ENTER','Z','X','C','V','B','N','M','⌫'],
-];
 
 /* ── Confetti ── */
 const CONFETTI_COLORS = ['#22c55e','#3b82f6','#f59e0b','#ef4444','#a78bfa','#ec4899'];
@@ -219,18 +215,24 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
         const newCur = streak.lastDate === today - 1 ? streak.cur + 1 : 1;
         const s = { cur: newCur, best: Math.max(streak.best, newCur), lastDate: today };
         setStreak(s);
-        try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
+        try {
+          localStorage.setItem(lsKey, JSON.stringify(s));
+          localStorage.setItem(dayKey(modeId), JSON.stringify({ date: today, won: true, guesses: rowIdx + 1 } satisfies DayResult));
+        } catch {}
         recordGameCompleted();
       } else if (rowIdx + 1 >= MAX) {
         setPhase('lost');
         showMsg(target, 5000);
         const s = { ...streak, cur: 0 };
         setStreak(s);
-        try { localStorage.setItem(lsKey, JSON.stringify(s)); } catch {}
+        try {
+          localStorage.setItem(lsKey, JSON.stringify(s));
+          localStorage.setItem(dayKey(modeId), JSON.stringify({ date: dateSeed(), won: false, guesses: MAX } satisfies DayResult));
+        } catch {}
         recordGameCompleted();
       }
     }, 5 * 300 + 400);
-  }, [animating, current, guesses, target, phase, streak, lsKey, t]);
+  }, [animating, current, guesses, target, phase, streak, lsKey, modeId, t]);
 
   const handleKey = useCallback((k: string) => {
     if (phase !== 'playing' || animating) return;
@@ -258,116 +260,36 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <button onClick={onBack} style={{
-          background: `${mode.color}22`, border: `1px solid ${mode.color}55`,
-          borderRadius: '8px', color: mode.color, fontSize: '12px', fontWeight: '600',
-          padding: '5px 11px', cursor: 'pointer',
-        }}>{t.wordle.back}</button>
-        <span style={{ fontSize: '18px' }}>{mode.emoji}</span>
-        <span style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#fff', flex: 1 }}>
-          {mode.label} Wordle
-        </span>
-        <div style={{ display: 'flex', gap: '8px', fontSize: '12px' }}>
-          <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px 7px', color: '#FFB300' }}>🔥 {streak.cur}</span>
-          <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '2px 7px', color: 'var(--text3)' }}>🏆 {streak.best}</span>
-        </div>
-      </div>
+    <GameFrame color={mode.color}>
+      <GameTopBar back={{ onClick: onBack, label: 'Wordle' }}>
+        <span className="gx-pill" title={t.wordle.streak}><span aria-hidden="true">🔥</span> <b>{streak.cur}</b></span>
+        <span className="gx-pill" title={t.wordle.maxStreak}><span aria-hidden="true">🏅</span> <b>{streak.best}</b></span>
+        <a className="gx-pill gx-gold" href="#wordle-lb"><span aria-hidden="true">🏆</span> {t.games.leaderboard}</a>
+      </GameTopBar>
+      <GameBanner title={`${mode.label} Wordle`} desc={mode.desc} icon={mode.emoji} />
 
-      {/* Toast */}
-      {message && (
-        <div style={{
-          textAlign: 'center', marginBottom: '8px',
-          background: 'rgba(255,255,255,0.92)', color: '#111',
-          borderRadius: '8px', padding: '7px 16px',
-          fontWeight: '700', fontSize: '13px',
-          animation: 'wToast 0.18s ease',
-        }}>{message}</div>
-      )}
+      <div className="wb-toast" role="status" aria-live="polite">{message && <span>{message}</span>}</div>
 
-      {/* Grid */}
       <div style={{ position: 'relative' }}>
         {phase === 'won' && <Confetti />}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '14px' }}>
-          {Array.from({ length: MAX }, (_, row) => {
-            const isCur = row === guesses.length && phase === 'playing';
-            const letters = row < guesses.length
-              ? guesses[row].split('')
-              : isCur
-                ? [...current.split(''), ...Array(5 - current.length).fill('')]
-                : Array(5).fill('');
-
-            return (
-              <div key={row} style={{
-                display: 'flex', gap: '5px',
-                animation: isCur && shake ? 'wShake 0.4s ease' : 'none',
-              }}>
-                {letters.map((ch, col) => {
-                  const isRev = revealed.has(`${row}-${col}`);
-                  const evalState: TileState | undefined = (row < guesses.length && isRev) ? evals[row]?.[col] : undefined;
-                  const state: TileState = evalState ?? (ch ? (row < guesses.length ? 'absent' : 'typed') : 'empty');
-                  const isFlipping = row < guesses.length && !isRev;
-
-                  return (
-                    <div key={col} style={{
-                      width: '52px', height: '52px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Poppins', fontSize: '22px', fontWeight: '800', color: '#fff',
-                      background: tileBg(evalState ?? (state), mode.color),
-                      border: tileBorder(state, mode.color),
-                      borderRadius: '6px',
-                      animation: isFlipping
-                        ? `wFlipDown 0.25s ease-in ${col * 0.3}s both, wFlipUp 0.25s ease-out ${col * 0.3 + 0.25}s both`
-                        : (state === 'typed' && ch ? 'wPop 0.1s ease' : 'none'),
-                    }}>
-                      {ch}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </div>
+        <WordleBoard
+          guesses={guesses} evals={evals} current={current} revealed={revealed}
+          max={MAX} playing={phase === 'playing'} shake={shake}
+        />
       </div>
 
-      {/* Keyboard */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px', width: '100%', maxWidth: '500px', marginInline: 'auto' }}>
-        {KB_ROWS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: '4px', width: '100%', justifyContent: 'center' }}>
-            {row.map(key => {
-              const kc = keyColors[key];
-              const bg = kc === 'correct' ? mode.color : kc === 'present' ? '#b59f3b' : kc === 'absent' ? '#3a3a3c' : 'rgba(255,255,255,0.12)';
-              return (
-                <button key={key} onClick={() => handleKey(key)} style={{
-                  height: '48px', minWidth: 0, padding: 0, overflow: 'hidden',
-                  flex: (key === 'ENTER' || key === '⌫') ? '1.6 1 0' : '1 1 0',
-                  maxWidth: (key === 'ENTER' || key === '⌫') ? '64px' : '43px',
-                  borderRadius: '6px', border: 'none', cursor: 'pointer',
-                  background: bg, color: '#fff',
-                  fontSize: key.length > 1 ? '12px' : '13px',
-                  fontWeight: '700', fontFamily: 'Poppins',
-                }}>{key === 'ENTER' ? t.wordle.keyboard_enter : key === '⌫' ? t.wordle.keyboard_backspace : key}</button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
+      <WordleKeyboard
+        keyColors={keyColors} onKey={handleKey}
+        enterLabel={t.wordle.keyboard_enter} backLabel={t.wordle.keyboard_backspace}
+      />
 
       {/* Win/lose actions */}
       {(phase === 'won' || phase === 'lost') && (
-        <div style={{ textAlign: 'center' }}>
-          <button onClick={share} style={{
-            background: copied ? `${mode.color}33` : 'rgba(255,255,255,0.07)',
-            border: copied ? `1px solid ${mode.color}77` : '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '10px', color: copied ? mode.color : '#fff',
-            fontSize: '13px', fontWeight: '600',
-            padding: '9px 22px', cursor: 'pointer', transition: 'all 0.2s',
-          }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textAlign: 'center' }}>
+          <button type="button" className="gx-btn gx-primary" onClick={share}>
             {copied ? t.wordle.copied : t.wordle.shareGrid}
           </button>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>
             {t.wordle.newWordTomorrow}{phase === 'lost' ? ` · ${t.wordle.answer.replace('{word}', target)}` : ''}
           </div>
         </div>
@@ -376,16 +298,11 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
       {/* Submit to leaderboard — wins only */}
       {phase === 'won' && subPhase === 'idle' && (
         <div style={{ textAlign: 'center', marginTop: '12px' }}>
-          <button onClick={() => setSubPhase('form')} style={{
-            background: `linear-gradient(135deg, ${mode.color}, ${mode.color}bb)`,
-            border: 'none', borderRadius: '10px', color: '#000',
-            fontSize: '13px', fontWeight: '700', padding: '9px 22px', cursor: 'pointer',
-            boxShadow: `0 0 16px ${mode.color}55`,
-          }}>🏅 {t.games.submitToLb}</button>
+          <button type="button" className="gx-btn gx-gold-btn" onClick={() => setSubPhase('form')}>🏅 {t.games.submitToLb}</button>
         </div>
       )}
       {phase === 'won' && (subPhase === 'form' || subPhase === 'submitting') && (
-        <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
             <input
               type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={30}
@@ -404,20 +321,17 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
           </div>
           {subErr && <div style={{ fontSize: '12px', color: '#EF4444', marginBottom: '6px', textAlign: 'center' }}>{subErr}</div>}
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button onClick={submitScore} disabled={!nick.trim() || subPhase === 'submitting'} style={{
-              flex: 2, padding: '10px', borderRadius: '8px', border: 'none',
-              background: nick.trim() ? `linear-gradient(135deg, ${mode.color}, ${mode.color}bb)` : 'rgba(255,255,255,0.1)',
-              color: nick.trim() ? '#000' : 'var(--text3)', fontSize: '13px', fontWeight: '700',
-              cursor: nick.trim() ? 'pointer' : 'not-allowed',
-            }}>{subPhase === 'submitting' ? '…' : t.games.submitToLb}</button>
-            <button onClick={() => setSubPhase('idle')} style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.04)', color: 'var(--text3)', fontSize: '12px', cursor: 'pointer' }}>
+            <button type="button" className="gx-btn gx-primary gx-sm" style={{ flex: 2, minWidth: 0 }} onClick={submitScore} disabled={!nick.trim() || subPhase === 'submitting'}>
+              {subPhase === 'submitting' ? '…' : t.games.submitToLb}
+            </button>
+            <button type="button" className="gx-btn gx-ghost gx-sm" style={{ flex: 1, minWidth: 0 }} onClick={() => setSubPhase('idle')}>
               {t.games.skip}
             </button>
           </div>
         </div>
       )}
       {phase === 'won' && subPhase === 'done' && (
-        <div style={{ marginTop: '12px', textAlign: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--green2)' }}>✅ {t.games.addedToLb}</div>
           {rank && (
             <div style={{ fontSize: '12px', color: 'var(--text2)', marginTop: '3px' }}>
@@ -428,70 +342,79 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
       )}
 
       {/* Leaderboard — always visible below the game, auto-switches with the active mode */}
+      <div id="wordle-lb" style={{ scrollMarginTop: '80px' }}>
       <LeaderboardPanel
         game={lbGameId}
         accentColor={mode.color}
         renderValue={(e: SharedLBEntry) => `${e.moves ?? '?'}/${MAX} · ${fmtWordleTime(e.timeMs)}`}
       />
+      </div>
 
       <style>{`
-        @keyframes wFlipDown { from{transform:scaleY(1)} to{transform:scaleY(0)} }
-        @keyframes wFlipUp   { from{transform:scaleY(0)} to{transform:scaleY(1)} }
-        @keyframes wPop      { 0%,100%{transform:scale(1)} 50%{transform:scale(1.14)} }
-        @keyframes wShake    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
-        @keyframes wToast    { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
         @keyframes wCf       { 0%{opacity:1;transform:translateY(0) rotate(0)} 100%{opacity:0;transform:translateY(380px) rotate(600deg)} }
       `}</style>
-    </div>
+    </GameFrame>
   );
 }
 
 /* ── Mode picker / exported component ── */
-export default function WordleGames({ embedded = false }: { embedded?: boolean }) {
+export default function WordleGames() {
   const { t } = useLang();
   const MODES = getModes(t);
   const [selected, setSelected] = useState<string | null>(null);
+  const game = getCatalogGame('wordle');
+  // Today's results from localStorage. This component only renders in the browser (DailyGames is
+  // client-only), and it re-renders when the player comes back from a game.
+  const results: Record<string, DayResult | null> = selected
+    ? {}
+    : Object.fromEntries(MODES.map(m => [m.id, readDayResult(m.id)]));
 
   if (selected) {
     return <WordleGame modeId={selected} onBack={() => setSelected(null)} />;
   }
 
   return (
-    <div>
-      {!embedded && (
-        <h2 style={{ fontSize: '15px', fontFamily: 'Poppins', color: '#fff', marginBottom: '14px' }}>
-          {t.wordle.title}
-        </h2>
-      )}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+    <GameFrame color={game?.color}>
+      <GameTopBar />
+      <GameBanner
+        title={game ? gameText(t, game.nameKey) : t.wordle.title}
+        desc={game ? gameText(t, game.descKey) : undefined}
+        icon={game?.icon ?? '🟩'}
+      />
+      <div className="wg-modes">
         {MODES.map(m => (
-          <button
-            key={m.id}
-            onClick={() => setSelected(m.id)}
-            style={{
-              padding: '12px', borderRadius: '12px', border: 'none', cursor: 'pointer', textAlign: 'left',
-              background: `linear-gradient(135deg, ${m.color}22, ${m.color}0a)`,
-              outline: `1px solid ${m.color}44`,
-              transition: 'transform 0.15s, box-shadow 0.15s',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = `0 8px 24px ${m.color}44`;
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-            }}
-          >
-            <div style={{ fontSize: '22px', marginBottom: '4px' }}>{m.emoji}</div>
-            <div style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '700', color: '#fff', marginBottom: '2px' }}>{m.label}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{m.desc}</div>
-            <div style={{ fontSize: '12px', color: `${m.color}cc`, marginTop: '6px', letterSpacing: '0.5px' }}>
-              {getTarget(m.id).slice(0,1)}{'·'.repeat(3)}{getTarget(m.id).slice(-1)}
-            </div>
+          <button key={m.id} type="button" className="gx-tile wg-mode" style={{ '--wg': m.color } as React.CSSProperties} onClick={() => setSelected(m.id)}>
+            <span className="wg-emoji" aria-hidden="true">{m.emoji}</span>
+            <span className="wg-name">{m.label}</span>
+            <span className="wg-desc">{m.desc}</span>
+            <span className="wg-meta">
+              <span>{t.wordle.letters.replace('{n}', String(getTarget(m.id).length))}</span>
+              <WordleDayStatus result={results[m.id] ?? null} t={t} />
+            </span>
           </button>
         ))}
       </div>
-    </div>
+      <style>{`
+        .wg-modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .wg-mode {
+          display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px; text-align: start;
+          border-color: color-mix(in srgb, var(--wg) 35%, transparent);
+        }
+        .wg-emoji { font-size: 26px; line-height: 1; margin-bottom: 6px; filter: drop-shadow(0 2px 10px var(--wg)); }
+        .wg-name { font: 800 14px 'Poppins', system-ui, sans-serif; color: #fff; }
+        .wg-desc { font-size: 12px; color: #9AA0D0; line-height: 1.3; }
+        .wg-meta { margin-top: 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; color: #9AA0D0; }
+        .wg-status { padding: 2px 8px; border-radius: 999px; font-weight: 700; white-space: nowrap; border: 1px solid rgba(255,255,255,.12); }
+        .wg-status.won { color: #2FE39A; border-color: rgba(47,227,154,.45); background: rgba(47,227,154,.12); }
+        .wg-status.lost { color: #FF7A90; border-color: rgba(255,84,112,.45); background: rgba(255,84,112,.12); }
+      `}</style>
+    </GameFrame>
   );
+}
+
+function WordleDayStatus({ result, t }: { result: DayResult | null; t: Translations }) {
+  if (!result) return <span className="wg-status">{t.wordle.todayNotPlayed}</span>;
+  return result.won
+    ? <span className="wg-status won">✓ {t.wordle.todaySolved.replace('{n}', String(result.guesses))}</span>
+    : <span className="wg-status lost">✗ {t.wordle.todayFailed}</span>;
 }

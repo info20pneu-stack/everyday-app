@@ -257,6 +257,7 @@ export type Translations = {
     from: string; to: string; result: string; swap: string;
   };
   wordle: {
+    letters: string; todayNotPlayed: string; todaySolved: string; todayFailed: string;
     title: string; back: string;
     var_classic: string; var_football: string; var_hockey: string; var_car: string;
     var_crypto: string; var_animal: string; var_plant: string; var_city: string;
@@ -391,6 +392,7 @@ export type Translations = {
     catPop: string; catArea: string; catMountain: string; catRiver: string; unitPop: string; unitArea: string; unitMountain: string; unitRiver: string; round: string; score: string; streak: string; best: string; question: string; higher: string; lower: string; correct: string; wrong: string; note: string; doneTitle: string; practiceTitle: string; practiceBadge: string; msgPerfect: string; msgGreat: string; msgOk: string; msgBad: string; share: string; copied: string; practice: string; backToToday: string; shareText: string; gridAria: string; nextIn: string;
   };
   connectFour: {
+    sameSet: string; sameSetWorld: string;
     intro: string; mistakesLeft: string; shuffle: string; deselect: string; submit: string; oneAway: string; notGroup: string; alreadyTried: string; good1: string; good2: string; good3: string; good4: string; winTitle: string; perfectTitle: string; loseTitle: string; loseText: string; timeNote: string; share: string; copied: string; practice: string; backToToday: string; practiceBadge: string; region: string; regionWorld: string; mistakes: string; unsolved: string; shareText: string; gridAria: string; nextIn: string; note: string; timeAria: string;
   };
   dailyPuzzle: {
@@ -707,6 +709,7 @@ const t: Record<Lang, Translations> = {
       from: 'From', to: 'To', result: 'Result', swap: '⇅ Swap',
     },
     wordle: {
+      letters: '{n} letters', todayNotPlayed: 'Not played', todaySolved: 'Solved {n}/6', todayFailed: 'Not solved',
       title: '🟩 Wordle Games', back: '‹ Back',
       var_classic: 'Classic', var_football: 'Football', var_hockey: 'Hockey',
       var_car: 'Car', var_crypto: 'Crypto', var_animal: 'Animal',
@@ -879,6 +882,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "New pairs in {time}",
     },
     connectFour: {
+      sameSet: 'Same set for the whole country: {country}', sameSetWorld: 'Same set for the whole world',
       intro: "Find 4 groups of 4 words that have something in common. Watch out for traps.",
       mistakesLeft: "Mistakes left",
       shuffle: "Shuffle",
@@ -1227,6 +1231,7 @@ const t: Record<Lang, Translations> = {
       from: 'Von', to: 'Zu', result: 'Ergebnis', swap: '⇅ Tauschen',
     },
     wordle: {
+      letters: '{n} Buchstaben', todayNotPlayed: 'Nicht gespielt', todaySolved: 'Gelöst {n}/6', todayFailed: 'Nicht gelöst',
       title: '🟩 Wordle-Spiele', back: '‹ Zurück',
       var_classic: 'Klassisch', var_football: 'Fußball', var_hockey: 'Eishockey',
       var_car: 'Auto', var_crypto: 'Krypto', var_animal: 'Tier',
@@ -1399,6 +1404,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Neue Paare in {time}",
     },
     connectFour: {
+      sameSet: 'Gleiches Set für das ganze Land: {country}', sameSetWorld: 'Gleiches Set für die ganze Welt',
       intro: "Finde 4 Gruppen aus je 4 Wörtern, die etwas gemeinsam haben. Vorsicht vor Fallen.",
       mistakesLeft: "Verbleibende Fehler",
       shuffle: "Mischen",
@@ -1747,6 +1753,7 @@ const t: Record<Lang, Translations> = {
       from: 'Da', to: 'A', result: 'Risultato', swap: '⇅ Scambia',
     },
     wordle: {
+      letters: '{n} lettere', todayNotPlayed: 'Non giocato', todaySolved: 'Risolto {n}/6', todayFailed: 'Non risolto',
       title: '🟩 Giochi Wordle', back: '‹ Indietro',
       var_classic: 'Classico', var_football: 'Calcio', var_hockey: 'Hockey',
       var_car: 'Auto', var_crypto: 'Crypto', var_animal: 'Animale',
@@ -1919,6 +1926,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Nuove coppie tra {time}",
     },
     connectFour: {
+      sameSet: 'Stesso set per tutto il Paese: {country}', sameSetWorld: 'Stesso set per tutto il mondo',
       intro: "Trova 4 gruppi di 4 parole che hanno qualcosa in comune. Attenzione alle trappole.",
       mistakesLeft: "Errori rimasti",
       shuffle: "Mescola",
@@ -2267,6 +2275,7 @@ const t: Record<Lang, Translations> = {
       from: 'De', to: 'À', result: 'Résultat', swap: '⇅ Inverser',
     },
     wordle: {
+      letters: '{n} lettres', todayNotPlayed: 'Pas joué', todaySolved: 'Résolu {n}/6', todayFailed: 'Non résolu',
       title: '🟩 Jeux Wordle', back: '‹ Retour',
       var_classic: 'Classique', var_football: 'Football', var_hockey: 'Hockey',
       var_car: 'Voiture', var_crypto: 'Crypto', var_animal: 'Animal',
@@ -2439,6 +2448,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Nouvelles paires dans {time}",
     },
     connectFour: {
+      sameSet: 'Même set pour tout le pays : {country}', sameSetWorld: 'Même set pour le monde entier',
       intro: "Trouve 4 groupes de 4 mots qui ont un point commun. Attention aux pièges.",
       mistakesLeft: "Erreurs restantes",
       shuffle: "Mélanger",
@@ -2787,6 +2797,7 @@ const t: Record<Lang, Translations> = {
       from: 'Z', to: 'Na', result: 'Výsledek', swap: '⇅ Prohodit',
     },
     wordle: {
+      letters: '{n} písmen', todayNotPlayed: 'Nehráno', todaySolved: 'Vyřešeno {n}/6', todayFailed: 'Nevyřešeno',
       title: '🟩 Wordle hry', back: '‹ Zpět',
       var_classic: 'Klasické', var_football: 'Fotbal', var_hockey: 'Hokej',
       var_car: 'Auta', var_crypto: 'Krypto', var_animal: 'Zvíře',
@@ -2959,6 +2970,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Nové dvojice za {time}",
     },
     connectFour: {
+      sameSet: 'Stejná sada pro celou zemi: {country}', sameSetWorld: 'Stejná sada pro celý svět',
       intro: "Najdi 4 skupiny po 4 slovech, které mají něco společného. Pozor na chytáky.",
       mistakesLeft: "Zbývající chyby",
       shuffle: "Zamíchat",
@@ -3307,6 +3319,7 @@ const t: Record<Lang, Translations> = {
       from: 'De', to: 'A', result: 'Resultado', swap: '⇅ Intercambiar',
     },
     wordle: {
+      letters: '{n} letras', todayNotPlayed: 'Sin jugar', todaySolved: 'Resuelto {n}/6', todayFailed: 'Sin resolver',
       title: '🟩 Juegos Wordle', back: '‹ Atrás',
       var_classic: 'Clásico', var_football: 'Fútbol', var_hockey: 'Hockey',
       var_car: 'Coche', var_crypto: 'Cripto', var_animal: 'Animal',
@@ -3479,6 +3492,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Nuevas parejas en {time}",
     },
     connectFour: {
+      sameSet: 'El mismo set para todo el país: {country}', sameSetWorld: 'El mismo set para todo el mundo',
       intro: "Encuentra 4 grupos de 4 palabras que tengan algo en común. Cuidado con las trampas.",
       mistakesLeft: "Errores restantes",
       shuffle: "Mezclar",
@@ -3827,6 +3841,7 @@ const t: Record<Lang, Translations> = {
       from: 'Z', to: 'Na', result: 'Wynik', swap: '⇅ Zamień',
     },
     wordle: {
+      letters: '{n} liter', todayNotPlayed: 'Nie grano', todaySolved: 'Rozwiązane {n}/6', todayFailed: 'Nierozwiązane',
       title: '🟩 Gry Wordle', back: '‹ Wstecz',
       var_classic: 'Klasyczny', var_football: 'Piłka nożna', var_hockey: 'Hokej',
       var_car: 'Samochód', var_crypto: 'Krypto', var_animal: 'Zwierzę',
@@ -3999,6 +4014,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Nowe pary za {time}",
     },
     connectFour: {
+      sameSet: 'Ten sam zestaw dla całego kraju: {country}', sameSetWorld: 'Ten sam zestaw dla całego świata',
       intro: "Znajdź 4 grupy po 4 słowa, które coś łączy. Uwaga na pułapki.",
       mistakesLeft: "Pozostałe błędy",
       shuffle: "Wymieszaj",
@@ -4347,6 +4363,7 @@ const t: Record<Lang, Translations> = {
       from: 'De', to: 'Para', result: 'Resultado', swap: '⇅ Trocar',
     },
     wordle: {
+      letters: '{n} letras', todayNotPlayed: 'Não jogado', todaySolved: 'Resolvido {n}/6', todayFailed: 'Não resolvido',
       title: '🟩 Jogos Wordle', back: '‹ Voltar',
       var_classic: 'Clássico', var_football: 'Futebol', var_hockey: 'Hóquei',
       var_car: 'Carro', var_crypto: 'Cripto', var_animal: 'Animal',
@@ -4519,6 +4536,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Novos pares em {time}",
     },
     connectFour: {
+      sameSet: 'O mesmo conjunto para todo o país: {country}', sameSetWorld: 'O mesmo conjunto para o mundo inteiro',
       intro: "Encontra 4 grupos de 4 palavras com algo em comum. Cuidado com as armadilhas.",
       mistakesLeft: "Erros restantes",
       shuffle: "Baralhar",
@@ -4867,6 +4885,7 @@ const t: Record<Lang, Translations> = {
       from: 'Из', to: 'В', result: 'Результат', swap: '⇅ Поменять местами',
     },
     wordle: {
+      letters: '{n} букв', todayNotPlayed: 'Не сыграно', todaySolved: 'Решено {n}/6', todayFailed: 'Не решено',
       title: '🟩 Игры Wordle', back: '‹ Назад',
       var_classic: 'Классика', var_football: 'Футбол', var_hockey: 'Хоккей',
       var_car: 'Авто', var_crypto: 'Крипто', var_animal: 'Животные',
@@ -5039,6 +5058,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "Новые пары через {time}",
     },
     connectFour: {
+      sameSet: 'Один набор для всей страны: {country}', sameSetWorld: 'Один набор для всего мира',
       intro: "Найди 4 группы по 4 слова, у которых есть что-то общее. Осторожно, ловушки.",
       mistakesLeft: "Осталось ошибок",
       shuffle: "Перемешать",
@@ -5387,6 +5407,7 @@ const t: Record<Lang, Translations> = {
       from: '从', to: '到', result: '结果', swap: '⇅ 交换',
     },
     wordle: {
+      letters: '{n} 个字母', todayNotPlayed: '未玩', todaySolved: '已解出 {n}/6', todayFailed: '未解出',
       title: '🟩 Wordle 游戏', back: '‹ 返回',
       var_classic: '经典', var_football: '足球', var_hockey: '冰球',
       var_car: '汽车', var_crypto: '加密货币', var_animal: '动物',
@@ -5559,6 +5580,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "{time} 后更新题目",
     },
     connectFour: {
+      sameSet: '全国同一套题：{country}', sameSetWorld: '全世界同一套题',
       intro: "找出 4 组、每组 4 个有共同点的词。小心陷阱。",
       mistakesLeft: "剩余失误",
       shuffle: "打乱",
@@ -5907,6 +5929,7 @@ const t: Record<Lang, Translations> = {
       from: '変換元', to: '変換先', result: '結果', swap: '⇅ 入れ替え',
     },
     wordle: {
+      letters: '{n}文字', todayNotPlayed: '未プレイ', todaySolved: '正解 {n}/6', todayFailed: '不正解',
       title: '🟩 Wordleゲーム', back: '‹ 戻る',
       var_classic: 'クラシック', var_football: 'サッカー', var_hockey: 'ホッケー',
       var_car: '車', var_crypto: '暗号通貨', var_animal: '動物',
@@ -6079,6 +6102,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "新しいペアまで {time}",
     },
     connectFour: {
+      sameSet: '国全体で同じセット：{country}', sameSetWorld: '全世界で同じセット',
       intro: "共通点のある4語のグループを4つ見つけよう。ひっかけに注意。",
       mistakesLeft: "残りのミス",
       shuffle: "シャッフル",
@@ -6427,6 +6451,7 @@ const t: Record<Lang, Translations> = {
       from: '원본', to: '변환', result: '결과', swap: '⇅ 전환',
     },
     wordle: {
+      letters: '{n}글자', todayNotPlayed: '미플레이', todaySolved: '성공 {n}/6', todayFailed: '실패',
       title: '🟩 Wordle 게임', back: '‹ 뒤로',
       var_classic: '클래식', var_football: '축구', var_hockey: '하키',
       var_car: '자동차', var_crypto: '암호화폐', var_animal: '동물',
@@ -6599,6 +6624,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "새 문제까지 {time}",
     },
     connectFour: {
+      sameSet: '전국 동일 세트: {country}', sameSetWorld: '전 세계 동일 세트',
       intro: "공통점이 있는 4단어 그룹 4개를 찾으세요. 함정을 조심하세요.",
       mistakesLeft: "남은 실수",
       shuffle: "섞기",
@@ -6947,6 +6973,7 @@ const t: Record<Lang, Translations> = {
       from: 'من', to: 'إلى', result: 'النتيجة', swap: '⇅ تبديل',
     },
     wordle: {
+      letters: '{n} أحرف', todayNotPlayed: 'لم تُلعب', todaySolved: 'حُلّت {n}/6', todayFailed: 'لم تُحل',
       title: '🟩 ألعاب Wordle', back: '‹ رجوع',
       var_classic: 'كلاسيكي', var_football: 'كرة القدم', var_hockey: 'هوكي',
       var_car: 'سيارة', var_crypto: 'عملات رقمية', var_animal: 'حيوان',
@@ -7119,6 +7146,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "أزواج جديدة بعد {time}",
     },
     connectFour: {
+      sameSet: 'نفس المجموعة للبلد كله: {country}', sameSetWorld: 'نفس المجموعة للعالم كله',
       intro: "ابحث عن 4 مجموعات من 4 كلمات يجمعها شيء مشترك. احذر الفخاخ.",
       mistakesLeft: "الأخطاء المتبقية",
       shuffle: "خلط",
@@ -7467,6 +7495,7 @@ const t: Record<Lang, Translations> = {
       from: 'से', to: 'तक', result: 'परिणाम', swap: '⇅ बदलें',
     },
     wordle: {
+      letters: '{n} अक्षर', todayNotPlayed: 'नहीं खेला', todaySolved: 'हल किया {n}/6', todayFailed: 'हल नहीं हुआ',
       title: '🟩 Wordle गेम्स', back: '‹ वापस',
       var_classic: 'क्लासिक', var_football: 'फुटबॉल', var_hockey: 'हॉकी',
       var_car: 'कार', var_crypto: 'क्रिप्टो', var_animal: 'जानवर',
@@ -7639,6 +7668,7 @@ const t: Record<Lang, Translations> = {
       nextIn: "नए जोड़े {time} में",
     },
     connectFour: {
+      sameSet: 'पूरे देश के लिए एक ही सेट: {country}', sameSetWorld: 'पूरी दुनिया के लिए एक ही सेट',
       intro: "ऐसे 4-4 शब्दों के 4 समूह खोजें जिनमें कुछ समान हो। जाल से सावधान रहें।",
       mistakesLeft: "बची हुई गलतियाँ",
       shuffle: "मिलाएँ",

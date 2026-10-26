@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useLang } from '../../lib/LanguageContext';
 import { getDailyPuzzleWords } from '../../lib/dailyPuzzleWords';
 import { recordGameCompleted } from '../../lib/streak';
 import { PUZZLE_MAX, PUZZLE_STATE_KEY, PUZZLE_STATS_KEY, puzzleDayIndex } from '../../lib/dailyTrio';
-import {
-  type TileState, evaluate, tileBg, tileBorder, KB_ROWS, Confetti,
-} from './WordleGames';
+import { type TileState, evaluate, Confetti } from './WordleGames';
+import GameShell from './games/GameShell';
+import { WordleBoard, WordleKeyboard, WordleStatsBar } from './games/WordleBoard';
 
 const MAX = PUZZLE_MAX;
 const WORD_LEN = 5;
-const PUZZLE_COLOR = '#538d4e';
 const STATE_KEY = PUZZLE_STATE_KEY;
 const STATS_KEY = PUZZLE_STATS_KEY;
 
@@ -74,6 +74,7 @@ export default function DailyPuzzle() {
   const [stats, setStats] = useState<PuzzleStats>(DEFAULT_STATS);
   const [countdown, setCountdown] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
 
   /* Restore today's puzzle progress + stats on mount */
   useEffect(() => {
@@ -183,10 +184,15 @@ export default function DailyPuzzle() {
   }, [phase, animating, current, submit]);
 
   useEffect(() => {
-    const fn = (e: KeyboardEvent) => handleKey(e.key.toUpperCase());
+    const fn = (e: KeyboardEvent) => {
+      if (statsOpen) { if (e.key === 'Escape') setStatsOpen(false); return; }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if ((e.target as HTMLElement | null)?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      handleKey(e.key.toUpperCase());
+    };
     window.addEventListener('keydown', fn);
     return () => window.removeEventListener('keydown', fn);
-  }, [handleKey]);
+  }, [handleKey, statsOpen]);
 
   function buildGrid(): string {
     return evals.map(row =>
@@ -204,181 +210,116 @@ export default function DailyPuzzle() {
     setCopied(true); setTimeout(() => setCopied(false), 2200);
   }
 
-  if (!mounted) return null;
-
   const winRate = stats.played > 0 ? Math.round((stats.wins / stats.played) * 100) : 0;
   const maxDist = Math.max(1, ...stats.distribution);
+  const tp = t.dailyPuzzle;
 
   return (
-    <div className="card" style={{
-      background: `linear-gradient(145deg, rgba(83,141,78,0.14), rgba(15,20,40,0.94))`,
-      border: `1px solid ${PUZZLE_COLOR}55`,
-      borderRadius: 'var(--card-radius)',
-      padding: '1.25rem',
-      boxShadow: `var(--card-shadow), 0 0 32px ${PUZZLE_COLOR}22`,
-      marginBottom: '1.25rem',
-      animation: 'widgetIn 0.4s ease both',
-    }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-        <span style={{ fontSize: '22px' }}>🧩</span>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: 'Poppins', fontSize: '14px', fontWeight: '800', color: '#fff' }}>
-            {t.dailyPuzzle.title} <span style={{ color: PUZZLE_COLOR, fontWeight: '700' }}>#{puzzleNum}</span>
+    <GameShell
+      gameId="daily-puzzle"
+      title={<>{tp.title} <span className="dp-num">#{puzzleNum}</span></>}
+    >
+      {!mounted ? <div className="dp-placeholder" /> : (
+        <div className="dp-app">
+          <div className="wb-toast" role="status" aria-live="polite">{message && <span>{message}</span>}</div>
+
+          <div style={{ position: 'relative' }}>
+            {phase === 'won' && <Confetti />}
+            <WordleBoard
+              guesses={guesses} evals={evals} current={current} revealed={revealed}
+              max={MAX} len={WORD_LEN} playing={phase === 'playing'} shake={shake}
+            />
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{t.dailyPuzzle.subtitle}</div>
-        </div>
-        <div style={{ display: 'flex', gap: '6px', fontSize: '12px' }}>
-          <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px 8px', color: '#FFB300' }}>🔥 {stats.currentStreak}</span>
-        </div>
-      </div>
 
-      {/* Toast */}
-      {message && (
-        <div style={{
-          textAlign: 'center', marginBottom: '8px',
-          background: 'rgba(255,255,255,0.92)', color: '#111',
-          borderRadius: '8px', padding: '7px 16px',
-          fontWeight: '700', fontSize: '13px',
-          animation: 'dpToast 0.18s ease',
-        }}>{message}</div>
-      )}
+          <WordleKeyboard
+            keyColors={keyColors} onKey={handleKey}
+            enterLabel={t.wordle.keyboard_enter} backLabel={t.wordle.keyboard_backspace}
+          />
 
-      {/* Grid */}
-      <div style={{ position: 'relative' }}>
-        {phase === 'won' && <Confetti />}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '14px' }}>
-          {Array.from({ length: MAX }, (_, row) => {
-            const isCur = row === guesses.length && phase === 'playing';
-            const letters = row < guesses.length
-              ? guesses[row].split('')
-              : isCur
-                ? [...current.split(''), ...Array(WORD_LEN - current.length).fill('')]
-                : Array(WORD_LEN).fill('');
-
-            return (
-              <div key={row} style={{
-                display: 'flex', gap: '5px',
-                animation: isCur && shake ? 'dpShake 0.4s ease' : 'none',
-              }}>
-                {letters.map((ch, col) => {
-                  const isRev = revealed.has(`${row}-${col}`);
-                  const evalState: TileState | undefined = (row < guesses.length && isRev) ? evals[row]?.[col] : undefined;
-                  const state: TileState = evalState ?? (ch ? (row < guesses.length ? 'absent' : 'typed') : 'empty');
-                  const isFlipping = row < guesses.length && !isRev;
-
-                  return (
-                    <div key={col} style={{
-                      width: '48px', height: '48px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'Poppins', fontSize: '20px', fontWeight: '800', color: '#fff',
-                      background: tileBg(evalState ?? state, PUZZLE_COLOR),
-                      border: tileBorder(state, PUZZLE_COLOR),
-                      borderRadius: '6px',
-                      animation: isFlipping
-                        ? `dpFlipDown 0.25s ease-in ${col * 0.3}s both, dpFlipUp 0.25s ease-out ${col * 0.3 + 0.25}s both`
-                        : (state === 'typed' && ch ? 'dpPop 0.1s ease' : 'none'),
-                    }}>
-                      {ch}
-                    </div>
-                  );
-                })}
+          {(phase === 'won' || phase === 'lost') && (
+            <div className="dp-end">
+              <button type="button" className="gx-btn gx-primary" onClick={share}>
+                {copied ? tp.copied : tp.shareResult}
+              </button>
+              <div className="dp-next">
+                {tp.nextPuzzleIn} <b className="tabular-nums">{countdown}</b>
+                {phase === 'lost' ? ` · ${tp.answer.replace('{word}', target)}` : ''}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            </div>
+          )}
 
-      {/* Keyboard */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', marginBottom: '12px', width: '100%', maxWidth: '500px', marginInline: 'auto' }}>
-        {KB_ROWS.map((row, ri) => (
-          <div key={ri} style={{ display: 'flex', gap: '4px', width: '100%', justifyContent: 'center' }}>
-            {row.map(key => {
-              const kc = keyColors[key];
-              const bg = kc === 'correct' ? PUZZLE_COLOR : kc === 'present' ? '#b59f3b' : kc === 'absent' ? '#3a3a3c' : 'rgba(255,255,255,0.12)';
-              return (
-                <button key={key} onClick={() => handleKey(key)} style={{
-                  height: '48px', minWidth: 0, padding: 0, overflow: 'hidden',
-                  flex: (key === 'ENTER' || key === '⌫') ? '1.6 1 0' : '1 1 0',
-                  maxWidth: (key === 'ENTER' || key === '⌫') ? '64px' : '43px',
-                  borderRadius: '6px', border: 'none', cursor: 'pointer',
-                  background: bg, color: '#fff',
-                  fontSize: key.length > 1 ? '12px' : '13px',
-                  fontWeight: '700', fontFamily: 'Poppins',
-                }}>{key === 'ENTER' ? t.wordle.keyboard_enter : key === '⌫' ? t.wordle.keyboard_backspace : key}</button>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Win/lose actions */}
-      {(phase === 'won' || phase === 'lost') && (
-        <div style={{ textAlign: 'center', marginBottom: '14px' }}>
-          <button onClick={share} style={{
-            background: copied ? `${PUZZLE_COLOR}33` : 'rgba(255,255,255,0.07)',
-            border: copied ? `1px solid ${PUZZLE_COLOR}77` : '1px solid rgba(255,255,255,0.15)',
-            borderRadius: '10px', color: copied ? PUZZLE_COLOR : '#fff',
-            fontSize: '13px', fontWeight: '600',
-            padding: '9px 22px', cursor: 'pointer', transition: 'all 0.2s',
-          }}>
-            {copied ? t.dailyPuzzle.copied : t.dailyPuzzle.shareResult}
-          </button>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginTop: '8px' }}>
-            {t.dailyPuzzle.nextPuzzleIn} <span style={{ fontFamily: 'monospace', color: '#fff' }}>{countdown}</span>
-            {phase === 'lost' ? ` · ${t.dailyPuzzle.answer.replace('{word}', target)}` : ''}
-          </div>
+          <WordleStatsBar
+            items={[
+              { label: tp.played, value: stats.played },
+              { label: tp.winRate, value: `${winRate}%` },
+              { label: tp.currentStreak, value: stats.currentStreak },
+              { label: tp.maxStreak, value: stats.bestStreak },
+            ]}
+            onOpen={() => setStatsOpen(true)} openLabel={tp.statsTitle}
+          />
         </div>
       )}
 
-      {/* Stats */}
-      {stats.played > 0 && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
-            {t.dailyPuzzle.statsTitle}
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '12px' }}>
-            <StatBox value={stats.played} label={t.dailyPuzzle.played} />
-            <StatBox value={`${winRate}%`} label={t.dailyPuzzle.winRate} />
-            <StatBox value={stats.currentStreak} label={t.dailyPuzzle.currentStreak} />
-            <StatBox value={stats.bestStreak} label={t.dailyPuzzle.maxStreak} />
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '6px' }}>{t.dailyPuzzle.distribution}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {stats.distribution.map((count, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text3)', width: '10px' }}>{i + 1}</span>
-                <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', height: '14px' }}>
-                  <div style={{
-                    width: `${(count / maxDist) * 100}%`, minWidth: count > 0 ? '14px' : 0,
-                    background: PUZZLE_COLOR, height: '100%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '4px',
-                  }}>
-                    {count > 0 && <span style={{ fontSize: '12px', color: '#fff', fontWeight: '700' }}>{count}</span>}
+      {statsOpen && createPortal(
+        <div className="gs-overlay" onClick={e => { if (e.target === e.currentTarget) setStatsOpen(false); }}>
+          <div className="gs-modal" role="dialog" aria-modal="true" aria-label={tp.statsTitle}>
+            <div className="gs-modal-head">
+              <span>📊 {tp.statsTitle}</span>
+              <button type="button" className="gs-close" onClick={() => setStatsOpen(false)} aria-label={t.games.close}>✕</button>
+            </div>
+            <div className="dp-modal-stats">
+              <StatBox value={stats.played} label={tp.played} />
+              <StatBox value={`${winRate}%`} label={tp.winRate} />
+              <StatBox value={stats.currentStreak} label={tp.currentStreak} />
+              <StatBox value={stats.bestStreak} label={tp.maxStreak} />
+            </div>
+            <div className="dp-dist-title">{tp.distribution}</div>
+            <div className="dp-dist">
+              {stats.distribution.map((count, i) => (
+                <div key={i} className="dp-dist-row">
+                  <span>{i + 1}</span>
+                  <div className="dp-dist-track">
+                    <div className="dp-dist-bar" style={{ width: `${(count / maxDist) * 100}%`, minWidth: count > 0 ? '22px' : 0 }}>
+                      {count > 0 && <b>{count}</b>}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       <style>{`
-        @keyframes dpFlipDown { from{transform:scaleY(1)} to{transform:scaleY(0)} }
-        @keyframes dpFlipUp   { from{transform:scaleY(0)} to{transform:scaleY(1)} }
-        @keyframes dpPop      { 0%,100%{transform:scale(1)} 50%{transform:scale(1.14)} }
-        @keyframes dpShake    { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
-        @keyframes dpToast    { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        .dp-placeholder { min-height: 560px; }
+        .dp-num { color: #2FE39A; text-shadow: 0 0 16px rgba(47,227,154,.6); }
+        .dp-app { display: flex; flex-direction: column; gap: 14px; }
+        .dp-end { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+        .dp-next { font-size: 12px; color: var(--text3); }
+        .dp-next b { color: #fff; }
+        .dp-modal-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 14px 0; }
+        .dp-dist-title { font-size: 12px; color: #9AA0D0; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .05em; }
+        .dp-dist { display: flex; flex-direction: column; gap: 6px; }
+        .dp-dist-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9AA0D0; }
+        .dp-dist-row > span { width: 12px; text-align: center; }
+        .dp-dist-track { flex: 1; height: 20px; border-radius: 6px; background: rgba(255,255,255,0.05); overflow: hidden; }
+        .dp-dist-bar {
+          height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px;
+          background: linear-gradient(90deg, #17B978, #4CF0AE); box-shadow: 0 0 12px rgba(47,227,154,.45);
+        }
+        .dp-dist-bar b { font-size: 12px; color: #04261A; }
+        .dp-dist-bar:empty { padding: 0; box-shadow: none; }
       `}</style>
-    </div>
+    </GameShell>
   );
 }
 
 function StatBox({ value, label }: { value: number | string; label: string }) {
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontFamily: 'Poppins', fontSize: '18px', fontWeight: '700', color: '#fff' }}>{value}</div>
-      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{label}</div>
+      <div style={{ fontFamily: 'Poppins', fontSize: '22px', fontWeight: 800, color: '#fff' }}>{value}</div>
+      <div style={{ fontSize: '11px', color: '#9AA0D0', lineHeight: 1.25 }}>{label}</div>
     </div>
   );
 }
