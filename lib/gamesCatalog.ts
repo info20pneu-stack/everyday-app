@@ -20,31 +20,73 @@ export interface LeaderboardConfig {
   /** With `daily`: one daily board per region (or other variant, e.g. a difficulty),
    *  stored as `<id>_<region>_<yyyymmdd>`. */
   regional?: boolean;
+  /** Plausibility limits checked by the server before a score is saved (lib/antiCheat). */
+  limits: ScoreLimits;
+  /** The server recomputes the result from the moves the client sends (daily games with a fixed solution). */
+  verified?: 'wordle' | 'connectfour' | 'higherlower';
 }
 
-const POINTS: LeaderboardConfig = { scoreType: 'points', order: 'desc' };
-const TIME: LeaderboardConfig = { scoreType: 'time', order: 'asc' };
+/* ═══════════════════════ Anti-cheat limits ═══════════════════════
+   Every save needs a session token from POST /api/game/start. "Real time" is the time between
+   that call and the save, measured on the server. The token is fetched when the game page opens,
+   so the real time is never shorter than the round itself. */
+export interface ScoreLimits {
+  /** Shortest believable real time of one round (ms). */
+  minPlayMs: number;
+  /** Time games: fastest believable result (ms). */
+  minTimeMs?: number;
+  /** Points games: highest believable score. */
+  maxScore?: number;
+  /** Points games: highest believable score per second of real time. */
+  maxScorePerSec?: number;
+}
+
+/** The claimed time may exceed the real time only by this much (clock and network jitter). */
+export const TIME_SLACK_MS = 5000;
+
+const POINTS = { scoreType: 'points', order: 'desc' } as const;
+const TIME = { scoreType: 'time', order: 'asc' } as const;
+
+function time(minPlayMs: number, minTimeMs: number, extra: Partial<LeaderboardConfig> = {}): LeaderboardConfig {
+  return { ...TIME, limits: { minPlayMs, minTimeMs }, ...extra };
+}
+function points(minPlayMs: number, maxScore: number, maxScorePerSec: number, extra: Partial<LeaderboardConfig> = {}): LeaderboardConfig {
+  return { ...POINTS, limits: { minPlayMs, maxScore, maxScorePerSec }, ...extra };
+}
+const wordle = () => points(3000, 6, 2, { verified: 'wordle' });
 
 export const LEADERBOARD_GAMES = {
-  // Daily challenge + speed games
-  sliding: TIME, memory: TIME, flagquiz: POINTS, wordchain: POINTS, mathrush: POINTS,
-  reflex: TIME, reaction: TIME, felixjump: POINTS, typing: POINTS,
+  /* Daily challenge + speed games */
+  sliding: time(3000, 3000),               // the small board can be solved in a few seconds
+  memory: time(5000, 5000),                // 4×4 = 8 pairs, at least 16 flips with animations
+  flagquiz: points(5000, 10, 1),           // 10 questions, 1 point each
+  wordchain: points(2000, 1000, 3),        // words clicked in order; sequences get longer
+  mathrush: points(58000, 200, 3),         // fixed 60 s round
+  reflex: time(20000, 5),                  // 5 × stopping a timer at 5 s; average deviation (ms)
+  reaction: time(5000, 100),               // average of 5 reactions; under 100 ms is not human
+  felixjump: points(1000, 100000, 11),     // 10 points per second survived
+  typing: points(14000, 250, 25),          // WPM over a 15–120 s test
   // Retired (replaced by Sky Tower) — kept so its stored scores stay readable and in the admin summary
-  stack: POINTS,
-  // Human Benchmark
-  hb_reaction: TIME, hb_numbermem: POINTS, hb_visualmem: POINTS, hb_verbalmem: POINTS,
-  hb_seqmem: POINTS, hb_aimtrainer: TIME, hb_mentalmath: POINTS,
-  // Wordle (score = 7 − guesses, so fewer guesses rank higher)
-  wordle_classic: POINTS, wordle_football: POINTS, wordle_hockey: POINTS, wordle_car: POINTS,
-  wordle_crypto: POINTS, wordle_animal: POINTS, wordle_plant: POINTS, wordle_city: POINTS,
-  // New games
-  skytower: POINTS,
-  dailyblocks: { ...POINTS, variants: true, daily: true },
-  higherlower: { ...POINTS, variants: true, daily: true },
+  stack: points(2000, 500, 3),
+  /* Human Benchmark */
+  hb_reaction: time(5000, 100),
+  hb_numbermem: points(3000, 40, 1),       // digits remembered
+  hb_visualmem: points(3000, 50, 0.5),     // level reached
+  hb_verbalmem: points(2000, 1000, 2),     // words
+  hb_seqmem: points(3000, 60, 0.5),        // sequence length
+  hb_aimtrainer: time(4000, 4500),         // 30 targets, total time
+  hb_mentalmath: points(58000, 200, 3),    // fixed 60 s
+  /* Wordle (score = 7 − guesses, so fewer guesses rank higher); the server checks the guesses */
+  wordle_classic: wordle(), wordle_football: wordle(), wordle_hockey: wordle(), wordle_car: wordle(),
+  wordle_crypto: wordle(), wordle_animal: wordle(), wordle_plant: wordle(), wordle_city: wordle(),
+  /* New games */
+  skytower: points(2000, 3000, 3),         // floors; at most a block every ~0.35 s
+  dailyblocks: points(5000, 5_000_000, 6000, { variants: true, daily: true }), // up to 800 × level per tetris
+  higherlower: points(8000, 10, 1, { variants: true, daily: true, verified: 'higherlower' }), // 10 animated reveals
   // One daily board per region: connectfour_<region>_<yyyymmdd>
-  connectfour: { ...TIME, variants: true, daily: true, regional: true },
+  connectfour: time(6000, 6000, { variants: true, daily: true, regional: true, verified: 'connectfour' }),
   // One daily board per difficulty: sudokucube_<easy|mid|hard>_<yyyymmdd>
-  sudokucube: { ...TIME, variants: true, daily: true, regional: true },
+  sudokucube: time(8000, 8000, { variants: true, daily: true, regional: true }),
 } satisfies Record<string, LeaderboardConfig>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;

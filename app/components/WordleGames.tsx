@@ -9,6 +9,9 @@ import CountrySelect from './CountrySelect';
 import { KB_ROWS, WordleBoard, WordleKeyboard, type TileState } from './games/WordleBoard';
 import { GameBanner, GameFrame, GameTopBar } from './games/GameFrame';
 import { getCatalogGame, gameText } from '../../lib/gamesCatalog';
+import { wordleTarget } from '../../lib/games/wordleWords';
+import { ensureGameSession, takeGameSession } from '../../lib/gameSession';
+import { lbErrorText } from '../../lib/leaderboardI18n';
 
 function lsGetStr(key: string, fb: string): string {
   if (typeof window === 'undefined') return fb;
@@ -16,16 +19,7 @@ function lsGetStr(key: string, fb: string): string {
 }
 
 /* ── Word lists per category (5-letter, uppercase) ── */
-const WORDS: Record<string, string[]> = {
-  classic: ['WORLD','CRANE','FLAME','GHOST','PLANT','LIGHT','BRAIN','WATER','STONE','BREAK','CLOUD','DANCE','EARTH','FROST','GRANT','HOUSE','KNIFE','LEMON','MAGIC','NIGHT','OCEAN','PEACE','QUEEN','RIVER','SHELF','TIGER','VAULT','WITCH','YOUTH','ANGEL','BLADE','CHESS','DRIFT','EAGLE','FAITH','GLOVE','HEART','JUICE','KARMA','LASER','MAPLE','NURSE','OZONE','PIXEL','QUEST','SMOKE','TRAIN','UMBRA','VERSE','WATCH'],
-  football:['BENCH','BLOCK','COACH','CROSS','DERBY','DRAFT','EXTRA','FIELD','FINAL','FLANK','GUARD','GOALS','MATCH','PITCH','SQUAD','SCORE','SHOOT','SKILL','SPORT','STEAL','TITLE','TOUCH','TRIAL','VILLA','YOUTH','TEAMS','FIRST','PRESS','CURVE','DRIVE','FLAGS','LIMIT','MOVES','RIVAL','SHOTS','TIMER','WINGS','ZONES','ARENA','CHAMP','CLUBS','FOULS','LINES','THIRD','SWEEP','SUPER','ULTRA','BREAK','AWARD','FINAL'],
-  hockey:  ['BLADE','BLOCK','CHECK','DRAFT','GOALS','GLIDE','GUARD','KINGS','MAPLE','PUCKS','SCORE','SAVES','SHOTS','SKATE','STICK','TEAMS','TITLE','WINGS','CLEAN','FIRST','SHIFT','POINT','POWER','ZONES','CROWD','RINKS','BENCH','CYCLE','ICING','LINES','MASKS','PATCH','RINGS','SLAPS','TRADE','NORTH','FINAL','RAPID','SWIPE','HOLDS','FINES','BLAZE','CREST','FORCE','GRIND','HURLS','JUMPS','KICKS','LEAPS','MOVES'],
-  car:     ['BRAKE','CABIN','CARGO','CHOKE','COUPE','CRASH','CURVE','DRIVE','DRIFT','ELITE','EXTRA','FIRST','FLARE','FORCE','GAUGE','GLIDE','GRAND','GUARD','HATCH','LIGHT','MOTOR','NITRO','PEDAL','PILOT','POWER','QUICK','RADAR','RALLY','RAPID','RACER','ROADS','SEDAN','SHIFT','SPORT','SPEED','STEER','TESLA','TITAN','TURBO','ULTRA','VALVE','VROOM','WHEEL','WIPER','WRECK','CIVIC','TRACK','GRILL','TORQS','LANES'],
-  crypto:  ['BLOCK','CHAIN','COINS','ETHER','FUNDS','HALVE','LEDGE','LIMIT','LINKS','MINER','MINTS','NODES','NONCE','PRICE','PROOF','RELAY','SHARD','SMART','STAKE','STORE','TOKEN','TRADE','TRUST','VAULT','VALID','WAVES','YIELD','BEARS','BULLS','DEBIT','FORGE','GRANT','HEDGE','PROXY','RALLY','RATES','REALM','RISKS','SEEDS','SPENT','SWEEP','TALLY','TESTS','USAGE','VALUE','WORTH','GAINS','FLOAT','BONDS','ASSET'],
-  animal:  ['BEARS','BISON','COBRA','CRANE','DINGO','EAGLE','EGRET','ELAND','FINCH','GECKO','GOOSE','HERON','HORSE','HYENA','KOALA','LEMUR','LLAMA','MACAW','MOOSE','MOUSE','OKAPI','OTTER','PANDA','QUAIL','RAVEN','ROBIN','SABLE','SHARK','SHEEP','SKUNK','SLOTH','SNAIL','SNAKE','STORK','TAPIR','TIGER','VIPER','WHALE','ZEBRA','BREAM','GUPPY','HIPPO','KRILL','NEWTS','QUOLL','WOMBAT','PLOVER','STOAT','VOLES','MOLES'],
-  plant:   ['ALDER','ALGAE','APPLE','ASPEN','ASTER','BASIL','BEECH','BIRCH','CACAO','CANNA','CEDAR','CHIVE','CLOVE','DAISY','ELDER','FERNS','HOLLY','LILAC','LOTUS','MAPLE','MYRRH','PANSY','PEACH','PEONY','POPPY','REEDS','SEDGE','SEEDS','SHRUB','SPORE','STALK','SUMAC','THYME','TULIP','VINES','VIOLA','WHEAT','YUCCA','AGAVE','BRIAR','CRESS','EMMER','ERGOT','GORSE','HEATH','OCHNA','ROOTS','SORREL','ENDIVE','FROND'],
-  city:    ['TOKYO','PARIS','CAIRO','DELHI','DUBAI','SEOUL','SOFIA','TUNIS','OSAKA','HANOI','KABUL','KYOTO','LAGOS','DAKAR','QUITO','MIAMI','MINSK','AMMAN','ASWAN','BASEL','BREST','CUSCO','DAVOS','DOVER','ESSEN','GENOA','KAZAN','KONYA','LHASA','LIEGE','MACAU','MALMO','PATAN','RONDA','SIENA','SPLIT','TARTU','TOURS','VADUZ','WUHAN','YALTA','BERNE','ACCRA','GHENT','NATAL','EVIAN','TROMS','ZARIA','NICEA','DERRY'],
-};
+
 
 function getModes(t: Translations) {
   return [
@@ -60,8 +54,7 @@ function readDayResult(modeId: string): DayResult | null {
 }
 
 function getTarget(modeId: string): string {
-  const list = WORDS[modeId] ?? WORDS.classic;
-  return list[dateSeed() % list.length];
+  return wordleTarget(modeId, dateSeed());
 }
 
 export function evaluate(guess: string, target: string): TileState[] {
@@ -140,6 +133,9 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
   const [city,      setCity]    = useState(() => lsGetStr('lb_city', ''));
   const [rank,      setRank]    = useState<number | null>(null);
   const [subErr,    setSubErr]  = useState('');
+  // Anti-cheat session token (lib/gameSession.ts): fetched as the board opens, taken on the first submit
+  useEffect(() => { ensureGameSession(lbGameId); }, [lbGameId]);
+  const session = useRef<Promise<string | null> | null>(null);
 
   async function submitScore() {
     if (!nick.trim() || subPhase === 'submitting') return;
@@ -156,14 +152,19 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
       const res = await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game: lbGameId, name: nick.trim(), country, city: city.trim(), timeMs: elapsedMs, score, moves: guessesUsed }),
+        body: JSON.stringify({
+          game: lbGameId, name: nick.trim(), country, city: city.trim(), timeMs: elapsedMs, score, moves: guessesUsed,
+          // The server re-checks the guesses against the day's word
+          proof: { day: dateSeed(), guesses },
+          token: await (session.current ??= takeGameSession(lbGameId)),
+        }),
       });
       const data = await res.json() as Record<string, unknown>;
       if (res.status === 201 || data.notBetter || data.notInTop) {
         setRank((data.rank as number) ?? null);
         setSubPhase('done');
       } else {
-        setSubErr((data.error as string) || t.games.submitError); setSubPhase('form');
+        setSubErr(lbErrorText(data.code ?? data.error, lang, t.games.submitError)); setSubPhase('form');
       }
     } catch { setSubErr(t.games.connectionError); setSubPhase('form'); }
   }
@@ -305,8 +306,8 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
             <input
-              type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={30}
-              onChange={e => setNick(e.target.value.slice(0, 30))}
+              type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={16}
+              onChange={e => setNick(e.target.value.slice(0, 16))}
               style={{ width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '8px', color: '#fff', fontSize: '13px', padding: '9px 11px', outline: 'none', boxSizing: 'border-box' }}
             />
             <CountrySelect

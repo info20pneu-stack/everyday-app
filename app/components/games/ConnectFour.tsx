@@ -398,7 +398,8 @@ function ConnectFourGame({ region, picker, setCountry, shareFlag, day, onDayChan
     setSel([]);
     if (mode !== 'daily') return;
     lsSet(stateKey(region, day), { ...final, savedAt: Date.now() });
-    if (final.win) onGameOver({ timeMs, moves: final.history.length });
+    // The server re-checks the guesses (tile id = group × 4 + word)
+    if (final.win) onGameOver({ timeMs, moves: final.history.length, proof: { guesses: final.guessed.map(k => k.split('-').map(Number)) } });
     else recordGameCompleted();
   }
 

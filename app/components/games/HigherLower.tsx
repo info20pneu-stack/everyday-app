@@ -168,7 +168,9 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
     const prev = lsGet<DaysStreak>(DAYS_KEY, { n: 0, last: null });
     if (prev.last !== day) lsSet(DAYS_KEY, { n: prev.last === previousDay(day) ? prev.n + 1 : 1, last: day });
     // First daily attempt → leaderboard (the time since the round started breaks ties)
-    if (s > 0) onGameOver({ score: s });
+    // The server recomputes the score from the answers ("higher" = true) and the day's pairs
+    const answers = final.results.map((ok, i) => ok === (final.pairs[i].b.value > final.pairs[i].a.value));
+    if (s > 0) onGameOver({ score: s, proof: { answers } });
   }
 
   function guess(higher: boolean) {

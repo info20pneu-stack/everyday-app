@@ -18,6 +18,7 @@ import { getCountryName } from '../../lib/games/countries';
 import Flag from './Flag';
 import FlagSelect from './FlagSelect';
 import ScoreSubmitModal, { scoreModalInputStyle } from './games/ScoreSubmitModal';
+import { ensureGameSession } from '../../lib/gameSession';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -2499,6 +2500,9 @@ function DailyGamesView() {
     if (DAILY_TABS.includes(game)) { setCategory('daily'); setTab(game); }
     else if (SPEED_TABS.includes(game)) { setCategory('speed'); setTab(game); }
   }, [urlChallenge]);
+
+  // Anti-cheat session token for the open game (lib/gameSession.ts)
+  useEffect(() => { if (category === 'daily' || category === 'speed') ensureGameSession(tab); }, [category, tab]);
 
   function selectCategory(cat: CategoryId) {
     setCategory(cat);

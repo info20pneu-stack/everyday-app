@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Flag from '../components/Flag';
+import ModerationPanel from './ModerationPanel';
 
 /* ═══════════════════════ Types ═══════════════════════ */
 
@@ -33,7 +34,7 @@ type Suggestion = {
   createdAt: number;
 };
 
-type Tab = 'overview' | 'leaderboard' | 'suggestions';
+type Tab = 'overview' | 'leaderboard' | 'moderation' | 'suggestions';
 
 /* ═══════════════════════ Shared styles ═══════════════════════ */
 
@@ -338,6 +339,7 @@ export default function AdminClient() {
           {([
             ['overview', '📊 Přehled'],
             ['leaderboard', '🏆 Žebříčky'],
+            ['moderation', '🛡️ Moderace'],
             ['suggestions', '💡 Návrhy'],
           ] as [Tab, string][]).map(([id, label]) => (
             <button
@@ -450,6 +452,8 @@ export default function AdminClient() {
         )}
 
         {/* Suggestions */}
+        {tab === 'moderation' && <ModerationPanel />}
+
         {tab === 'suggestions' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {suggestions.length === 0 ? (

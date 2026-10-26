@@ -14,6 +14,7 @@ import { BEST_EVENT, parseBest, readBestRaw, saveBest, type StoredBest } from '.
 import BossKey, { BossKeyModePicker, BossKeyPills } from './BossKey';
 import { GameBanner, GameFrame, GameTopBar } from './GameFrame';
 import ScoreSubmitModal from './ScoreSubmitModal';
+import { ensureGameSession } from '../../../lib/gameSession';
 
 /* ─────────────────────────── game-over API ───────────────────────────
    Inside <GameShell>, a game calls:
@@ -29,6 +30,8 @@ export interface GameResult {
   timeMs?: number;
   moves?: number;
   diff?: string;
+  /** Moves of a daily game with a fixed solution (the server recomputes the result from them). */
+  proof?: unknown;
 }
 
 export interface GameShellApi {
@@ -126,6 +129,8 @@ export default function GameShell({
   const roundStart = useRef(0);
   const startRound = useCallback(() => { roundStart.current = performance.now(); }, []);
   useEffect(() => { startRound(); }, [startRound]);
+  // Anti-cheat session token for this board, fetched as the game opens (lib/gameSession.ts)
+  useEffect(() => { if (lbConfig) ensureGameSession(lbId); }, [lbId, lbConfig]);
 
   function onGameOver(input: number | GameResult) {
     const isTime = lbConfig?.scoreType === 'time';
@@ -204,7 +209,7 @@ export default function GameShell({
       {submit && lbId && (
         <ScoreSubmitModal
           game={lbId}
-          timeMs={submit.timeMs} score={submit.score} moves={submit.moves} diff={submit.diff}
+          timeMs={submit.timeMs} score={submit.score} moves={submit.moves} diff={submit.diff} proof={submit.proof}
           title={`${game?.icon ?? '🎮'} ${name} ${t.games.completed}`}
           onClose={() => setSubmit(null)}
           onShowLeaderboard={() => setLbOpen(true)}

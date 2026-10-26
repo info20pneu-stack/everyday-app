@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import FitWidth from './FitWidth';
+import { ensureGameSession, takeGameSession } from '../../lib/gameSession';
+import { lbErrorText } from '../../lib/leaderboardI18n';
 import { useLang } from '../../lib/LanguageContext';
 import { recordGameCompleted } from '../../lib/streak';
 import { LeaderboardPanel, type LBEntry as SharedLBEntry } from './Leaderboard';
@@ -152,6 +154,9 @@ function HBSubmit({ result, onDismiss }: {
   const [city, setCity] = useState(() => hbGet('lb_city', ''));
   const [rank, setRank] = useState<number | null>(null);
   const [err, setErr] = useState('');
+  const { t } = useLang();
+  // Taken on the first submit and kept for retries (the server spends it only once it judged the result)
+  const session = useRef<Promise<string | null> | null>(null);
 
   const inputSt: React.CSSProperties = {
     width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
@@ -166,7 +171,10 @@ function HBSubmit({ result, onDismiss }: {
       const res = await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game: result.gameId, name: nick.trim(), country, city: city.trim(), timeMs: result.timeMs, score: result.score }),
+        body: JSON.stringify({
+          game: result.gameId, name: nick.trim(), country, city: city.trim(), timeMs: result.timeMs, score: result.score,
+          token: await (session.current ??= takeGameSession(result.gameId)),
+        }),
       });
       const data = await res.json() as Record<string, unknown>;
       if (res.status === 201 || data.notBetter || data.notInTop) {
@@ -174,9 +182,9 @@ function HBSubmit({ result, onDismiss }: {
         setPhase('done');
         tone(880, 0.2, 'sine', 0.1);
       } else {
-        setErr((data.error as string) || 'Submission failed'); setPhase('form');
+        setErr(lbErrorText(data.code ?? data.error, lang, t.games.submitError)); setPhase('form');
       }
-    } catch { setErr('Connection error'); setPhase('form'); }
+    } catch { setErr(t.games.connectionError); setPhase('form'); }
   }
 
   if (phase === 'done') {
@@ -203,7 +211,7 @@ function HBSubmit({ result, onDismiss }: {
   return (
     <div style={{ marginTop: '14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '14px' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
-        <input type="text" placeholder="Nickname" value={nick} maxLength={30} onChange={e => setNick(e.target.value.slice(0, 30))} style={inputSt} />
+        <input type="text" placeholder="Nickname" value={nick} maxLength={16} onChange={e => setNick(e.target.value.slice(0, 16))} style={inputSt} />
         <CountrySelect value={country} onChange={setCountry} lang={lang} placeholder="Select country…" style={inputSt} />
         <input type="text" placeholder="City (optional)" value={city} maxLength={60} onChange={e => setCity(e.target.value.slice(0, 60))} style={inputSt} />
       </div>
@@ -1026,6 +1034,8 @@ const TEST_COMPS: Record<TestId, React.ComponentType<{ onDone: (r: TestResult) =
 function TestRunner({ testId, onBack }: { testId: TestId; onBack: () => void }) {
   const [result, setResult] = useState<TestResult | null>(null);
   const [key, setKey] = useState(0);
+  // Anti-cheat session token for this test (lib/gameSession.ts)
+  useEffect(() => { ensureGameSession(GAME_ID[testId]); }, [testId]);
   const meta = TEST_META[testId];
   const Comp = TEST_COMPS[testId];
 

@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useLang } from '../../../lib/LanguageContext';
 import { recordLeaderboardRank } from '../../../lib/streak';
 import { formatTimeMs, getLeaderboardConfig } from '../../../lib/gamesCatalog';
 import { rankKey } from '../../../lib/dailyTrio';
 import CountrySelect from '../CountrySelect';
+import { takeGameSession } from '../../../lib/gameSession';
+import { lbErrorText } from '../../../lib/leaderboardI18n';
 
 /* "Save your result" window shared by all games (moved out of DailyGames).
    Pass `result` to replace the default result block; by default the leaderboard config decides:
@@ -40,6 +42,8 @@ export interface ScoreSubmitModalProps {
   score?: number;
   moves?: number;
   diff?: string;
+  /** Moves of a daily game with a fixed solution; the server recomputes the result from them. */
+  proof?: unknown;
   /** Heading text, e.g. "🧩 Puzzle completed!". */
   title: ReactNode;
   /** Replaces the default result block. */
@@ -58,7 +62,7 @@ export const scoreModalInputStyle: React.CSSProperties = {
 };
 
 export default function ScoreSubmitModal({
-  game, timeMs, score, moves, diff, title, result, extra, onClose, onShowLeaderboard,
+  game, timeMs, score, moves, diff, proof, title, result, extra, onClose, onShowLeaderboard,
 }: ScoreSubmitModalProps) {
   const { lang, t, rtl } = useLang();
   const [nick,       setNick]       = useState(() => lsGet<string>('lb_nick', ''));
@@ -69,6 +73,9 @@ export default function ScoreSubmitModal({
   const [phase,      setPhase]      = useState<'form' | 'confirm'>('form');
   const [myRank,     setMyRank]     = useState<number | null>(null);
   const device = useMemo(() => detectDevice(), []);
+  // The round's session token (anti-cheat), taken on the first submit and kept for retries
+  // (e.g. after "nick taken"): the server only spends it once it has judged the result
+  const session = useRef<Promise<string | null> | null>(null);
 
   async function handleSubmit() {
     if (!nick.trim() || submitting) return;
@@ -81,7 +88,7 @@ export default function ScoreSubmitModal({
       const res = await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff, device }),
+        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff, device, proof, token: await (session.current ??= takeGameSession(game)) }),
       });
       const data = await res.json() as Record<string, unknown>;
       if (res.status === 201) {
@@ -98,7 +105,7 @@ export default function ScoreSubmitModal({
         saveRank(game, data.rank as number);
         setPhase('confirm');
       } else {
-        setSubmitErr((data.error as string) || t.games.submitError);
+        setSubmitErr(lbErrorText(data.code ?? data.error, lang, t.games.submitError));
       }
     } catch {
       setSubmitErr(t.games.connectionError);
@@ -142,8 +149,8 @@ export default function ScoreSubmitModal({
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               <input
-                type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={30}
-                onChange={e => setNick(e.target.value.slice(0, 30))}
+                type="text" placeholder={t.games.nickPlaceholder} value={nick} maxLength={16}
+                onChange={e => setNick(e.target.value.slice(0, 16))}
                 style={scoreModalInputStyle}
               />
               <CountrySelect
