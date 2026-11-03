@@ -1,4 +1,5 @@
 import type { Translations } from './i18n';
+import { MAX_ROUNDS as FOLLOW_GOLD_MAX, minPlayMsForScore as followGoldMinMs } from './games/followGold';
 
 /* ═══════════════════════ Leaderboard config ═══════════════════════
    One entry per leaderboard game id. The API derives validation and sort order from this.
@@ -39,6 +40,8 @@ export interface ScoreLimits {
   maxScore?: number;
   /** Points games: highest believable score per second of real time. */
   maxScorePerSec?: number;
+  /** Points games: shortest believable real time for a given score (e.g. rounds with a fixed length). */
+  minPlayMsForScore?: (score: number) => number;
 }
 
 /** The claimed time may exceed the real time only by this much (clock and network jitter). */
@@ -87,6 +90,8 @@ export const LEADERBOARD_GAMES = {
   connectfour: time(6000, 6000, { variants: true, daily: true, regional: true, verified: 'connectfour' }),
   // One daily board per difficulty: sudokucube_<easy|mid|hard>_<yyyymmdd>
   sudokucube: time(8000, 8000, { variants: true, daily: true, regional: true }),
+  // Rounds cleared; every round takes at least its countdown + all shuffle moves (lib/games/followGold.ts)
+  followgold: { ...points(4000, FOLLOW_GOLD_MAX, 0.5), limits: { minPlayMs: 4000, maxScore: FOLLOW_GOLD_MAX, maxScorePerSec: 0.5, minPlayMsForScore: followGoldMinMs } },
 } satisfies Record<string, LeaderboardConfig>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;
@@ -199,6 +204,8 @@ export const GAMES_CATALOG: CatalogGame[] = [
     nameKey: 'gamesHub.name_dailyBlocks', descKey: 'gamesHub.desc_dailyBlocks', leaderboard: 'dailyblocks' },
   { id: 'sudoku-cube', section: 'mini', duration: '10+', icon: '🧊', color: '#40AAFF', addedAt: '2026-10-26', route: '/games/sudoku-cube',
     nameKey: 'gamesHub.name_sudokuCube', descKey: 'gamesHub.desc_sudokuCube', leaderboard: 'sudokucube' },
+  { id: 'follow-gold', section: 'mini', duration: '2', icon: '🟡', color: '#F5B829', addedAt: '2026-11-03', route: '/games/follow-gold',
+    nameKey: 'gamesHub.name_followGold', descKey: 'gamesHub.desc_followGold', leaderboard: 'followgold' },
   { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', addedAt: '2026-05-24', route: '/daily-games?play=memory',
     nameKey: 'games.memory', descKey: 'gamesHub.desc_memory', leaderboard: 'memory' },
   { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', addedAt: '2026-05-24', route: '/daily-games?play=sliding',

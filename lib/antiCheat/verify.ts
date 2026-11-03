@@ -69,6 +69,9 @@ export function checkResult(cfg: LeaderboardConfig, claim: Claim, session: Sessi
     if (limits.maxScorePerSec !== undefined && score / Math.max(1, realMs / 1000) > limits.maxScorePerSec) {
       return bad('score_rate', `${score} in ${Math.round(realMs / 1000)} s > ${limits.maxScorePerSec}/s`);
     }
+    if (limits.minPlayMsForScore && realMs < limits.minPlayMsForScore(score)) {
+      return bad('too_fast', `score ${score} needs ${limits.minPlayMsForScore(score)} ms, real ${realMs} ms`);
+    }
   }
   if (moves !== undefined && (!Number.isInteger(moves) || moves < 0 || moves > 100000)) return bad('bad_moves', `moves=${moves}`);
   return { ok: true, score, moves };
