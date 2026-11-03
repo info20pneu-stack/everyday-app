@@ -105,6 +105,9 @@ export const LEADERBOARD_GAMES = {
   // Normal game (weekly + all-time) and the daily challenge `shells_daily_<yyyymmdd>` (first attempt only)
   shells: shellsBoard(),
   shells_daily: shellsBoard({ variants: true, daily: true, firstAttemptOnly: true }),
+  // Balloon Pop: "Time" lasts 60 s; at most ~3 balloons a second × 30 points × combo 5 → 200 points/s is generous
+  balloontime: points(60000, 15000, 200),
+  balloonsurv: points(3000, 30000, 200),
 } satisfies Record<string, LeaderboardConfig>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;
@@ -205,6 +208,8 @@ export interface CatalogGame {
   leaderboard?: LeaderboardGameId;
   /** Separate daily-challenge board (stored as `<id>_<yyyymmdd>`), e.g. 'shells_daily'. */
   dailyLeaderboard?: LeaderboardGameId;
+  /** More boards of the game (other modes) → query string that opens that mode, e.g. { balloonsurv: 'mode=surv' }. */
+  altLeaderboards?: Partial<Record<LeaderboardGameId, string>>;
 }
 
 export const GAMES_CATALOG: CatalogGame[] = [
@@ -223,6 +228,9 @@ export const GAMES_CATALOG: CatalogGame[] = [
     nameKey: 'gamesHub.name_followGold', descKey: 'gamesHub.desc_followGold', leaderboard: 'followgold' },
   { id: 'shells', section: 'mini', duration: '2', icon: '🥜', color: '#E2B04A', addedAt: '2026-11-03', route: '/games/shells',
     nameKey: 'gamesHub.name_shells', descKey: 'gamesHub.desc_shells', leaderboard: 'shells', dailyLeaderboard: 'shells_daily' },
+  { id: 'balloon-pop', section: 'mini', duration: '2', icon: '🎈', color: '#E8735A', addedAt: '2026-11-03', route: '/games/balloon-pop',
+    nameKey: 'gamesHub.name_balloonPop', descKey: 'gamesHub.desc_balloonPop', leaderboard: 'balloontime',
+    altLeaderboards: { balloontime: 'mode=time', balloonsurv: 'mode=surv' } },
   { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', addedAt: '2026-05-24', route: '/daily-games?play=memory',
     nameKey: 'games.memory', descKey: 'gamesHub.desc_memory', leaderboard: 'memory' },
   { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', addedAt: '2026-05-24', route: '/daily-games?play=sliding',

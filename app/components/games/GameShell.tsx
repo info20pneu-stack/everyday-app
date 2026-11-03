@@ -96,7 +96,8 @@ interface GameShellProps {
   /** Catalog id from lib/gamesCatalog.ts (e.g. 'sky-tower'). */
   gameId: string;
   /** Leaderboard id when it differs from the catalog one, e.g. a variant like 'connectfour_cz'. */
-  leaderboardId?: string;
+  /** null = this mode has no leaderboard (e.g. a practice or two-player mode). */
+  leaderboardId?: string | null;
   /** Personal best shown in the header. When omitted, GameShell keeps its own record from onGameOver. */
   best?: StoredBest | null;
   /** Extra pills on the right side of the header. */
@@ -124,7 +125,7 @@ export default function GameShell({
 }: GameShellProps) {
   const { t, lang, rtl } = useLang();
   const game = getCatalogGame(gameId);
-  const lbId = leaderboardId ?? game?.leaderboard;
+  const lbId = leaderboardId === null ? undefined : leaderboardId ?? game?.leaderboard;
   const lbConfig = lbId ? getLeaderboardConfig(lbId) : null;
   const [lbOpen, setLbOpen] = useState(false);
   const [submit, setSubmit] = useState<(GameResult & { timeMs: number; shareText?: string; shareOnly?: boolean }) | null>(null);

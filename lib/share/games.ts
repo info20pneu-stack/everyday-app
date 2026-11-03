@@ -92,6 +92,10 @@ export function shareGame(board: string): ShareGame | null {
       name: () => info?.name ?? 'Human Benchmark',
     };
   }
+  const alt = GAMES_CATALOG.find(g => g.altLeaderboards?.[base]);
+  if (alt) {
+    return { catalog: alt, icon: alt.icon, color: alt.color, route: `${alt.route}?${alt.altLeaderboards![base]}`, name: t => gameText(t, alt.nameKey) };
+  }
   const daily = GAMES_CATALOG.find(g => g.dailyLeaderboard === base);
   if (daily) {
     return { catalog: daily, icon: daily.icon, color: daily.color, route: `${daily.route}?mode=daily`, name: t => gameText(t, daily.nameKey) };
