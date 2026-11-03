@@ -41,6 +41,8 @@ export const LIMITS = {
   submitsPerHour: 30,
   /** New nicks per day per IP. */
   newNicksPerDay: 5,
+  /** Share links per hour, per device and per IP. */
+  sharesPerHour: 30,
 };
 
 function bucket(seconds: number): string {
@@ -63,6 +65,12 @@ async function peek(kind: string, who: string, windowSec: number): Promise<numbe
 export async function overSubmitLimit(device: string, ipHash: string): Promise<boolean> {
   const [d, i] = await Promise.all([hit('sub-dev', device, 3600), hit('sub-ip', ipHash, 3600)]);
   return d > LIMITS.submitsPerHour || i > LIMITS.submitsPerHour;
+}
+
+/** Counts a share attempt; true when the device or the IP is over the hourly limit. */
+export async function overShareLimit(device: string, ipHash: string): Promise<boolean> {
+  const [d, i] = await Promise.all([hit('share-dev', device, 3600), hit('share-ip', ipHash, 3600)]);
+  return d > LIMITS.sharesPerHour || i > LIMITS.sharesPerHour;
 }
 
 export async function newNickAllowed(ipHash: string): Promise<boolean> {

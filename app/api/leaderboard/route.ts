@@ -11,6 +11,8 @@ import {
   banState, claimNick, countNewNick, isTokenSpent, listBans, logRecent, logReject, newNickAllowed, nickOwner,
   overSubmitLimit, spendToken,
 } from '../../../lib/antiCheat/store';
+import { saveVerified } from '../../../lib/share/store';
+import { gridFromProof } from '../../../lib/share/grid';
 
 /** Leaderboard id: a key of LEADERBOARD_GAMES in lib/gamesCatalog.ts, or `<id>_<variant>` for games with variants. */
 export type GameId = string;
@@ -238,6 +240,11 @@ export async function POST(req: NextRequest) {
       await logReject({ ...base, reason: 'token_reused', device: dev });
       return refuse('token_used', 409);
     }
+    // Remember the believable round, so it can still be shared after the token is spent
+    await saveVerified(session.nonce, {
+      board: game, timeMs: Math.round(timeMs * 10) / 10, score: verdict.score, moves: verdict.moves,
+      grid: gridFromProof(config, game, body.proof),
+    });
     if (owner === 'new') {
       if (!(await claimNick(nick.norm, dev))) return refuse('nick_taken', 409);
       await countNewNick(ipKey);

@@ -116,7 +116,7 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
   const { t, lang } = useLang();
   const tr = t.higherLower;
   const name = t.gamesHub.name_higherLower;
-  const { onGameOver, startRound, openLeaderboard } = useGameShell();
+  const { onGameOver, startRound, openLeaderboard, shareResult } = useGameShell();
 
   // Today's set, or the saved result when today's challenge is already done
   const [round, setRound] = useState<Round>(() => {
@@ -245,18 +245,10 @@ function HigherLowerGame({ day, onDayChange }: { day: string; onDayChange: (d: s
       .replace('{score}', String(score))
       .replace('{grid}', grid)
       .replace('{streak}', String(Math.max(1, streak)));
-    const full = `${text}\n${SHARE_URL}`;
-    if (window.matchMedia('(pointer: coarse)').matches && navigator.share) {
-      try { await navigator.share({ text: full }); return; } catch (err) {
-        if ((err as Error)?.name === 'AbortError') return;
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(full);
-      setShareNote(tr.copied);
-    } catch {
-      setShareNote(full.replace(/\n/g, ' · '));
-    }
+    // Daily round → "challenge a friend" (text with squares stays as "copy as text"); else plain text
+    const out = await shareResult(text, { url: SHARE_URL, challenge: round.mode === 'daily' });
+    if (out === 'copied') setShareNote(tr.copied);
+    else if (out === 'failed') setShareNote(`${text}\n${SHARE_URL}`.replace(/\n/g, ' · '));
   }
 
   const catLabel: Record<CategoryId, string> = {

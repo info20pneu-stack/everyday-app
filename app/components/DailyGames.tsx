@@ -17,8 +17,9 @@ import type { Translations } from '../../lib/i18n';
 import { getCountryName } from '../../lib/games/countries';
 import Flag from './Flag';
 import FlagSelect from './FlagSelect';
-import ScoreSubmitModal, { scoreModalInputStyle } from './games/ScoreSubmitModal';
+import ScoreSubmitModal from './games/ScoreSubmitModal';
 import { ensureGameSession } from '../../lib/gameSession';
+import { useIncomingChallenge } from '../../lib/share/client';
 
 /* ═══════════════════════ DATA ═══════════════════════ */
 
@@ -218,25 +219,6 @@ function freshSeed(): number {
 
 type Challenge = { score: number; name: string } | undefined;
 
-function buildChallengeUrl(game: string, seed: number, score: number, name: string): string {
-  if (typeof window === 'undefined') return '';
-  const url = new URL(window.location.href);
-  url.search = '';
-  url.searchParams.set('challenge', game);
-  url.searchParams.set('seed', String(seed));
-  url.searchParams.set('score', String(score));
-  url.searchParams.set('name', name);
-  return url.toString();
-}
-
-// navigator.share on mobile (native share sheet, no extra feedback needed); clipboard copy otherwise.
-async function shareChallengeUrl(url: string, text: string): Promise<{ copied: boolean }> {
-  if (typeof navigator !== 'undefined' && navigator.share) {
-    try { await navigator.share({ text, url }); return { copied: false }; } catch { /* cancelled, fall through */ }
-  }
-  try { await navigator.clipboard.writeText(url); return { copied: true }; } catch { return { copied: false }; }
-}
-
 function fmtTime(s: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
@@ -340,19 +322,6 @@ interface ModalProps {
 
 function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onShowLeaderboard }: ModalProps) {
   const { t } = useLang();
-  const [challengeName, setChallengeName] = useState(() => lsGet<string>('lb_nick', ''));
-  const [challengeCopied, setChallengeCopied] = useState(false);
-  const canChallenge = CHALLENGE_GAMES.has(game) && seed !== undefined;
-
-  async function sendChallenge() {
-    if (!challengeName.trim() || seed === undefined) return;
-    lsSet('lb_nick', challengeName.trim());
-    const value = CHALLENGE_SCORE_BASED.has(game) ? (score ?? 0) : Math.round(timeMs);
-    const url = buildChallengeUrl(game, seed, value, challengeName.trim());
-    const text = `${t.games.challengeFriend} — EVERY DAY`;
-    const { copied } = await shareChallengeUrl(url, text);
-    if (copied) { setChallengeCopied(true); setTimeout(() => setChallengeCopied(false), 2200); }
-  }
   const gameLabel: Record<GameId, string> = {
     sliding:   `🧩 ${t.games.sliding}`,
     memory:    `🃏 ${t.games.memory}`,
@@ -368,6 +337,7 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
   return (
     <ScoreSubmitModal
       game={game} timeMs={timeMs} score={score} moves={moves} diff={diff}
+      seed={CHALLENGE_GAMES.has(game) ? seed : undefined}
       title={`${gameLabel[game]} ${t.games.completed}`}
       result={<>
           {game === 'mathrush' && score !== undefined ? (
@@ -424,30 +394,6 @@ function LeaderboardModal({ game, timeMs, score, moves, diff, seed, onClose, onS
             </>
           )}
       </>}
-      extra={canChallenge ? (
-          <div style={{ marginBottom: '16px', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text" placeholder={t.games.nickPlaceholder} value={challengeName} maxLength={30}
-                onChange={e => setChallengeName(e.target.value.slice(0, 30))}
-                style={{ ...scoreModalInputStyle, flex: 1 }}
-              />
-              <button
-                onClick={sendChallenge}
-                disabled={!challengeName.trim()}
-                style={{
-                  flexShrink: 0, background: challengeCopied ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.08)',
-                  border: challengeCopied ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.14)',
-                  borderRadius: '9px', color: challengeCopied ? 'var(--green2)' : '#fff',
-                  fontSize: '12px', fontWeight: '600', padding: '0 14px', cursor: 'pointer',
-                  opacity: challengeName.trim() ? 1 : 0.5, whiteSpace: 'nowrap',
-                }}
-              >
-                {challengeCopied ? t.games.challengeCopied : t.games.challengeFriend}
-              </button>
-            </div>
-          </div>
-      ) : undefined}
       onClose={onClose}
       onShowLeaderboard={onShowLeaderboard}
     />
@@ -2317,10 +2263,8 @@ type TabId = 'memory' | 'wordchain' | 'flagquiz' | 'sliding' | 'mathrush' | 'ref
 type CategoryId = 'daily' | 'speed' | 'hb' | 'wordle';
 type ModalState = { game: GameId; timeMs: number; score?: number; moves?: number; diff?: string; seed?: number } | null;
 
-// Games that support the "challenge a friend" link flow.
+// Games with a random set: a challenged friend gets the same one (the seed travels in the share)
 const CHALLENGE_GAMES = new Set<GameId>(['sliding', 'flagquiz', 'memory', 'mathrush', 'reaction', 'typing']);
-// Among those, games ranked by score (higher better) vs. by time (lower better).
-const CHALLENGE_SCORE_BASED = new Set<GameId>(['flagquiz', 'mathrush', 'typing']);
 
 interface CategoryDef {
   id: CategoryId; icon: string; name: string; desc: string;
@@ -2482,24 +2426,20 @@ function DailyGamesView() {
   const [modal,     setModal]    = useState<ModalState>(null);
   const [catHover,  setCatHover] = useState<CategoryId | null>(null);
 
+  // A friend's challenge (?ch=<id>, loaded from the server): open its game with the same set.
+  // "You vs. <nick>" is shown in the result window (ScoreSubmitModal → ChallengeShare).
+  const incoming = useIncomingChallenge();
   const urlChallenge = useMemo(() => {
-    const g = searchParams.get('challenge');
-    const seedStr = searchParams.get('seed');
-    const scoreStr = searchParams.get('score');
-    const name = searchParams.get('name');
-    if (!g || !seedStr || !scoreStr || !name || !CHALLENGE_GAMES.has(g as GameId)) return null;
-    const seed = Number(seedStr);
-    const score = Number(scoreStr);
-    if (!Number.isFinite(seed) || !Number.isFinite(score)) return null;
-    return { game: g as GameId, seed, score, name: name.slice(0, 30) };
-  }, [searchParams]);
+    if (!incoming || !CHALLENGE_GAMES.has(incoming.board as GameId)) return null;
+    return { game: incoming.board as GameId, seed: incoming.seed };
+  }, [incoming]);
 
   useEffect(() => {
-    if (!urlChallenge) return;
-    const game = urlChallenge.game as TabId;
+    const game = incoming?.board as TabId | undefined;
+    if (!game) return;
     if (DAILY_TABS.includes(game)) { setCategory('daily'); setTab(game); }
     else if (SPEED_TABS.includes(game)) { setCategory('speed'); setTab(game); }
-  }, [urlChallenge]);
+  }, [incoming]);
 
   // Anti-cheat session token for the open game (lib/gameSession.ts)
   useEffect(() => { if (category === 'daily' || category === 'speed') ensureGameSession(tab); }, [category, tab]);
@@ -2688,26 +2628,26 @@ function DailyGamesView() {
 
       {/* Games */}
       {tab === 'memory'    && <MemoryGame    onComplete={(ms, mv, df, seed) => openModal('memory',    ms, { moves: mv, diff: df, seed })}
-        challengeSeed={urlChallenge?.game === 'memory' ? urlChallenge.seed : undefined}
-        challenge={urlChallenge?.game === 'memory' ? urlChallenge : undefined} />}
+        key={urlChallenge?.game === 'memory' ? `ch-${urlChallenge.seed}` : 'own'}
+        challengeSeed={urlChallenge?.game === 'memory' ? urlChallenge.seed : undefined} />}
       {tab === 'wordchain' && <WordChain     onComplete={(ms, sc)     => openModal('wordchain', ms, { score: sc })} />}
       {tab === 'flagquiz'  && <FlagQuiz      onComplete={(ms, sc, df, seed) => openModal('flagquiz',  ms, { score: sc, diff: df, seed })}
-        challengeSeed={urlChallenge?.game === 'flagquiz' ? urlChallenge.seed : undefined}
-        challenge={urlChallenge?.game === 'flagquiz' ? urlChallenge : undefined} />}
+        key={urlChallenge?.game === 'flagquiz' ? `ch-${urlChallenge.seed}` : 'own'}
+        challengeSeed={urlChallenge?.game === 'flagquiz' ? urlChallenge.seed : undefined} />}
       {tab === 'sliding'   && <SlidingPuzzle onComplete={(ms, mv, seed) => openModal('sliding',   ms, { moves: mv, seed })}
-        challengeSeed={urlChallenge?.game === 'sliding' ? urlChallenge.seed : undefined}
-        challenge={urlChallenge?.game === 'sliding' ? urlChallenge : undefined} />}
+        key={urlChallenge?.game === 'sliding' ? `ch-${urlChallenge.seed}` : 'own'}
+        challengeSeed={urlChallenge?.game === 'sliding' ? urlChallenge.seed : undefined} />}
       {tab === 'mathrush'  && <MathRush      onComplete={(ms, sc, df, seed) => openModal('mathrush',  ms, { score: sc, diff: df, seed })}
-        challengeSeed={urlChallenge?.game === 'mathrush' ? urlChallenge.seed : undefined}
-        challenge={urlChallenge?.game === 'mathrush' ? urlChallenge : undefined} />}
+        key={urlChallenge?.game === 'mathrush' ? `ch-${urlChallenge.seed}` : 'own'}
+        challengeSeed={urlChallenge?.game === 'mathrush' ? urlChallenge.seed : undefined} />}
       {tab === 'reflex'    && <ReflexTimer   onComplete={(ms)         => openModal('reflex',    ms)} />}
       {tab === 'reaction'  && <ReactionClick onComplete={(ms, seed)   => openModal('reaction',  ms, { seed })}
-        challengeSeed={urlChallenge?.game === 'reaction' ? urlChallenge.seed : undefined}
-        challenge={urlChallenge?.game === 'reaction' ? urlChallenge : undefined} />}
+        key={urlChallenge?.game === 'reaction' ? `ch-${urlChallenge.seed}` : 'own'}
+        challengeSeed={urlChallenge?.game === 'reaction' ? urlChallenge.seed : undefined} />}
       {tab === 'felixjump' && <FelixJump     onComplete={(ms, sc)     => openModal('felixjump', ms, { score: sc })} />}
       {tab === 'typing'    && <TypingSpeedTest onComplete={(ms, sc, df, seed) => openModal('typing', ms, { score: sc, diff: df, seed })}
-        challengeSeed={urlChallenge?.game === 'typing' ? urlChallenge.seed : undefined}
-        challenge={urlChallenge?.game === 'typing' ? urlChallenge : undefined} />}
+        key={urlChallenge?.game === 'typing' ? `ch-${urlChallenge.seed}` : 'own'}
+        challengeSeed={urlChallenge?.game === 'typing' ? urlChallenge.seed : undefined} />}
 
       {/* Leaderboard — always visible below active game */}
       <div id="dg-lb" style={{ marginTop: '6px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)', scrollMarginTop: '80px' }}>

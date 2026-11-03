@@ -11,3 +11,7 @@ export const SOCIAL_LINKS: { id: 'x' | 'instagram' | 'facebook' | 'tiktok' | 'yo
 
 /** Contact e-mail — PLACEHOLDER, replace before launch (used on /contact and /privacy-policy drafts). */
 export const CONTACT_EMAIL = 'kontakt@example.com';
+
+/** Facebook app id for the Messenger "send" dialog on computers. Empty = the Messenger button
+ *  copies the link and opens messenger.com (phones use the Messenger app directly). */
+export const FACEBOOK_APP_ID = '';

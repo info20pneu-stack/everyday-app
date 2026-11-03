@@ -88,7 +88,7 @@ function DailyBlocksGame({ day, onDayChange, engineRef }: {
 }) {
   const { t, lang } = useLang();
   const tb = t.dailyBlocks;
-  const { onGameOver, startRound, best } = useGameShell();
+  const { onGameOver, startRound, best, shareResult } = useGameShell();
 
   const appRef = useRef<HTMLDivElement>(null);
   const wellRef = useRef<HTMLDivElement>(null);
@@ -470,19 +470,10 @@ function DailyBlocksGame({ day, onDayChange, engineRef }: {
       .replace('{lines}', String(result.lines))
       .replace('{level}', String(result.level));
     const url = 'https://www.everyday1234567.com/games/daily-blocks';
-    const full = `${text}\n${url}`;
-    const touch = window.matchMedia('(pointer: coarse)').matches;
-    if (touch && navigator.share) {
-      try { await navigator.share({ text: full }); return; } catch (err) {
-        if ((err as Error)?.name === 'AbortError') return;
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(full);
-      setShareNote(tb.copied);
-    } catch {
-      setShareNote(full.replace(/\n/g, ' · '));
-    }
+    // A scored round → "challenge a friend" (the text stays as "copy as text"); else plain text
+    const out = await shareResult(text, { url, challenge: result.score > 0 });
+    if (out === 'copied') setShareNote(tb.copied);
+    else if (out === 'failed') setShareNote(`${text}\n${url}`.replace(/\n/g, ' · '));
   }
   const dateLabel = new Date(`${day}T12:00:00Z`).toLocaleDateString(lang, { day: 'numeric', month: 'numeric', year: 'numeric' });
 

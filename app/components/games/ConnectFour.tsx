@@ -297,7 +297,7 @@ function ConnectFourGame({ region, picker, setCountry, shareFlag, day, onDayChan
   const { t, lang, rtl } = useLang();
   const tr = t.connectFour;
   const name = t.gamesHub.name_connectFour;
-  const { onGameOver, openLeaderboard } = useGameShell();
+  const { onGameOver, openLeaderboard, shareResult } = useGameShell();
   const dailyIndex = dailySetIndex(region, day);
 
   const [mode, setMode] = useState<Mode>('daily');
@@ -491,18 +491,10 @@ function ConnectFourGame({ region, picker, setCountry, shareFlag, day, onDayChan
       .replace('{result}', p.win ? `⏱ ${finalTime}` : tr.unsolved)
       .replace('{mistakes}', tr.mistakes.replace('{n}', String(p.mistakes)).replace('{max}', String(MAX_MISTAKES)))
       .replace('{grid}', gridRows.join('\n'));
-    const full = `${text}\n${SHARE_URL}`;
-    if (window.matchMedia('(pointer: coarse)').matches && navigator.share) {
-      try { await navigator.share({ text: full }); return; } catch (err) {
-        if ((err as Error)?.name === 'AbortError') return;
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(full);
-      setShareNote(tr.copied);
-    } catch {
-      setShareNote(full.replace(/\n/g, ' · '));
-    }
+    // A solved daily set → "challenge a friend" (text with squares stays as "copy as text"); else plain text
+    const out = await shareResult(text, { url: SHARE_URL, challenge: p.win && mode === 'daily' });
+    if (out === 'copied') setShareNote(tr.copied);
+    else if (out === 'failed') setShareNote(`${text}\n${SHARE_URL}`.replace(/\n/g, ' · '));
   }
 
   const rest = p.order.filter(id => !p.solved.includes(groupOf(id)));

@@ -11,11 +11,18 @@ import { GameBanner, GameFrame, GameTopBar } from './games/GameFrame';
 import { getCatalogGame, gameText } from '../../lib/gamesCatalog';
 import { wordleTarget } from '../../lib/games/wordleWords';
 import { ensureGameSession, takeGameSession } from '../../lib/gameSession';
+import { useIncomingChallenge } from '../../lib/share/client';
+import ChallengeShare from './games/ChallengeShare';
 import { lbErrorText } from '../../lib/leaderboardI18n';
 
 function lsGetStr(key: string, fb: string): string {
   if (typeof window === 'undefined') return fb;
-  try { return localStorage.getItem(key) ?? fb; } catch { return fb; }
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw == null) return fb;
+    // Other games store these values as JSON strings
+    try { const v = JSON.parse(raw); return typeof v === 'string' ? v : raw; } catch { return raw; }
+  } catch { return fb; }
 }
 
 /* ── Word lists per category (5-letter, uppercase) ── */
@@ -136,6 +143,10 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
   // Anti-cheat session token (lib/gameSession.ts): fetched as the board opens, taken on the first submit
   useEffect(() => { ensureGameSession(lbGameId); }, [lbGameId]);
   const session = useRef<Promise<string | null> | null>(null);
+  // One token for the leaderboard save and the challenge link
+  const getToken = () => (session.current ??= takeGameSession(lbGameId));
+  // Time of the solved round (for the challenge link)
+  const [endMs, setEndMs] = useState(0);
 
   async function submitScore() {
     if (!nick.trim() || subPhase === 'submitting') return;
@@ -156,7 +167,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
           game: lbGameId, name: nick.trim(), country, city: city.trim(), timeMs: elapsedMs, score, moves: guessesUsed,
           // The server re-checks the guesses against the day's word
           proof: { day: dateSeed(), guesses },
-          token: await (session.current ??= takeGameSession(lbGameId)),
+          token: await getToken(),
         }),
       });
       const data = await res.json() as Record<string, unknown>;
@@ -210,6 +221,7 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
       setAnimating(false);
       if (ev.every(s => s === 'correct')) {
         setPhase('won');
+        setEndMs(Math.round(performance.now() - startRef.current));
         const msgs = [t.wordle.genius, t.wordle.magnificent, t.wordle.impressive, t.wordle.splendid, t.wordle.great, t.wordle.phew];
         showMsg(msgs[rowIdx] ?? '🎉', 3000);
         const today = dateSeed();
@@ -254,8 +266,10 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
     ).join('\n');
   }
 
+  const shareText = () => `${mode.emoji} EVERY DAY Wordle – ${mode.label}\n${evals.length}/${MAX}\n\n${buildGrid()}`;
+
   async function share() {
-    const text = `${mode.emoji} EVERY DAY Wordle – ${mode.label}\n${evals.length}/${MAX}\n\n${buildGrid()}\neveryday1234567.com`;
+    const text = `${shareText()}\neveryday1234567.com`;
     try { await navigator.clipboard.writeText(text); } catch {}
     setCopied(true); setTimeout(() => setCopied(false), 2200);
   }
@@ -294,6 +308,14 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
             {t.wordle.newWordTomorrow}{phase === 'lost' ? ` · ${t.wordle.answer.replace('{word}', target)}` : ''}
           </div>
         </div>
+      )}
+
+      {/* Challenge a friend (or a rematch) — wins only; the text share above stays as the alternative */}
+      {phase === 'won' && (
+        <ChallengeShare
+          board={lbGameId} getToken={getToken} textShare={shareText()} nick={nick}
+          result={{ timeMs: Math.max(1, endMs), score: MAX + 1 - guesses.length, moves: guesses.length, proof: { day: dateSeed(), guesses } }}
+        />
       )}
 
       {/* Submit to leaderboard — wins only */}
@@ -362,8 +384,18 @@ function WordleGame({ modeId, onBack }: { modeId: string; onBack: () => void }) 
 export default function WordleGames() {
   const { t } = useLang();
   const MODES = getModes(t);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(() => {
+    const m = new URLSearchParams(window.location.search).get('mode');
+    return m && MODES.some(x => x.id === m) ? m : null;
+  });
   const game = getCatalogGame('wordle');
+  const incoming = useIncomingChallenge();
+  const challengeMode = incoming?.board.startsWith('wordle_') ? incoming.board.slice(7) : null;
+  const [openedChallenge, setOpenedChallenge] = useState<string | null>(null);
+  if (challengeMode && openedChallenge !== challengeMode && MODES.some(x => x.id === challengeMode)) {
+    setOpenedChallenge(challengeMode);
+    setSelected(challengeMode);
+  }
   // Today's results from localStorage. This component only renders in the browser (DailyGames is
   // client-only), and it re-renders when the player comes back from a game.
   const results: Record<string, DayResult | null> = selected

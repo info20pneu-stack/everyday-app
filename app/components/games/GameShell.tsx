@@ -14,7 +14,8 @@ import { BEST_EVENT, parseBest, readBestRaw, saveBest, type StoredBest } from '.
 import BossKey, { BossKeyModePicker, BossKeyPills } from './BossKey';
 import { GameBanner, GameFrame, GameTopBar } from './GameFrame';
 import ScoreSubmitModal from './ScoreSubmitModal';
-import { ensureGameSession } from '../../../lib/gameSession';
+import { ensureGameSession, takeGameSession } from '../../../lib/gameSession';
+import { shareTextOnly } from '../../../lib/share/client';
 
 /* ─────────────────────────── game-over API ───────────────────────────
    Inside <GameShell>, a game calls:
@@ -32,7 +33,11 @@ export interface GameResult {
   diff?: string;
   /** Moves of a daily game with a fixed solution (the server recomputes the result from them). */
   proof?: unknown;
+  /** Seed of a game with a random set (a challenged friend gets the same one). */
+  seed?: number;
 }
+
+export type ShareOutcome = 'challenge' | 'shared' | 'copied' | 'failed';
 
 export interface GameShellApi {
   /** Report a finished round. Returns whether it beat the personal record. */
@@ -43,6 +48,10 @@ export interface GameShellApi {
   best: StoredBest | null;
   /** Opens the leaderboard window (no-op when the game has no leaderboard). */
   openLeaderboard: () => void;
+  /** The game's own "Share" button. With a verified round to share (the last onGameOver, unless
+   *  `challenge: false`) it opens "challenge a friend" with `text` as the "copy as text" option;
+   *  otherwise it shares `text` + `url` as plain text. */
+  shareResult: (text: string, opts?: { url?: string; challenge?: boolean }) => Promise<ShareOutcome>;
 }
 
 
@@ -118,7 +127,11 @@ export default function GameShell({
   const lbId = leaderboardId ?? game?.leaderboard;
   const lbConfig = lbId ? getLeaderboardConfig(lbId) : null;
   const [lbOpen, setLbOpen] = useState(false);
-  const [submit, setSubmit] = useState<(GameResult & { timeMs: number }) | null>(null);
+  const [submit, setSubmit] = useState<(GameResult & { timeMs: number; shareText?: string; shareOnly?: boolean }) | null>(null);
+  // Last reported round and its session token (one token for the leaderboard save and the share link)
+  const last = useRef<(GameResult & { timeMs: number }) | null>(null);
+  const roundToken = useRef<Promise<string | null> | null>(null);
+  const getToken = useCallback(() => (roundToken.current ??= takeGameSession(lbId ?? '')), [lbId]);
 
   // Personal record kept by GameShell (localStorage), used when the game doesn't pass `best`
   const storedRaw = useSyncExternalStore(subscribeBest, () => readBestRaw(lbId), () => null);
@@ -145,12 +158,22 @@ export default function GameShell({
     let newRecord = false;
     if (lbId && lbConfig) {
       newRecord = saveBest(lbId, timeMs, final.score);
+      last.current = final;
+      roundToken.current = null;
       setSubmit(final);
     }
     return { newRecord };
   }
 
-  const api: GameShellApi = { onGameOver, startRound, best: shownBest, openLeaderboard: () => setLbOpen(true) };
+  async function shareResult(text: string, opts: { url?: string; challenge?: boolean } = {}): Promise<ShareOutcome> {
+    if (opts.challenge !== false && last.current && lbId && lbConfig) {
+      setSubmit({ ...last.current, shareText: text, shareOnly: true });
+      return 'challenge';
+    }
+    return shareTextOnly(opts.url ? `${text}\n${opts.url}` : text);
+  }
+
+  const api: GameShellApi = { onGameOver, startRound, best: shownBest, openLeaderboard: () => setLbOpen(true), shareResult };
 
   useEffect(() => {
     if (!lbOpen) return;
@@ -210,6 +233,8 @@ export default function GameShell({
         <ScoreSubmitModal
           game={lbId}
           timeMs={submit.timeMs} score={submit.score} moves={submit.moves} diff={submit.diff} proof={submit.proof}
+          seed={submit.seed} shareText={submit.shareText} shareOnly={submit.shareOnly} autoShare={submit.shareOnly}
+          getToken={getToken}
           title={`${game?.icon ?? '🎮'} ${name} ${t.games.completed}`}
           onClose={() => setSubmit(null)}
           onShowLeaderboard={() => setLbOpen(true)}

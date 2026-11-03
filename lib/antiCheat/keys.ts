@@ -19,4 +19,10 @@ export const K = {
   recent: () => `${LB_PREFIX}:recent`,
   /** Refused saves (admin log). */
   rejects: () => `${LB_PREFIX}:rejects`,
+  /** A round the server judged believable (by session nonce), so it can be shared. */
+  verified: (nonce: string) => `${LB_PREFIX}:vr:${nonce}`,
+  /** Shared result behind a /s/<id> link. */
+  share: (id: string) => `${LB_PREFIX}:share:${id}`,
+  /** Session nonce → its share id (one link per round). */
+  shareByNonce: (nonce: string) => `${LB_PREFIX}:sharen:${nonce}`,
 };

@@ -9,6 +9,7 @@ import { rankKey } from '../../../lib/dailyTrio';
 import CountrySelect from '../CountrySelect';
 import { takeGameSession } from '../../../lib/gameSession';
 import { lbErrorText } from '../../../lib/leaderboardI18n';
+import ChallengeShare from './ChallengeShare';
 
 /* "Save your result" window shared by all games (moved out of DailyGames).
    Pass `result` to replace the default result block; by default the leaderboard config decides:
@@ -44,11 +45,21 @@ export interface ScoreSubmitModalProps {
   diff?: string;
   /** Moves of a daily game with a fixed solution; the server recomputes the result from them. */
   proof?: unknown;
+  /** Seed of a game with a random set (a challenged friend gets the same one). */
+  seed?: number;
+  /** The game's own share text with coloured squares (without a link) — "Copy as text". */
+  shareText?: string;
+  /** The round's session token, when the caller keeps it (GameShell); default: taken here. */
+  getToken?: () => Promise<string | null>;
+  /** Start "challenge a friend" right away (the game's own Share button). */
+  autoShare?: boolean;
+  /** Only the result and sharing, without the leaderboard form (reopened after the save). */
+  shareOnly?: boolean;
   /** Heading text, e.g. "🧩 Puzzle completed!". */
   title: ReactNode;
   /** Replaces the default result block. */
   result?: ReactNode;
-  /** Rendered between the result and the form (e.g. "challenge a friend"). */
+  /** Rendered between the result and the form. */
   extra?: ReactNode;
   onClose: () => void;
   onShowLeaderboard: () => void;
@@ -62,7 +73,7 @@ export const scoreModalInputStyle: React.CSSProperties = {
 };
 
 export default function ScoreSubmitModal({
-  game, timeMs, score, moves, diff, proof, title, result, extra, onClose, onShowLeaderboard,
+  game, timeMs, score, moves, diff, proof, seed, shareText, getToken, autoShare, shareOnly, title, result, extra, onClose, onShowLeaderboard,
 }: ScoreSubmitModalProps) {
   const { lang, t, rtl } = useLang();
   const [nick,       setNick]       = useState(() => lsGet<string>('lb_nick', ''));
@@ -76,6 +87,8 @@ export default function ScoreSubmitModal({
   // The round's session token (anti-cheat), taken on the first submit and kept for retries
   // (e.g. after "nick taken"): the server only spends it once it has judged the result
   const session = useRef<Promise<string | null> | null>(null);
+  // One token per round for both the leaderboard save and the share link
+  const token = () => (getToken ? getToken() : (session.current ??= takeGameSession(game)));
 
   async function handleSubmit() {
     if (!nick.trim() || submitting) return;
@@ -88,7 +101,7 @@ export default function ScoreSubmitModal({
       const res = await fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff, device, proof, token: await (session.current ??= takeGameSession(game)) }),
+        body: JSON.stringify({ game, name: nick.trim(), country, city: city.trim(), timeMs, score, moves, diff, device, proof, token: await token() }),
       });
       const data = await res.json() as Record<string, unknown>;
       if (res.status === 201) {
@@ -143,9 +156,21 @@ export default function ScoreSubmitModal({
           {result ?? <DefaultResult game={game} timeMs={timeMs} score={score} lang={lang} />}
         </div>
 
+        <ChallengeShare
+          board={game} result={{ timeMs, score, moves, diff, proof, seed }} getToken={token}
+          nick={nick} textShare={shareText} autoStart={autoShare}
+        />
+
         {extra}
 
-        {phase === 'form' ? (
+        {shareOnly ? (
+          <button onClick={onClose} style={{
+            width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '10px', color: 'var(--text2)', fontSize: '13px', fontWeight: '600', padding: '11px', cursor: 'pointer',
+          }}>
+            {t.games.close}
+          </button>
+        ) : phase === 'form' ? (
           <>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
               <input

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import FitWidth from './FitWidth';
 import { ensureGameSession, takeGameSession } from '../../lib/gameSession';
+import { useIncomingChallenge } from '../../lib/share/client';
+import ChallengeShare from './games/ChallengeShare';
 import { lbErrorText } from '../../lib/leaderboardI18n';
 import { useLang } from '../../lib/LanguageContext';
 import { recordGameCompleted } from '../../lib/streak';
@@ -144,8 +146,8 @@ function HBLeaderboard({ gameId, color, lowerBetter, unit }: {
   return <LeaderboardPanel game={gameId} accentColor={color} renderValue={renderValue} />;
 }
 
-function HBSubmit({ result, onDismiss }: {
-  result: TestResult; onDismiss: () => void;
+function HBSubmit({ result, onDismiss, getToken }: {
+  result: TestResult; onDismiss: () => void; getToken: () => Promise<string | null>;
 }) {
   const { lang } = useLang();
   const [phase, setPhase] = useState<SubmitPhase>('idle');
@@ -155,8 +157,6 @@ function HBSubmit({ result, onDismiss }: {
   const [rank, setRank] = useState<number | null>(null);
   const [err, setErr] = useState('');
   const { t } = useLang();
-  // Taken on the first submit and kept for retries (the server spends it only once it judged the result)
-  const session = useRef<Promise<string | null> | null>(null);
 
   const inputSt: React.CSSProperties = {
     width: '100%', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.14)',
@@ -173,7 +173,7 @@ function HBSubmit({ result, onDismiss }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           game: result.gameId, name: nick.trim(), country, city: city.trim(), timeMs: result.timeMs, score: result.score,
-          token: await (session.current ??= takeGameSession(result.gameId)),
+          token: await getToken(),
         }),
       });
       const data = await res.json() as Record<string, unknown>;
@@ -236,6 +236,10 @@ function ResultScreen({ result, meta, testId, onRetry, onBack }: {
   onBack: () => void;
 }) {
   const [submitted, setSubmitted] = useState(false);
+  // The round's session token, for both the leaderboard save and the challenge link
+  // (taken on first use and kept for retries: the server spends it only once it judged the result)
+  const session = useRef<Promise<string | null> | null>(null);
+  const getToken = () => (session.current ??= takeGameSession(result.gameId));
   const bestKey = meta.bestKey;
   const oldBest = hbGet<number | null>(bestKey, null);
 
@@ -293,8 +297,12 @@ function ResultScreen({ result, meta, testId, onRetry, onBack }: {
         </button>
       </div>
 
+      <div style={{ marginTop: '14px' }}>
+        <ChallengeShare board={result.gameId} result={{ timeMs: result.timeMs, score: result.score }} getToken={getToken} />
+      </div>
+
       {!submitted && (
-        <HBSubmit result={result} onDismiss={() => setSubmitted(true)} />
+        <HBSubmit result={result} onDismiss={() => setSubmitted(true)} getToken={getToken} />
       )}
 
       {/* Leaderboard — always visible below the test, auto-switches with the active test */}
@@ -1163,7 +1171,18 @@ function MyBrainProfile({ onBack }: { onBack: () => void }) {
 
 export default function HumanBenchmark({ embedded }: { embedded?: boolean }) {
   const { t } = useLang();
-  const [active, setActive] = useState<TestId | 'mybrain' | null>(null);
+  const [active, setActive] = useState<TestId | 'mybrain' | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const id = new URLSearchParams(window.location.search).get('test');
+    return id && id in TEST_META ? id as TestId : null;
+  });
+  const incoming = useIncomingChallenge();
+  const challengeTest = incoming?.board.startsWith('hb_') ? incoming.board.slice(3) : null;
+  const [openedChallenge, setOpenedChallenge] = useState<string | null>(null);
+  if (challengeTest && openedChallenge !== challengeTest && challengeTest in TEST_META) {
+    setOpenedChallenge(challengeTest);
+    setActive(challengeTest as TestId);
+  }
   const [bests, setBests] = useState<Record<string, number | null>>({});
 
   useEffect(() => {
