@@ -240,6 +240,15 @@ export async function POST(req: NextRequest) {
       await logReject({ ...base, reason: 'token_reused', device: dev });
       return refuse('token_used', 409);
     }
+    // Daily challenge with one try: the first round this device sends is the only one that counts
+    if (config.firstAttemptOnly) {
+      const firstKey = K.firstTry(game, dev);
+      const set = await redis.set(firstKey, session.nonce, { nx: true, ex: 2 * 24 * 60 * 60 });
+      if (set !== 'OK' && (await redis.get<string>(firstKey)) !== session.nonce) {
+        await logReject({ ...base, reason: 'daily_done', device: dev });
+        return refuse('daily_done', 409);
+      }
+    }
     // Remember the believable round, so it can still be shared after the token is spent
     await saveVerified(session.nonce, {
       board: game, timeMs: Math.round(timeMs * 10) / 10, score: verdict.score, moves: verdict.moves,

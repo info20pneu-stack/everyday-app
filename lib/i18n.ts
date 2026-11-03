@@ -318,6 +318,7 @@ export type Translations = {
     name_sudokuCube: string;
     name_breathing: string;
     name_followGold: string;
+    name_shells: string;
     desc_memory: string;
     desc_wordchain: string;
     desc_flagquiz: string;
@@ -336,6 +337,7 @@ export type Translations = {
     desc_sudokuCube: string;
     desc_breathing: string;
     desc_followGold: string;
+    desc_shells: string;
   };
   heroTiles: {
     tagline: string;
@@ -780,6 +782,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Sudoku Cube',
       name_breathing: 'Box Breathing',
       name_followGold: 'Follow the Gold',
+      name_shells: 'Shells',
       desc_memory: 'Find matching flag pairs as fast as you can',
       desc_wordchain: 'Remember a growing chain of words',
       desc_flagquiz: 'Guess countries by their flags',
@@ -798,6 +801,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku wrapped around a 3D cube',
       desc_breathing: 'Calm down with guided box breathing',
       desc_followGold: 'Keep your eye on the gold ball as it shuffles',
+      desc_shells: 'Find the ball under the shuffled porcelain cups',
     },
     heroTiles: {
       tagline: 'Everything you need. Every day.',
@@ -1337,6 +1341,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Sudoku-Würfel',
       name_breathing: 'Box-Atmung',
       name_followGold: 'Folge dem Gold',
+      name_shells: 'Hütchenspiel',
       desc_memory: 'Finde Flaggenpaare so schnell wie möglich',
       desc_wordchain: 'Merke dir eine wachsende Wortkette',
       desc_flagquiz: 'Erkenne Länder an ihren Flaggen',
@@ -1355,6 +1360,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku rund um einen 3D-Würfel',
       desc_breathing: 'Komm mit geführter Box-Atmung zur Ruhe',
       desc_followGold: 'Behalte die goldene Kugel beim Mischen im Blick',
+      desc_shells: 'Finde die Kugel unter den gemischten Porzellanbechern',
     },
     heroTiles: {
       tagline: 'Alles, was du brauchst. Jeden Tag.',
@@ -1894,6 +1900,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Cubo Sudoku',
       name_breathing: 'Respirazione quadrata',
       name_followGold: 'Segui l’oro',
+      name_shells: 'Tre bicchieri',
       desc_memory: 'Trova le coppie di bandiere il più in fretta possibile',
       desc_wordchain: 'Ricorda una catena di parole sempre più lunga',
       desc_flagquiz: 'Indovina i paesi dalle bandiere',
@@ -1912,6 +1919,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku avvolto attorno a un cubo 3D',
       desc_breathing: 'Rilassati con la respirazione guidata',
       desc_followGold: 'Non perdere di vista la pallina d’oro',
+      desc_shells: 'Trova la pallina sotto i bicchieri di porcellana',
     },
     heroTiles: {
       tagline: 'Tutto ciò che ti serve. Ogni giorno.',
@@ -2451,6 +2459,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Cube Sudoku',
       name_breathing: 'Respiration carrée',
       name_followGold: 'Suis la bille d’or',
+      name_shells: 'Bonneteau',
       desc_memory: 'Trouve les paires de drapeaux au plus vite',
       desc_wordchain: 'Retiens une chaîne de mots qui s’allonge',
       desc_flagquiz: 'Devine les pays grâce à leurs drapeaux',
@@ -2469,6 +2478,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Un sudoku autour d’un cube 3D',
       desc_breathing: 'Apaise-toi avec la respiration guidée',
       desc_followGold: 'Garde l’œil sur la bille dorée pendant le mélange',
+      desc_shells: 'Retrouve la bille sous les gobelets en porcelaine',
     },
     heroTiles: {
       tagline: 'Tout ce dont tu as besoin. Chaque jour.',
@@ -3008,6 +3018,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Sudoku kostka',
       name_breathing: 'Dýchání do čtverce',
       name_followGold: 'Sleduj zlatou',
+      name_shells: 'Skořápky',
       desc_memory: 'Najdi páry vlajek co nejrychleji',
       desc_wordchain: 'Zapamatuj si rostoucí řetěz slov',
       desc_flagquiz: 'Poznej země podle vlajek',
@@ -3026,6 +3037,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku obtočené kolem 3D kostky',
       desc_breathing: 'Zklidni se řízeným dýcháním',
       desc_followGold: 'Nespusť zlatou kuličku z očí, když se míchá',
+      desc_shells: 'Najdi kuličku pod zamíchanými porcelánovými kalíšky',
     },
     heroTiles: {
       tagline: 'Vše, co potřebuješ. Každý den.',
@@ -3565,6 +3577,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Cubo Sudoku',
       name_breathing: 'Respiración cuadrada',
       name_followGold: 'Sigue la dorada',
+      name_shells: 'Trile',
       desc_memory: 'Encuentra parejas de banderas lo más rápido posible',
       desc_wordchain: 'Recuerda una cadena de palabras que crece',
       desc_flagquiz: 'Adivina países por sus banderas',
@@ -3583,6 +3596,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku alrededor de un cubo 3D',
       desc_breathing: 'Cálmate con respiración guiada',
       desc_followGold: 'No pierdas de vista la bola dorada al mezclarse',
+      desc_shells: 'Encuentra la bola bajo los vasos de porcelana',
     },
     heroTiles: {
       tagline: 'Todo lo que necesitas. Cada día.',
@@ -4122,6 +4136,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Kostka sudoku',
       name_breathing: 'Oddech w kwadracie',
       name_followGold: 'Śledź złotą',
+      name_shells: 'Trzy kubki',
       desc_memory: 'Znajdź pary flag jak najszybciej',
       desc_wordchain: 'Zapamiętaj rosnący łańcuch słów',
       desc_flagquiz: 'Rozpoznaj kraje po flagach',
@@ -4140,6 +4155,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku owinięte wokół kostki 3D',
       desc_breathing: 'Uspokój się dzięki prowadzonemu oddechowi',
       desc_followGold: 'Nie spuszczaj oka ze złotej kulki podczas mieszania',
+      desc_shells: 'Znajdź kulkę pod pomieszanymi porcelanowymi kubkami',
     },
     heroTiles: {
       tagline: 'Wszystko, czego potrzebujesz. Każdego dnia.',
@@ -4679,6 +4695,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Cubo Sudoku',
       name_breathing: 'Respiração quadrada',
       name_followGold: 'Segue a dourada',
+      name_shells: 'Jogo dos copos',
       desc_memory: 'Encontra pares de bandeiras o mais rápido possível',
       desc_wordchain: 'Memoriza uma cadeia de palavras crescente',
       desc_flagquiz: 'Adivinha países pelas bandeiras',
@@ -4697,6 +4714,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Sudoku à volta de um cubo 3D',
       desc_breathing: 'Acalma-te com respiração guiada',
       desc_followGold: 'Não percas de vista a bola dourada na baralhação',
+      desc_shells: 'Encontra a bola debaixo dos copos de porcelana',
     },
     heroTiles: {
       tagline: 'Tudo o que precisas. Todos os dias.',
@@ -5236,6 +5254,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'Судоку-куб',
       name_breathing: 'Квадратное дыхание',
       name_followGold: 'Следи за золотым',
+      name_shells: 'Напёрстки',
       desc_memory: 'Найди пары флагов как можно быстрее',
       desc_wordchain: 'Запомни растущую цепочку слов',
       desc_flagquiz: 'Угадай страны по флагам',
@@ -5254,6 +5273,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'Судоку вокруг 3D-куба',
       desc_breathing: 'Успокойся с помощью дыхательной практики',
       desc_followGold: 'Не упусти золотой шарик, пока шарики перемешиваются',
+      desc_shells: 'Найди шарик под перемешанными фарфоровыми стаканчиками',
     },
     heroTiles: {
       tagline: 'Всё, что нужно. Каждый день.',
@@ -5793,6 +5813,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: '数独魔方',
       name_breathing: '方块呼吸',
       name_followGold: '紧盯金球',
+      name_shells: '猜杯子',
       desc_memory: '尽快找出成对的国旗',
       desc_wordchain: '记住不断变长的词语链',
       desc_flagquiz: '看国旗猜国家',
@@ -5811,6 +5832,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '包裹在 3D 立方体上的数独',
       desc_breathing: '跟随引导呼吸放松身心',
       desc_followGold: '洗牌时紧盯那颗金色小球',
+      desc_shells: '在打乱的瓷杯下找出小球',
     },
     heroTiles: {
       tagline: '你需要的一切，每一天。',
@@ -6350,6 +6372,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: '数独キューブ',
       name_breathing: 'ボックス呼吸',
       name_followGold: '金の玉を追え',
+      name_shells: 'カップシャッフル',
       desc_memory: '国旗のペアをできるだけ早く見つけよう',
       desc_wordchain: '伸びていく単語の列を覚えよう',
       desc_flagquiz: '国旗から国を当てよう',
@@ -6368,6 +6391,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '3Dキューブを包む数独',
       desc_breathing: 'ガイド付き呼吸でリラックス',
       desc_followGold: 'シャッフル中も金の玉から目を離すな',
+      desc_shells: 'シャッフルされた陶器のカップから玉を探そう',
     },
     heroTiles: {
       tagline: '必要なものすべてを、毎日。',
@@ -6907,6 +6931,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: '스도쿠 큐브',
       name_breathing: '박스 호흡',
       name_followGold: '황금 공을 쫓아라',
+      name_shells: '컵 셔플',
       desc_memory: '국기 짝을 최대한 빨리 찾으세요',
       desc_wordchain: '점점 길어지는 단어 사슬을 기억하세요',
       desc_flagquiz: '국기를 보고 나라를 맞히세요',
@@ -6925,6 +6950,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '3D 큐브를 감싼 스도쿠',
       desc_breathing: '호흡 가이드로 마음을 진정하세요',
       desc_followGold: '섞이는 동안 황금 공에서 눈을 떼지 마세요',
+      desc_shells: '섞인 도자기 컵 아래에서 공을 찾으세요',
     },
     heroTiles: {
       tagline: '필요한 모든 것, 매일.',
@@ -7464,6 +7490,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'مكعب سودوكو',
       name_breathing: 'التنفس المربع',
       name_followGold: 'تتبّع الذهبية',
+      name_shells: 'لعبة الأكواب',
       desc_memory: 'اعثر على أزواج الأعلام بأسرع ما يمكن',
       desc_wordchain: 'احفظ سلسلة كلمات تزداد طولًا',
       desc_flagquiz: 'خمّن الدول من أعلامها',
@@ -7482,6 +7509,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: 'سودوكو حول مكعب ثلاثي الأبعاد',
       desc_breathing: 'استرخِ مع تمرين تنفس موجّه',
       desc_followGold: 'لا تُبعد عينك عن الكرة الذهبية أثناء الخلط',
+      desc_shells: 'اعثر على الكرة تحت الأكواب الخزفية المخلوطة',
     },
     heroTiles: {
       tagline: 'كل ما تحتاجه. كل يوم.',
@@ -8021,6 +8049,7 @@ const t: Record<Lang, Translations> = {
       name_sudokuCube: 'सुडोकू क्यूब',
       name_breathing: 'बॉक्स ब्रीदिंग',
       name_followGold: 'सुनहरी को देखो',
+      name_shells: 'कप और गेंद',
       desc_memory: 'झंडों के जोड़े जितनी जल्दी हो सके खोजें',
       desc_wordchain: 'बढ़ती शब्द-श्रृंखला याद रखें',
       desc_flagquiz: 'झंडे देखकर देश पहचानें',
@@ -8039,6 +8068,7 @@ const t: Record<Lang, Translations> = {
       desc_sudokuCube: '3D क्यूब पर लिपटा सुडोकू',
       desc_breathing: 'गाइडेड साँस से मन शांत करें',
       desc_followGold: 'मिलाते समय सुनहरी गेंद पर नज़र रखें',
+      desc_shells: 'मिलाए गए चीनी मिट्टी के कपों के नीचे गेंद ढूँढें',
     },
     heroTiles: {
       tagline: 'आपकी ज़रूरत की हर चीज़। हर दिन।',

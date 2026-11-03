@@ -1,5 +1,6 @@
 import type { Translations } from './i18n';
 import { MAX_ROUNDS as FOLLOW_GOLD_MAX, minPlayMsForScore as followGoldMinMs } from './games/followGold';
+import { checkShells, MAX_LEVELS as SHELLS_MAX_LEVELS, BASE_POINTS as SHELLS_POINTS, MAX_MULT as SHELLS_MULT } from './games/shells';
 
 /* ═══════════════════════ Leaderboard config ═══════════════════════
    One entry per leaderboard game id. The API derives validation and sort order from this.
@@ -25,6 +26,8 @@ export interface LeaderboardConfig {
   limits: ScoreLimits;
   /** The server recomputes the result from the moves the client sends (daily games with a fixed solution). */
   verified?: 'wordle' | 'connectfour' | 'higherlower';
+  /** Daily boards: only the first result a device sends counts (later ones are refused). */
+  firstAttemptOnly?: boolean;
 }
 
 /* ═══════════════════════ Anti-cheat limits ═══════════════════════
@@ -42,6 +45,8 @@ export interface ScoreLimits {
   maxScorePerSec?: number;
   /** Points games: shortest believable real time for a given score (e.g. rounds with a fixed length). */
   minPlayMsForScore?: (score: number) => number;
+  /** Game-specific check of score, moves and real time; returns why it is implausible, or null. */
+  check?: (c: { score: number; moves?: number; realMs: number }) => string | null;
 }
 
 /** The claimed time may exceed the real time only by this much (clock and network jitter). */
@@ -57,6 +62,10 @@ function points(minPlayMs: number, maxScore: number, maxScorePerSec: number, ext
   return { ...POINTS, limits: { minPlayMs, maxScore, maxScorePerSec }, ...extra };
 }
 const wordle = () => points(3000, 6, 2, { verified: 'wordle' });
+const SHELLS_MAX = SHELLS_MAX_LEVELS * SHELLS_POINTS * SHELLS_MULT;
+function shellsBoard(extra: Partial<LeaderboardConfig> = {}): LeaderboardConfig {
+  return { ...POINTS, limits: { minPlayMs: 3000, maxScore: SHELLS_MAX, maxScorePerSec: 120, check: checkShells }, ...extra };
+}
 
 export const LEADERBOARD_GAMES = {
   /* Daily challenge + speed games */
@@ -92,6 +101,10 @@ export const LEADERBOARD_GAMES = {
   sudokucube: time(8000, 8000, { variants: true, daily: true, regional: true }),
   // Rounds cleared; every round takes at least its countdown + all shuffle moves (lib/games/followGold.ts)
   followgold: { ...points(4000, FOLLOW_GOLD_MAX, 0.5), limits: { minPlayMs: 4000, maxScore: FOLLOW_GOLD_MAX, maxScorePerSec: 0.5, minPlayMsForScore: followGoldMinMs } },
+  // Shells: score with levels cleared as `moves`; every level has a minimum length (lib/games/shells.ts).
+  // Normal game (weekly + all-time) and the daily challenge `shells_daily_<yyyymmdd>` (first attempt only)
+  shells: shellsBoard(),
+  shells_daily: shellsBoard({ variants: true, daily: true, firstAttemptOnly: true }),
 } satisfies Record<string, LeaderboardConfig>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;
@@ -190,6 +203,8 @@ export interface CatalogGame {
   soon?: boolean;
   /** Leaderboard id the game reports to. */
   leaderboard?: LeaderboardGameId;
+  /** Separate daily-challenge board (stored as `<id>_<yyyymmdd>`), e.g. 'shells_daily'. */
+  dailyLeaderboard?: LeaderboardGameId;
 }
 
 export const GAMES_CATALOG: CatalogGame[] = [
@@ -206,6 +221,8 @@ export const GAMES_CATALOG: CatalogGame[] = [
     nameKey: 'gamesHub.name_sudokuCube', descKey: 'gamesHub.desc_sudokuCube', leaderboard: 'sudokucube' },
   { id: 'follow-gold', section: 'mini', duration: '2', icon: '🟡', color: '#F5B829', addedAt: '2026-11-03', route: '/games/follow-gold',
     nameKey: 'gamesHub.name_followGold', descKey: 'gamesHub.desc_followGold', leaderboard: 'followgold' },
+  { id: 'shells', section: 'mini', duration: '2', icon: '🥜', color: '#E2B04A', addedAt: '2026-11-03', route: '/games/shells',
+    nameKey: 'gamesHub.name_shells', descKey: 'gamesHub.desc_shells', leaderboard: 'shells', dailyLeaderboard: 'shells_daily' },
   { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', addedAt: '2026-05-24', route: '/daily-games?play=memory',
     nameKey: 'games.memory', descKey: 'gamesHub.desc_memory', leaderboard: 'memory' },
   { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', addedAt: '2026-05-24', route: '/daily-games?play=sliding',

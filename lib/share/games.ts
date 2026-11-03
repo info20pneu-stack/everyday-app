@@ -92,6 +92,10 @@ export function shareGame(board: string): ShareGame | null {
       name: () => info?.name ?? 'Human Benchmark',
     };
   }
+  const daily = GAMES_CATALOG.find(g => g.dailyLeaderboard === base);
+  if (daily) {
+    return { catalog: daily, icon: daily.icon, color: daily.color, route: `${daily.route}?mode=daily`, name: t => gameText(t, daily.nameKey) };
+  }
   const c = GAMES_CATALOG.find(g => g.leaderboard === base) ?? (base === 'stack' ? catalog('sky-tower') : null);
   if (!c) return null;
   return { catalog: c, icon: c.icon, color: c.color, route: c.route, name: t => gameText(t, c.nameKey) };

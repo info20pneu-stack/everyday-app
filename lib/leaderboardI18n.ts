@@ -4,7 +4,7 @@ import type { Lang } from './i18n';
 
 export type LbErrorCode =
   | 'nick_taken' | 'nick_invalid' | 'nick_rude' | 'nick_limit' | 'rate_limited'
-  | 'no_session' | 'no_device' | 'token_used' | 'implausible' | 'banned';
+  | 'no_session' | 'no_device' | 'token_used' | 'implausible' | 'banned' | 'daily_done';
 
 type Msgs = Record<LbErrorCode, string>;
 
@@ -19,6 +19,7 @@ const en: Msgs = {
   token_used: 'This result has already been submitted.',
   implausible: "This result couldn't be verified.",
   banned: "Scores can't be saved from this device or with this nickname.",
+  daily_done: "Only your first attempt at today's challenge counts.",
 };
 
 const STRINGS: Record<Lang, Msgs> = {
@@ -34,6 +35,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Dieses Ergebnis wurde schon gesendet.',
     implausible: 'Dieses Ergebnis konnte nicht bestätigt werden.',
     banned: 'Von diesem Gerät oder mit diesem Nickname können keine Ergebnisse gespeichert werden.',
+    daily_done: 'Bei der heutigen Herausforderung zählt nur dein erster Versuch.',
   },
   it: {
     nick_taken: 'Questo nickname è già usato da qualcun altro.',
@@ -46,6 +48,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Questo risultato è già stato inviato.',
     implausible: 'Non è stato possibile verificare questo risultato.',
     banned: 'Da questo dispositivo o con questo nickname non si possono salvare punteggi.',
+    daily_done: 'Per la sfida di oggi conta solo il primo tentativo.',
   },
   fr: {
     nick_taken: 'Ce pseudo est déjà utilisé par quelqu’un.',
@@ -58,6 +61,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Ce résultat a déjà été envoyé.',
     implausible: 'Ce résultat n’a pas pu être vérifié.',
     banned: 'Impossible d’enregistrer des scores depuis cet appareil ou avec ce pseudo.',
+    daily_done: 'Pour le défi du jour, seul ton premier essai compte.',
   },
   cs: {
     nick_taken: 'Tento nick už někdo používá.',
@@ -70,6 +74,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Tento výsledek už byl odeslán.',
     implausible: 'Tento výsledek se nepodařilo ověřit.',
     banned: 'Z tohoto zařízení nebo s tímto nickem nejde ukládat skóre.',
+    daily_done: 'U dnešní výzvy se počítá jen první pokus.',
   },
   es: {
     nick_taken: 'Alguien ya usa este apodo.',
@@ -82,6 +87,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Este resultado ya se envió.',
     implausible: 'No se pudo verificar este resultado.',
     banned: 'No se pueden guardar puntuaciones desde este dispositivo o con este apodo.',
+    daily_done: 'En el reto de hoy solo cuenta tu primer intento.',
   },
   pl: {
     nick_taken: 'Ktoś już używa tego nicku.',
@@ -94,6 +100,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Ten wynik został już wysłany.',
     implausible: 'Nie udało się zweryfikować tego wyniku.',
     banned: 'Z tego urządzenia lub z tym nickiem nie można zapisywać wyników.',
+    daily_done: 'W dzisiejszym wyzwaniu liczy się tylko pierwsza próba.',
   },
   pt: {
     nick_taken: 'Alguém já usa este nome.',
@@ -106,6 +113,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Este resultado já foi enviado.',
     implausible: 'Não foi possível verificar este resultado.',
     banned: 'Não é possível guardar pontuações a partir deste dispositivo ou com este nome.',
+    daily_done: 'No desafio de hoje só conta a primeira tentativa.',
   },
   ru: {
     nick_taken: 'Этот ник уже кто-то использует.',
@@ -118,6 +126,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'Этот результат уже отправлен.',
     implausible: 'Не удалось проверить этот результат.',
     banned: 'С этого устройства или с этим ником нельзя сохранять результаты.',
+    daily_done: 'В сегодняшнем испытании засчитывается только первая попытка.',
   },
   zh: {
     nick_taken: '这个昵称已经有人使用了。',
@@ -130,6 +139,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: '这个成绩已经提交过了。',
     implausible: '无法验证这个成绩。',
     banned: '无法从此设备或使用此昵称保存成绩。',
+    daily_done: '今日挑战只计算你的第一次尝试。',
   },
   ja: {
     nick_taken: 'このニックネームはすでに使われています。',
@@ -142,6 +152,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'この結果はすでに送信されています。',
     implausible: 'この結果を確認できませんでした。',
     banned: 'この端末またはこのニックネームではスコアを保存できません。',
+    daily_done: '今日のチャレンジは最初の挑戦だけが記録されます。',
   },
   ko: {
     nick_taken: '이미 누군가 사용 중인 닉네임이에요.',
@@ -154,6 +165,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: '이미 제출된 결과예요.',
     implausible: '이 결과를 확인하지 못했어요.',
     banned: '이 기기나 이 닉네임으로는 점수를 저장할 수 없어요.',
+    daily_done: '오늘의 도전은 첫 번째 시도만 기록돼요.',
   },
   ar: {
     nick_taken: 'هذا الاسم المستعار يستخدمه شخص آخر.',
@@ -166,6 +178,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'تم إرسال هذه النتيجة من قبل.',
     implausible: 'تعذّر التحقق من هذه النتيجة.',
     banned: 'لا يمكن حفظ النتائج من هذا الجهاز أو بهذا الاسم المستعار.',
+    daily_done: 'في تحدي اليوم تُحتسب محاولتك الأولى فقط.',
   },
   hi: {
     nick_taken: 'यह निकनेम पहले से कोई इस्तेमाल कर रहा है।',
@@ -178,6 +191,7 @@ const STRINGS: Record<Lang, Msgs> = {
     token_used: 'यह नतीजा पहले ही भेजा जा चुका है।',
     implausible: 'यह नतीजा सत्यापित नहीं हो सका।',
     banned: 'इस डिवाइस से या इस निकनेम से स्कोर सेव नहीं किए जा सकते।',
+    daily_done: 'आज की चुनौती में सिर्फ़ आपका पहला प्रयास गिना जाता है।',
   },
 };
 

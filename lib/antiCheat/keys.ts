@@ -23,6 +23,8 @@ export const K = {
   verified: (nonce: string) => `${LB_PREFIX}:vr:${nonce}`,
   /** Shared result behind a /s/<id> link. */
   share: (id: string) => `${LB_PREFIX}:share:${id}`,
+  /** Daily board with `firstAttemptOnly`: the session nonce of the device's first result. */
+  firstTry: (board: string, device: string) => `${LB_PREFIX}:first:${board}:${device}`,
   /** Session nonce → its share id (one link per round). */
   shareByNonce: (nonce: string) => `${LB_PREFIX}:sharen:${nonce}`,
 };
