@@ -2,6 +2,7 @@ import { TIME_SLACK_MS, type LeaderboardConfig } from '../gamesCatalog';
 import { buildPairs, ROUNDS as HL_ROUNDS } from '../games/higherLowerData';
 import { wordleTarget } from '../games/wordleWords';
 import type { Session } from './session';
+import { MIN_MS_PER_PAIR, replayDaily } from '../games/mahjong';
 
 /* Is a submitted result believable? Checks the real play time (server clock, from the session
    token), the limits of the game (lib/gamesCatalog.ts) and — for the daily games with a fixed
@@ -85,6 +86,7 @@ function verifyMoves(kind: NonNullable<LeaderboardConfig['verified']>, claim: Cl
   const proof = (claim.proof && typeof claim.proof === 'object' ? claim.proof : {}) as Record<string, unknown>;
   if (kind === 'wordle') return verifyWordle(claim.game, proof, now);
   if (kind === 'connectfour') return verifyConnectFour(proof);
+  if (kind === 'mahjong') return verifyMahjong(claim.game, claim.proof, claim.timeMs);
   return verifyHigherLower(claim.game, proof);
 }
 
@@ -127,6 +129,17 @@ function verifyConnectFour(p: Record<string, unknown>): Verdict {
   }
   if (solved.size !== 4) return bad('proof_mismatch', 'not solved');
   return { ok: true, moves: guesses.length };
+}
+
+/** mahjong_daily_<yyyymmdd>: proof = the moves ([tileA, tileB] pairs and 'S' for a reshuffle).
+ *  The server deals the day's table itself and replays them; the table must end empty. */
+function verifyMahjong(game: string, proof: unknown, timeMs: number): Verdict {
+  const m = /_(\d{4})(\d{2})(\d{2})$/.exec(game);
+  if (!m) return bad('bad_proof', 'mahjong board');
+  const r = replayDaily(`${m[1]}-${m[2]}-${m[3]}`, proof);
+  if (!r.ok) return bad('proof_mismatch', `mahjong: ${r.why}`);
+  if (timeMs < r.pairs * MIN_MS_PER_PAIR) return bad('time_too_low', `${Math.round(timeMs)} ms for ${r.pairs} pairs`);
+  return { ok: true, moves: r.pairs };
 }
 
 /** higherlower_<yyyymmdd>: { answers: [true = "higher", …] } for the day's 10 pairs. */

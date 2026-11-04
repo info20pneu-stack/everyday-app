@@ -25,7 +25,7 @@ export interface LeaderboardConfig {
   /** Plausibility limits checked by the server before a score is saved (lib/antiCheat). */
   limits: ScoreLimits;
   /** The server recomputes the result from the moves the client sends (daily games with a fixed solution). */
-  verified?: 'wordle' | 'connectfour' | 'higherlower';
+  verified?: 'wordle' | 'connectfour' | 'higherlower' | 'mahjong';
   /** Daily boards: only the first result a device sends counts (later ones are refused). */
   firstAttemptOnly?: boolean;
 }
@@ -108,6 +108,8 @@ export const LEADERBOARD_GAMES = {
   // Balloon Pop: "Time" lasts 60 s; at most ~3 balloons a second × 30 points × combo 5 → 200 points/s is generous
   balloontime: points(60000, 15000, 200),
   balloonsurv: points(3000, 30000, 200),
+  // Mahjong daily challenge: time to clear the table; the server replays the moves (lib/games/mahjong.ts)
+  mahjong_daily: time(10000, 10000, { variants: true, daily: true, firstAttemptOnly: true, verified: 'mahjong' }),
 } satisfies Record<string, LeaderboardConfig>;
 
 export type LeaderboardGameId = keyof typeof LEADERBOARD_GAMES;
@@ -231,6 +233,8 @@ export const GAMES_CATALOG: CatalogGame[] = [
   { id: 'balloon-pop', section: 'mini', duration: '2', icon: '🎈', color: '#E8735A', addedAt: '2026-11-03', route: '/games/balloon-pop',
     nameKey: 'gamesHub.name_balloonPop', descKey: 'gamesHub.desc_balloonPop', leaderboard: 'balloontime',
     altLeaderboards: { balloontime: 'mode=time', balloonsurv: 'mode=surv' } },
+  { id: 'mahjong', section: 'mini', duration: '10+', icon: '🀄', color: '#10B981', addedAt: '2026-11-03', route: '/games/mahjong',
+    nameKey: 'gamesHub.name_mahjong', descKey: 'gamesHub.desc_mahjong', dailyLeaderboard: 'mahjong_daily' },
   { id: 'memory', section: 'mini', duration: '5', icon: '🃏', color: '#A78BFA', addedAt: '2026-05-24', route: '/daily-games?play=memory',
     nameKey: 'games.memory', descKey: 'gamesHub.desc_memory', leaderboard: 'memory' },
   { id: 'sliding', section: 'mini', duration: '5', icon: '🧩', color: '#F472B6', addedAt: '2026-05-24', route: '/daily-games?play=sliding',
